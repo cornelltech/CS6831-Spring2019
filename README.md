@@ -50,19 +50,23 @@ questions about your understanding of Boneh-Shoup Section 2.4.
 
 The class will involve two main deliverables. One will be scribe notes. The goal
 will be to have a complete set of notes for future reference. We will figure out
-early on the schedule of scribe notes. Each student will be responsible for
-delivering one or more complete writeup of a lecture topic.  This will notably
+early on the scribing schedule. Each student will be responsible for
+delivering one or more complete writeups of lecture topic(s).  This will notably
 include finished, precise proofs that may be only covered at a high level in
 class, accompanied by beautiful English prose.  
 
-Second will be a semester project, the goal being a publication-worthy result in
-applied cryptography. The project deliverable will be a short report together
-with a one-on-one oral discussion (possibly over Zoom) with the me about the
-result. A paper worked on with others can substitute for the short report,
-though you will need to identify your specific contributions.  The one-on-one
-discussion will allow you to gain practice describing your work in a
-professional setting, allow me to assess what you've learned from the class, and
-help determine your final grade. 
+Second will be a semester project, the aspirational goal being a
+publication-worthy result in applied cryptography. The project deliverable will
+be a short report together with a one-on-one oral discussion (possibly over
+Zoom) with the me about the result. A paper worked on with others can substitute
+for the short report, though you will need to identify your specific
+contributions.  The one-on-one discussion will allow you to gain practice
+describing your work in a professional setting, allow me to assess what you've
+learned from the class, and help determine your final grade. 
+
+I may also point out problems or omitted proofs that you will want to work on to
+solidify your understanding of material. These will be ungraded, but I can give
+you feedback if you desire. 
 
 Grades will be assigned according to the following breakdown:
 
@@ -74,8 +78,8 @@ Grades will be assigned according to the following breakdown:
 ### Background reading
 
 One of the goals of the course will be to produce lecture notes on this content
-useful for others. The following references will be used throughout the course,
-particularly the Boneh-Shoup book and Bellare-Rogaway notes.
+useful for others. The following excellent references will be useful throughout the course,
+particularly the Boneh-Shoup book and Bellare-Rogaway notes. 
 
 * [A Graduate Course in Cryptography](https://crypto.stanford.edu/~dabo/cryptobook/BonehShoup_0_4.pdf).
    Boneh-Shoup book. A mixture of asymptotic and concrete security.
