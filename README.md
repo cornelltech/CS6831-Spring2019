@@ -41,8 +41,9 @@ and doing so would unfairly sacrifice content from the PhD students.  Usually we
 teach a masters level course that covers a subset of this material at a more
 suitable pace, but unfortunately that's not possible this year. 
 
-With that set of warnings in place, Cornell Tech students should talk to me if they
-want to take the class. 
+With that set of warnings in place, Cornell Tech students should talk to me if
+they want to take the class after the first lecture.  Be prepared to answer some
+questions about your understanding of Boneh-Shoup Section 2.4.
 
 
 ### Requirements
