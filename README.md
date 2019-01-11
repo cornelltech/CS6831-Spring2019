@@ -1,6 +1,6 @@
 # Syllabus for CS 6831
 
-Welcome to CS 6831, Designing Securey Cryptography. We will be learning about
+Welcome to CS 6831, Designing Secure Cryptography. We will be learning about
 the modern theory and practice of the cryptographic tools deployed to protect
 contemporary computing systems. In addition to learning more about the types of
 cryptographic tools currently used, we will be focusing on understanding the
