@@ -12,6 +12,11 @@ will be highlighted throughout.
 
 Instructor: Tom Ristenpart (https://rist.tech.cornell.edu)
 
+Time: 1:55pm-3:10pm M/W
+
+NYC classroom: Bloomberg 091
+
+Ithaca classroom: Gates 405
 
 ### Pre-requisites
 
