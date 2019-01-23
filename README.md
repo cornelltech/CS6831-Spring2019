@@ -112,7 +112,7 @@ what we're hoping to cover.
 |------|---------|--------|
 | Jan 23 | Intro |  |
 | Jan 28 | Block ciphers, PRPs, PRFs |  |
-| Jan 20 | Cryptanalysis, frequency attacks |  |
+| Jan 30 | Cryptanalysis, frequency attacks |  |
 | Feb 4 |  PRGs, Block cipher modes |  |
 | Feb 6 |  Message authentication, universal hashing | |
 | Feb 11 | Authenticated encryption |  |
