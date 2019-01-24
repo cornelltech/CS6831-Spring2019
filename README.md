@@ -110,7 +110,7 @@ what we're hoping to cover.
 
 | Date |  Topic  |  Note |
 |------|---------|--------|
-| Jan 23 | Intro |  |
+| Jan 23 | Intro |  [Slides](slides/intro-lec1.pdf) |
 | Jan 28 | Block ciphers, PRPs, PRFs |  |
 | Jan 30 | Cryptanalysis, frequency attacks |  |
 | Feb 4 |  PRGs, Block cipher modes |  |
