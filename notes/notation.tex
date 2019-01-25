@@ -1,0 +1,213 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Preliminaries and Notation}
+\label{sec:notation}
+
+We collect here some notation that we will use throughout these notes. 
+\tnote{If you introduce new notation in writing up a lecture, please consider
+adding it here.} 
+
+
+\paragraph{Basics.}
+We most often denote sets by calligraphic, capital letters, such as $\calX$,
+$\calY$, $\calZ$. A discrete probability distribution is a set $\Omega$, the
+event space, together with a
+function~$p\Colon\Omega\rightarrow[0,1]$ for which $\sum_{\omega\in\Omega}
+p_\Omega(\omega) = 1$.
+We write $p_\Omega$ when we need to disambiguate the event space, but
+otherwise simply $p$ when $\Omega$ is clear from context. We will also,
+following convention, often write $\Pr[\omega]$ instead of $p(\omega)$.
+The support of $p$ is defined to be the set $\supp(p) = \{\omega \;|\; \omega
+\in \Omega \land p(\omega) > 0\}$, 
+i.e., the set of all points in $\Omega$ that have non-zero probability.  
+As a slight abuse of notation, we can write 
+$\Pr[\calS] = p(\calS) = \sum_{\omega\in\calS} p(\omega)$ for any set $\calS \subseteq \Omega$. 
+
+A random variable $X$ is a map $Y\Colon\Omega\rightarrow\calX$ from some event
+space $\Omega$ with associated probability distribution $p_\Omega$ over a  set
+$\Omega$. So for some other set $\calS$ we let $\Pr[X\in\calS] = \Pr[\{\omega
+\;|\; X(\omega) \in \calS\}]$ to be the probability that the random variable
+takes on a value in $\calS$, over the probability distribution $p_\Omega$.
+
+We use the language of probability as the foundation for formalizing
+cryptographic algorithms, security, and more. Interestingly the probability
+spaces involved get complicated quickly, and a common problem is that they end 
+ambiguous. We will therefore rely on a crutch that has proved quite useful for
+communicating, and reasoning about, probability distributions.
+
+
+\paragraph{Pseudocode games.} We fix some pseudocode language to describe
+security models, cryptographic algorithms, and more. Roughly we will follow the
+notational tradition established by Bellare and Rogaway in the
+2000s~\cite{bellare2006security}, but using slightly different syntax/symantecs that are
+based most closely on a treatment from~\cite{ristenpart2011careful}.  Code-based
+games are convenient for more precisely defining probability spaces, which are
+what we use to model security and correctness goals, algorithms, and more.  
+
+%We follow~\cite{BR06} 
+%with some differences.
+We will use procedures, variables, and typical
+programming statements (such as operators, loops, procedure calls, etc.).
+Typical statements are shown in \figref{fig:statements}.
+We do not provide a formal specification of the programming language,
+see~\cite[Appendix B]{bellare2006security} for an example of doing so. 
+%Games include
+%procedures, variables, and typical programming 
+%statements (operators, loops, etc.). 
+We will rely on some conventions to help make sense of games.
+Types should be understable
+from context. The names of syntactic objects (procedures, variables, etc.)
+must be distinct.  Variables are implicitly 
+initialized to default values:  integer variables are set
+to 0, arrays are everywhere~$\bot$, etc. Here $\bot$ is a distinguished symbol
+by tradition used to denote an error in the cryptographic literature.
+By distinguished we mean that it assumed to not be used for any other reason,
+not appearing in alphabets over which strings are taken, etc.
+
+
+\begin{wrapfigure}{r}{3in}
+\gamesfontsize
+\begin{tabular}{lp{2in}}
+\toprule
+$x \gets y$ & Assignment\\
+$x \getsr \calX$ & Uniform sampling from a set\\
+$z \getsr P(x,y)$ & Call a randomized procedure\\
+$z \gets P(x,y)$ & Call a deterministic procedure\\
+Ret $x$ & Return from a procedure\\
+$z \gets x \concat y$ & String concatenation\\
+$(x,y) \getparse{n} z$ & Parse string $z$ s.t.~$|x| = n$\\
+\bottomrule
+\end{tabular}
+\caption{Some statements used in our games.}
+\label{fig:statements}
+\end{wrapfigure}
+
+
+A \textit{procedure} is a sequence of statements together 
+with zero or more variable inputs and zero or more 
+outputs. %
+%Variables are by default local, meaning they can only be 
+%used within a single procedure, but they retain their state 
+%between calls to the procedure. %
+An \emph{unspecified procedure} is a procedure whose pseudocode, inputs, and
+outputs are understood from context.  We will see some examples of
+unspecified procedures, the most frequent in our security games being the 
+\emph{adversary} which is often left unspecified. 
+%
+%
+A call to a procedure requires providing it with inputs, running its sequence of
+statements, and returning its output. We will interchangeably use the term call
+and \emph{query} for procedure invocation.
+A procedure~$P$ can itself query other
+procedures. The set of procedures $Q_1,\ldots,Q_k$ called by a procedure are
+statically fixed, and we require that there are no type mismatches in inputs and
+outputs. 
+
+Say that the code of~$P$ expects to be able to call~$k$ distinct procedures.
+We will write $P^{Q_1,Q_2,\ldots,Q_k}$ to denote that these calls are
+handled by $Q_1,Q_2,\ldots,Q_k$ and implicitly assume (for all $i\in[k]$) that there are no
+syntactic mismatches between the calls that~$P$ makes to~$Q_i$ and the inputs
+of~$Q_i$, as well as between the return values of~$Q_i$
+and the return values expected by~$P$.   
+%We stress that~$P$ does not
+%call~$Q_i$ by name, but rather calls to a procedure that is
+%instantiated by~$Q_i$.
+
+We assume that all procedures eventually halt, regardless of randomness used, 
+returning their outputs, at which point execution returns to the 
+calling procedure.
+Two procedures~$P_1$ and~$P_2$ are said to 
+\emph{export the same interface} 
+if their inputs and outputs have the same number and types. 
+
+Variables will be local by default, meaning they can only be used within a
+single procedure. Variables are static, meaning that they retain their 
+state between calls to the procedure. It will be convenient to 
+allow sharing of variables at times, for which we use a 
+\textit{collection of procedures}. This is a set 
+of one or more procedures whose variables have scope covering all of the
+procedures. We will denote a collection of procedures using 
+a common prefix ending with a period, so for example~$(P.x,P.y,\ldots)$,
+Sometimes we will use the term interfaces for the specific prefixes of the a
+collection of procedures~$P$. 
+
+A \emph{main procedure} is a special procedure that takes no inputs and has some
+output.  We will mark it by \main{} (though below
+we'll see some syntactic sugar that provides greater brevity).  No procedure may
+call~\main{}, it can access all the variables of other specified procedures
+(though not unspecified procedures). 
+
+A game consists of a main procedure together with a set of zero or more
+specified procedures. We write $\G$ for a game. A game may also make use of
+unspecified procedures (such as adversaries), which we enumerate as
+superscripts, e.g., $\G^{P_1,P_2,\ldots,P_k}$. In most games used as security
+definitions, one (or more) of the unspecified procedures will be called the
+adversary, most often denoted by~$\advA$. For a given instantiation of the
+unspecified procedures, one can run a game: execute its
+statements starting with the designated \main{} procedure, and ultimately
+outputing whatever \main{} returns.  
+
+\paragraph{Run times and random variables.} Games can make random choices, due
+to the supported statements for sampling according to a distribution. We can
+associate to games a model of computation, which specifies how much running each
+(type of) statement costs in terms of time, memory, or both.   A typical model
+is to assign to each statement the same abstract unit cost, and the run time
+then becomes the number of statements executed in the course of the game. 
+When procedures are called, we attribute the unit cost of the call statement to
+the caller and the remaining cost of executing the procedure's statements to the
+callee. 
+
+By default we will require that games terminate in some finite number of
+steps~$\runtime$, and clarify explicitly when this does not hold. The number of
+queries made by the main procedure, or any other procedure for that matter
+including unspecified ones, is
+therefore also upper bound by $\runtime$. We  may often limit the number of
+queries made by an adversary to some maximum number $\numqueries \le \runtime$. 
+
+Given these finiteness conditions, we similarly know that there is a finite
+limit on the number of random samples made in a game. Since we restricted to 
+random sampling from finite sets, we have that for any game $\G$ 
+there is an event space~$\Omega_\G$ and an associated probability distribution
+defining the output of the game $\G$. Given our restrictions, $\Omega_\G$ is a
+set of possible values, the cross-product of all the random sampling procedures
+within $\G$. We sometimes refer to $\Omega_\G$ as the \emph{coins} of the game.
+For some fixed unspecified procedures
+$P_1,\ldots,P_k$ we denote the event that executing the game
+$\G^{P_1,\ldots,P_k}$ outputs a particular value $y$ by
+``$\G^{P_1,\ldots,P_k}\Rightarrow y$'' and the associated probability over
+$\Omega_\G$ is denoted $\Pr[\G^{P_1,\ldots,P_k}\Rightarrow y]$. When $y$ is clear
+from context we will omit it, writing instead $\Pr[\G^{P_1,\ldots,P_k}]$.  
+For example, we will often have games output a boolean and then
+$y$ will most often be the value \true.
+
+We can similarly associate to any variable within a game an event within
+$\Omega_\G$. These can also be equivalently considered to be random variables on
+domain $\Omega_G$. Our convention will be to overload notation, and define the
+event that a variable $X$ in a game $\G$ takes on a certain value $y$ as simply
+``$X = y$'' with associated probability $\Pr[X = y]$ over the coins of
+$\Omega_\G$. 
+
+
+\paragraph{Runnable games.}  We want to emphasize a point, which is that games
+are by our conventions above runnable. That means that, once any unspecified
+procedures are fixed, you could write a program in a conventional programming
+language, and actually run the game on a real computer. Obviously like with all
+abstract algorithms, the actual run times will vary, but assuming relative
+efficiency the game will complete.  
+
+It relatively frequently arises in proofs that one deviates from runnable games.
+A common example is logic of the following form. Let $\advA$ be an adversary,
+and consider a game $\G^\advA$. Remember we implicitly assume that $\advA$ is
+compatible with $\G$, and we have that $\G^\advA$ is runnable.  Now consider the
+set of all adversaries compatible with $\advA$, and let $\advA_{\max}$ be the
+member of this set that maximizes $\Pr[\G^\advA \Rightarrow \true]$. But now
+$\G^{\advA_{\max}}$ is no longer runnable, because $\advA_{\max}$ is not
+concretely specified. While mathematically $\advA_{\max}$ is well-defined, there
+is no clear way to write down its code, even given the code defining~$\advA$.
+We will try whenever possible to avoid such arguments, as they have various
+subtle implications that are, in general, not great for making 
+clear claims about security. 
+
+
+
+
+

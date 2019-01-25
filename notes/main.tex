@@ -1,0 +1,102 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% title:
+% authors:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fullver{0}
+\def\submission{1}
+\input{defs}
+
+
+
+\title{\textbf{Designing Secure Cryptography}}
+
+\author{
+  Cornell CS 6831 
+}
+
+
+\ifnum\submission=1
+\date{}
+\fi
+
+
+
+\begin{document}
+
+\maketitle
+
+
+\section*{Notes}
+
+\tnote{A couple notes for myself, will remove later.}
+\begin{itemize}
+  \item Fix a pseudocode language, including randomness, and an associated model
+    of computation. Treat memory usage as well as run times of algorithms. We
+    will most often treat memory as subservient to run-time, bounding the former
+    by the latter. But special treatments are needed. 
+    The goal is to have a simplified abstraction, but which
+    provides good predictions of running code.  Probably look at ``Careful with
+    Composition'' paper as starting point.
+
+ \item Algorithms are simply pseudocode that take input and produce an output.
+    Define what it means for algorithm to be runnable. Define adversaries
+    as algorithms and require they be runnable. Comment on how this interacts
+    with (and rules out) non-uniform reductions, other such things. 
+
+  \item  Algorithms can be parameterized, but this is just notational sugar. The result
+    must still be runnable. They may have oracles, and this defines some
+    interface.  Give conventions on resource usage of algorithms: number of
+    oracle queries, run time (with oracle queries unit cost), etc. Discuss how
+    runnable algorithms can then be composed. 
+
+  \item Associate probability space to any algorithm, be pedantic here since we
+    may want to prove some basic stuff via direct manipulation of probability
+    space (i.e., coin-counting arguments). 
+
+  
+  \item Introduce security definitions as special algorithms called games. The
+    game is just another algorithm parameterized by some adversary, scheme, etc.
+    Thus typically what we define as a game is actually a family of algorithms,
+    one for each instantiation of things. (How much notion of a template do we
+    need? Is this confusing?) It is used to measure adversarial advantage, a
+    which is a measure of success for an adversary.
+
+  \item Discuss the viewpoint underlying all the above. Security models are
+    coarse abstractions of real cryptographic systems. They must be coarse for
+    us to do certain kinds of analysis. This means that what we prove in our
+    formalizations do not typically apply to real systems. But they are a good
+    heuristic: schemes for which we have good analyses tend to provide better
+    security. We will therefore judge the value of models by their utility in
+    helping us build cryptographic schemes that resist attackers in practice.
+    We will include examples and discussions reinforcing this viewpoint along
+    the way. (One example to treat right away is asymptotics. Could be good
+    heuristic, but is often quite poor, and gives little advice about how to set security
+    parameters meaningfully.)
+
+  \item Discuss assumptions. These are formalized as games. What separates them
+    from security definitions is contextual. They are ``lower level'' and
+    less related to the goals of cryptographic protocols.  
+
+  \item Reductions are runnable algorithms. 
+
+  \item Using reductions to set security parameters. Maybe interleave some of
+    this discussion with first couple of chapters
+\end{itemize}
+
+
+\newpage
+\input{intro}
+\newpage
+\input{notation}
+\newpage
+\input{ciphers}
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{notes}
+
+
+\end{document}
+

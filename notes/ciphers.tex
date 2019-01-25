@@ -1,0 +1,145 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Ciphers and Initial Security Notions}
+\label{sec:se}
+
+\paragraph{Ciphers.}
+We start by defining a cipher. A cipher $\cipher = (\cipherE,\cipherD)$ is
+defined by a a pair of deterministic algorithms $\cipherE$ and $\cipherD$.  To
+any cipher $\cipher$ we associate sets called the key space $\keyspace$, message
+space $\msgspace$, and ciphertext space $\ctxtspace$. We do not surface in the
+notation for a cipher these sets, and will require that the association be clear
+from context.
+
+The algorithms are two-input. Enciphering takes a key $K \in \keyspace$ and
+message $M \in \msgspace$, and outputs a ciphertext $C \in \ctxtspace$. Because
+$\cipherE$ is deterministic, we can equally formalize it as a map 
+$\cipherE\Colon\keyspace\times\msgspace\rightarrow\ctxtspace$. For a given key
+$K$ we let $\cipherE_K\Colon\msgspace\rightarrow\ctxtspace$ be defined by
+$\cipherE_K(M) = \cipherE(K,M)$ for all $M \in \msgspace$.  Deciphering takes a key $K\in \keyspace$ and ciphertext
+$C \in \ctxtspace$ and outputs a message $M \in \msgspace$. Again, we can view
+it as a map $\cipherD\Colon\keyspace\times\ctxtspace\rightarrow\msgspace$. 
+
+Both $\cipherE$ and $\cipherD$ must be efficiently computable for all $K \in
+\keyspace$.  (We have not defined efficiently computable, and use the term here
+informally.) We require that a cipher be correct, meaning that for
+$\cipherD_K(\cipherE_K(M)) = M$ for all $M$. 
+
+\paragraph{Security notions.} What do we intuitively expect of a cipher?
+Minimally:
+\begin{itemize}
+\item Secret key should remain secret
+\item Message should remain secret
+\end{itemize}
+Let's try to formalize these notions.
+\begin{itemize}
+\item TKR security
+\item KR security
+\item (ot-)IND security
+\end{itemize}
+
+
+\begin{figure}[p]
+\fpage{.45}{
+\underline{$\TKR^\advA_\cipher$}\\[1pt]
+$K \getsr \keyspace$\\
+$K^* \getsr \advA^\Fn$\\
+Ret $(K = K^*)$\medskip
+
+\underline{$\Fn(M)$}\\
+$C \gets \cipherE_K(M)$\\
+Ret $C$
+}
+\end{figure}
+
+We let $\TKR_\cipher$-advantage of a $\TKR_\cipher$-adversary $\advA$ be defined by 
+\bnm
+  \AdvTKR{\cipher}{\advA} = \Prob{\TKR^\advA_\cipherE \Rightarrow\true}  \;.
+\enm
+
+\begin{figure}[p]
+\fpage{.45}{
+\underline{$\KR^\advA_\cipher$}\\[1pt]
+$K \getsr \keyspace$\\
+$K^* \getsr \advA^\Fn$\\
+$\win \gets \true$\\ 
+For $M \in \calX$:\\
+\ind If $\cipherE_{K^*}(M) \ne \cipherE_{K}(M)$ then\\
+\ind\ind $\win \gets \false$\\
+Ret $\win$\medskip
+
+\underline{$\Fn(M)$}\\
+$\calX \gets \calX \cup \{M\}$\\
+$C \gets \cipherE_K(M)$\\
+Ret $C$
+}
+\end{figure}
+
+We let $\KR_\cipher$-advantage of a $\KR_\cipher$-adversary $\advA$ be defined by 
+\bnm
+  \AdvKR{\cipher}{\advA} = \Prob{\KR^\advA_\cipherE \Rightarrow\true}  \;.
+\enm
+
+
+\begin{figure}[p]
+\fpage{.45}{
+\underline{$\OTIND^\advA_\cipher$}\\[1pt]
+$K \getsr \keyspace$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^\Fn$\\
+Ret $(b = b')$\medskip
+
+\underline{$\Fn(M_0,M_1)$}\\
+$C \gets \cipherE_K(M_b)$\\
+Ret $C$
+}
+\end{figure}
+
+We let $\OTIND_\cipher$-advantage of a $\OTIND_\cipher$-adversary $\advA$ be defined by 
+\bnm
+  \AdvOTIND{\cipher}{\advA} = 2\cdotsm\Prob{\OTIND^\advA_\cipherE \Rightarrow\true} - 1  \;.
+\enm
+
+\bigskip
+\bigskip
+
+
+\begin{itemize}
+\item First example: Our simple OTP cipher is not $\TKR$ secure? Go over example: $\advA$
+queries once on arbitrary message, recovers $K$ by computing $M \oplus C$. This
+is guaranteed to succeed because $M \oplus C$ uniquely defines $K$. What does
+this mean? Isn't OTP considered secure? Shannon said so!
+%
+\item Second example: Give toy cipher $\cipher$ for which $\TKR_\cipher$ has
+$\AdvTKR{\cipher}{\advA} = 0$ for any adversary $\advA$. What is it?
+$\cipherE(K,M) = M$. It is correct 
+%
+\item Third example: Exhaustive key search attack against generic
+cipher. Emphasize that lower-bounding the efficacy of this is not possible in
+general. Why? Consider toy identity cipher! 
+%
+\item Discuss the KR definition. Rules out the
+identity map as being relevant. Lower-bounding security is 
+%
+\item Shannon's perfect secrecy (one-time left-or-right indistinguishability). 
+\end{itemize}
+
+\begin{theorem}
+Let $\cipher$ be a cipher. For any $\TKR_\cipher$-adversary $\advA$, we give a
+$\KR_\cipher$-adversary $\advB$ such that 
+  $\AdvKR{\cipher}{\advA} = \AdvTKR{\cipher}{\advB}$.
+\end{theorem}
+
+
+
+\begin{theorem}
+Let $\cipher$ be the OTP cipher. Then for any single-query
+$\OTIND_\cipher$-adversary $\advA$ it holds that $\AdvOTIND{\cipher}{\advA} = 0$. \end{theorem}
+
+
+\begin{theorem}
+Let $\cipher$ be a cipher defined 
+over $(\keyspace,\msgspace,\ctxtspace)$ such that for any $\OTIND_\cipherE$-adversary 
+$\advA$ it holds that $\AdvOTIND{\cipher}{\advA} = 0$. Then $|\keyspace| \ge
+|\msgspace|$. 
+\end{theorem}
+
