@@ -1,8 +1,16 @@
 \documentclass[11pt]{article}
 
 \usepackage[letterpaper,hmargin=1in,vmargin=1in]{geometry}
+\usepackage[backref=true,backend=bibtex]{biblatex}
+
+\DefineBibliographyStrings{english}{%
+  backrefpage = {page},% originally "cited on page"
+  backrefpages = {pages},% originally "cited on pages"
+}
+
+	
 \usepackage{framed}
-\usepackage{cite}
+%\usepackage{cite}
 \usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
 \usepackage{color}
@@ -704,13 +712,9 @@
  \newcommand{\dash}{\mbox{-}}
  \newcommand{\IND}{\textnormal{IND}\xspace}
  \newcommand{\INDbf}{\textbf{IND}\xspace}
- \newcommand{\AdvPRP}[2]{\Adv^{\mathrm{prp}}_{#1}(#2)}
- \newcommand{\ExpPRP}[2]{\mathbf{Exp}^{\mathrm{prp}}_{#1}(#2)}
-\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{sprp}}_{#1}(#2)}
  \newcommand{\ExpSPRP}[2]{\mathbf{Exp}^{\mathrm{sprp}}_{#1}(#2)}
 \newcommand{\AdvPRPprime}[2]{\Adv^{\mathrm{prp'}}_{#1}(#2)}
  \newcommand{\ExpPRPprime}[2]{\mathbf{Exp}^{\mathrm{prp'}}_{#1}(#2)}
- \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
  \newcommand{\AdvNPRG}[2]{\Adv^{\mathrm{prg}}_{#1}(#2)}
  %\newcommand{\AdvOTPRF}[2]{\Adv^{\mathrm{ot\dash prf}}_{#1}(#2)}
  \newcommand{\AdvMUPRF}[2]{\Adv^{\mathrm{mu\dash prf}}_{#1}(#2)}
@@ -1989,7 +1993,6 @@
 \newcommand{\two}{\textbf{2}}
 \newcommand{\perm}{\pi}
 \newcommand{\TC}{TC}
-\newcommand{\PRF}{\textsf{PRF}}
 \newcommand{\moENC}{\textnormal{\textsf{mo\textnormal{-}\CEnc}}}
 \newcommand{\moDEC}{\textnormal{\textsf{mo\textnormal{-}\CDec}}}
 \newcommand{\moVER}{\textnormal{\textsf{mo\textnormal{-}\CVer}}}
@@ -2039,6 +2042,17 @@
 \newcommand{\AdvOTIND}[2]{\Adv^{\mathrm{ot\dash ind}}_{#1}(#2)}
 
 
+\newcommand{\PRP}{\textnormal{PRP}}
+\newcommand{\AdvPRP}[2]{\Adv^{\mathrm{prp}}_{#1}(#2)}
+
+\newcommand{\SPRP}{\textnormal{SPRP}}
+\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{sprp}}_{#1}(#2)}
+
+\newcommand{\PRF}{\textnormal{PRF}}
+\newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
+
+
+\newcommand{\Feistel}{\cipher}
 
 %%% Local Variables:
 %%% mode: latex

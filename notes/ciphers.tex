@@ -129,6 +129,27 @@ $\KR_\cipher$-adversary $\advB$ such that
   $\AdvKR{\cipher}{\advA} = \AdvTKR{\cipher}{\advB}$.
 \end{theorem}
 
+In our theorem statements including reductions,  we need to interpret the words
+``we give a''. We will focus on concrete, specified reductions. That means that
+the adversary $\advB$ not only exists, but is fully specified  --- minus the
+details of $\advA$ ---  within the proof.  In particular, if you give someone
+$\advA$ then $\advB$ becomes runnable.  Runnable reductions are generally
+speaking easier to interpret when it comes to implied security guarantees. They
+even allow us to use the human-ignorance model~\cite{rogaway2006formalizing}
+which, roughly, states that a reduction even to a mathematically easy assumption
+can still be meaningful. (We will revisit this particular issue with an example
+in the context of collision resistance.)
+An example of a non-runnable $\advB$ would be one that includes some constant
+value that we know exists, but don't know an exact value for. This comes up in
+various arguments, and can cause problems in interpreting the reduction in terms
+of concrete security.  This issue is subtle and we will revisit it.
+
+The takeaway here being that one interprets ``we give a'' to mean runnable
+adversaries that are specified fully in the proof. (Or when brevity is at stake,
+specified to a leave of detail that the average reader could specify it in
+detail easily.)  When we deviate from this convention we should remark on it.
+
+
 
 
 \begin{theorem}
@@ -142,4 +163,245 @@ over $(\keyspace,\msgspace,\ctxtspace)$ such that for any $\OTIND_\cipherE$-adve
 $\advA$ it holds that $\AdvOTIND{\cipher}{\advA} = 0$. Then $|\keyspace| \ge
 |\msgspace|$. 
 \end{theorem}
+
+
+\begin{figure}
+\fpage{.45}{
+\underline{$\advA_{\textrm{eks}}$}\\[1pt]
+$C \gets \Fn(M)$\\
+For $K \in \calK$ do:\\
+\ind If $C = \cipherE(K,M)$ then\\
+\ind\ind Return $K$\\
+Return $\bot$
+}
+\end{figure}
+
+\paragraph{PRPs and PRFs.}
+
+\begin{itemize}
+\item Basic cipher definitions, key recovery attacks
+\item PRP and PRF definitions
+\item PRP/PRF switching lemma
+\begin{itemize}
+  \item Incorrect conditioning argument 
+  \item Correct game-playing argument
+\end{itemize}
+\item PRP from PRF constructions: Feistel networks
+\item Luby-Rackoff proof
+\end{itemize}
+
+
+\begin{figure}
+\fpage{.15}{
+\underline{$\PRP_{\cipher}^\advA$}\\
+$b \getsr \bits$\\
+$K \getsr \keyspace$\\
+$\pi \getsr \Perm(n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $(b = b')$\medskip
+
+\underline{$\Fn(M)$}\\
+If $b = 1$ then\\
+\ind Return $\cipherE_K(M)$\\
+Return $\pi(M)$
+}
+\end{figure}
+
+\bnm
+\AdvPRP{\cipher}{\advA} = 2\cdotsm\Prob{\PRP^\advA_\cipher\Rightarrow\true}- 1
+\enm
+
+\begin{figure}
+\hfpages{.25}{
+\underline{$\PRP1_{\cipher}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\cipherE_K(M)$\\
+}{
+\underline{$\PRP0_{\cipher}^\advA$}\\
+$\pi \getsr \Perm(n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\pi(M)$\\
+}
+
+
+\end{figure}
+
+
+\begin{figure}
+\hfpages{.25}{
+\underline{$\PRF1_{\cipher}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\cipherE_K(M)$\\
+}{
+\underline{$\PRF0_{\cipher}^\advA$}\\
+$\rho \getsr \Func(n,n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\rho(M)$\\
+}
+
+
+\end{figure}
+
+
+
+\begin{lemma} Let $\cipher$ be a cipher with ciphertext space $\bits^n$. 
+Let $\advA$ be an adversary making at most $q$ queries. Then
+\bnm
+  \left| \Prob{\PRF0_\cipher^\advA\Rightarrow 1} 
+      - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right| \le \frac{q^2}{2^n}  \;.
+\enm
+\end{lemma}
+
+
+
+\begin{figure}
+\hfpagess{.20}{.20}{
+\underline{$\G0$}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+If $\TabF[M] = \bot$ then\\
+\ind $\TabF[M] \getsr \bits^n \setminus \TabF$\\
+Return $\TabF[M]$
+}{
+\underline{\fbox{$\G1$} \;\;\; $\G2$}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+$C \getsr \bits^n$\\
+If $C \in \TabF$ then\\
+\ind $\badtrue$\\
+\ind \fbox{$C \getsr \bits^n \setminus \TabF$}\\
+$\TabF[M] \gets C$\\
+Return $\TabF[M]$
+}
+
+
+\end{figure}
+
+
+
+\begin{figure}
+\hfpagessss{.20}{.20}{.20}{.20}{
+\underline{$\G0$}\\[2pt]
+$K \getsr \bits^k$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+$R_1 \gets L \oplus F_K(\langle 1\rangle \concat R)$\\
+$L_2 \gets R_1$\\
+$R_2 \gets L_1 \oplus F_K(\langle 2 \rangle \concat R_1)$\\
+$L_3 \gets R_2$\\
+$R_3 \gets L_2 \oplus F_K(\langle 3 \rangle \concat R_2)$\\
+Return $L_3 \concat R_3$
+}{
+\underline{$\G1$}\\[2pt]
+$\rho \getsr \Func(2n,n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+$R_1 \gets L \oplus \rho(\langle 1\rangle \concat R)$\\
+$L_2 \gets R_1$\\
+$R_2 \gets L_1 \oplus \rho(\langle 2 \rangle \concat R_1)$\\
+$L_3 \gets R_2$\\
+$R_3 \gets L_2 \oplus \rho(\langle 3 \rangle \concat R_2)$\\
+Return $L_3 \concat R_3$
+}{
+\underline{$\fbox{\G2}$\;\;\;\G3}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+If $\TabF[1,R] = \bot$ then\\
+\ind $\TabF[1,R] \getsr \bits^n$\\
+$R_1 \gets L \oplus \TabF[1,R]$\\
+$L_2 \gets R_1$\\
+$X_2 \getsr \bits^n$\\
+If $\TabF[2,R_1] \ne \bot$ then\\
+\ind $\badtrue$\\
+\ind \fbox{$X_2 \gets \TabF[2,R_1]$}\\
+$\TabF[2,R_1] \gets X_2$\\
+$R_2 \gets L_1 \oplus X_2$\\
+$L_3 \gets R_2$\\
+$X_3 \getsr \bits^n$\\
+If $\TabF[3,R_2] \ne \bot$ then\\
+\ind $\badtrue$\\
+\ind \fbox{$X_3 \gets \TabF[2,R_2]$}\\
+$\TabF[3,R_2] \gets X_3$\\
+$R_3 \gets L_2 \oplus X_3$\\
+Return $L_3 \concat R_3$
+}{
+\underline{$\G4$}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+If $\TabF[1,R] = \bot$ then\\
+\ind $\TabF[1,R] \getsr \bits^n$\\
+$R_1 \gets L \oplus \TabF[1,R]$\\
+$L_2 \gets R_1$\\
+If $\TabF[2,R_1] \ne \bot$ then\\
+\ind $\badtrue$\\
+$\TabF[2,R_1] \gets 1$\\
+$R_2 \getsr \bits^n$\\
+$L_3 \gets R_2$\\
+$X_3 \getsr \bits^n$\\
+If $\TabF[3,R_2] \ne \bot$ then\\
+\ind $\badtrue$\\
+$\TabF[3,R_2] \gets 1$\\
+$R_3 \getsr \bits^n$\\
+Return $L_3 \concat R_3$
+}
+\end{figure}
+
+
+\newpage
+
+\begin{theorem}
+Let $\Feistel$ be the 3-round Feistel cipher using round function 
+$F\Colon\bits^k\times\bits^n\rightarrow \bits^n$. For any
+$\PRP_\cipher$-adversary $\advA$ making at most $q$ queries 
+we give an $\PRF_F$-adversary $\advB$ making at most $3q$ queries such that
+\bnm
+  \AdvPRP{\Feistel}{\advA} \le \AdvPRF{F}{\advB} + \frac{2q^2}{2^n} +
+  \frac{q^2}{2^{2n}} \;.
+\enm
+\end{theorem}
+
+
+
+\begin{align*}
+\AdvPRP{\cipher}{\advA} 
+    &= \left|\Prob{\PRP1^\advA_\cipher} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &= \left|\Prob{\G0} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\G1} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\G2} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\G3} + \Prob{\bad_3} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\G4} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\PRP0^\advA_\cipher} + \frac{q^2}{2^{2n}} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &= \frac{q^2}{2^{2n}} + \Prob{\bad_4} + \AdvPRF{F}{\advB}\\
+    &\le \frac{q^2}{2^{2n}} + \frac{2q^2}{2^n} + \AdvPRF{F}{\advB}\\
+\end{align*}
 

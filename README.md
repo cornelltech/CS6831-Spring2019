@@ -158,7 +158,7 @@ what we're hoping to cover.
 | Date |  Topic  |  Slides | Notes |
 |------|---------|---------|-------|
 | Jan 23 | Intro |  [Slides](slides/intro-lec1.pdf) | |
-| Jan 28 | Block ciphers, PRPs, PRFs |  | |
+| Jan 28 | Block ciphers, PRPs, PRFs | [Slides](slides/ciphers-lec2.pdf) | |
 | Jan 30 | Cryptanalysis, frequency attacks |  | |
 | Feb 4 |  PRGs, Block cipher modes |  | |
 | Feb 6 |  Message authentication, universal hashing | | |

@@ -15,5 +15,9 @@ full : $(FULL)
 	pdflatex $(MAIN)
 	pdflatex $(MAIN)
 
+clean : 
+	rm -f main.bbl main.aux 
+
+
 zip : $(FULL) $(PROJ).pdf Makefile
 	zip $(PROJ).zip $(PROJ).pdf $(FULL) Makefile *.tex
