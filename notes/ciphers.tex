@@ -262,10 +262,27 @@ Return $\rho(M)$\\
 Let $\advA$ be an adversary making at most $q$ queries. Then
 \bnm
   \left| \Prob{\PRF0_\cipher^\advA\Rightarrow 1} 
-      - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right| \le \frac{q^2}{2^n}  \;.
+      - \Prob{\PRP0_\cipher^\advA\Rightarrow1} \right| \le \frac{q^2}{2^n}  \;.
 \enm
 \end{lemma}
 
+\begin{align*}
+&\left| \Prob{\PRP0_\cipher^\advA\Rightarrow 1} 
+      - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right| \\ 
+     &\myInd\myInd\myInd =  \left|\Prob{\G0} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
+     &\myInd\myInd\myInd  =  \left|\Prob{\G1} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
+     &\myInd\myInd\myInd  \le \left|\Prob{\G2} + \Prob{\bad_2} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|\\
+     &\myInd\myInd\myInd  = \Prob{\bad_2}\\
+     &\myInd\myInd\myInd  \le \frac{q^2}{2^n}\\
+\end{align*}
+
+\begin{lemma} Let $\G$, $\Hgame$ be games that are identical-until-bad and $y$ be any
+value. Then
+\bnm
+  \big| \Prob{\G\Rightarrow y} 
+      - \Prob{\Hgame\Rightarrow y} \big| \le \Prob{\Hgame\setsbad} = \Prob{\G\setsbad}  \;.
+\enm
+\end{lemma}
 
 
 \begin{figure}
@@ -367,7 +384,7 @@ If $\TabF[2,R_1] \ne \bot$ then\\
 $\TabF[2,R_1] \gets 1$\\
 $R_2 \getsr \bits^n$\\
 $L_3 \gets R_2$\\
-$X_3 \getsr \bits^n$\\
+%$X_3 \getsr \bits^n$\\
 If $\TabF[3,R_2] \ne \bot$ then\\
 \ind $\badtrue$\\
 $\TabF[3,R_2] \gets 1$\\
@@ -376,6 +393,23 @@ Return $L_3 \concat R_3$
 }
 \end{figure}
 
+\begin{figure}
+\fpage{.25}{
+\underline{$\advB^\Fn$}\\[2pt]
+$K \getsr \bits^k$\\
+$b' \getsr \advA^\FnSim$\\
+Return $b'$\medskip
+
+\underline{$\FnSim(LR)$}\\
+$L_1 \gets R$\\
+$R_1 \gets L \oplus \Fn(\langle 1\rangle \concat R)$\\
+$L_2 \gets R_1$\\
+$R_2 \gets L_1 \oplus \Fn(\langle 2 \rangle \concat R_1)$\\
+$L_3 \gets R_2$\\
+$R_3 \gets L_2 \oplus \Fn(\langle 3 \rangle \concat R_2)$\\
+Return $L_3 \concat R_3$
+}
+\end{figure}
 
 \newpage
 
@@ -397,9 +431,9 @@ we give an $\PRF_F$-adversary $\advB$ making at most $3q$ queries such that
     &= \left|\Prob{\PRP1^\advA_\cipher} - \Prob{\PRP0^\advA_\cipher}\right|\\
     &= \left|\Prob{\G0} - \Prob{\PRP0^\advA_\cipher}\right|\\
     &\le \left|\Prob{\G1} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
-    &\le \left|\Prob{\G2} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &=   \left|\Prob{\G2} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
     &\le \left|\Prob{\G3} + \Prob{\bad_3} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
-    &\le \left|\Prob{\G4} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &= \left|\Prob{\G4} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
     &\le \left|\Prob{\PRP0^\advA_\cipher} + \frac{q^2}{2^{2n}} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
     &= \frac{q^2}{2^{2n}} + \Prob{\bad_4} + \AdvPRF{F}{\advB}\\
     &\le \frac{q^2}{2^{2n}} + \frac{2q^2}{2^n} + \AdvPRF{F}{\advB}\\

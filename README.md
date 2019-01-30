@@ -18,6 +18,9 @@ NYC classroom: Bloomberg 091
 
 Ithaca classroom: Gates 405
 
+Video recordings:
+[Available here](https://cornell.mediasite.com/Mediasite/Catalog/Full/01abe090c34c4419894e68d9cbdb7eef21)  (Cornell login required)
+
 ### Pre-requisites
 
 By the end of the class you should have the ability to design and argue the
