@@ -162,16 +162,16 @@ what we're hoping to cover.
 |------|---------|---------|-------|
 | Jan 23 | Intro |  [Slides](slides/intro-lec1.pdf) | |
 | Jan 28 | Block ciphers, PRPs, PRFs | [Slides](slides/ciphers-lec2.pdf) | |
-| Jan 30 | Cryptanalysis, frequency attacks |  | |
-| Feb 4 |  PRGs, Block cipher modes |  | |
-| Feb 6 |  Message authentication, universal hashing | | |
-| Feb 11 | Authenticated encryption |  | |
-| Feb 13 | Nonce-based and robust authenticated encryption |   | |
-| Feb 18 | Cryptographic hashing  |  | |
-| Feb 20 | Password hashing, randomness extractors |  | |
+| Jan 30 | PRP/PRF Switching lemma, Luby-Rackoff, Shuffling | [Slides](slides/ciphers-lec3-markup.pptx) | |
+| Feb 4 |  Block ciphers, cryptanalysis  |  | |
+| Feb 6 |  PRGs, Block cipher modes,  | | |
+| Feb 11 | message authentication, universal hashing |  | |
+| Feb 13 | Authenticated encryption |   | |
+| Feb 18 | Nonce-based and robust authenticated encryption  |  | |
+| Feb 20 | Cryptographic hashing |  | |
 | Feb 25 | No Lecture (February break) | |
-| Feb 27 | Public-key encryption |  | |
-| Mar 4  | RSA PKE |  | |
+| Feb 27 | Password hashing, randomness extractors |  | |
+| Mar 4  | Public-key encryption RSA PKE |  | |
 | Mar 6  | Discrete log PKE  |  | |
 | Mar 11 | ECC crypto  |  | |
 | Mar 13 | Digital signatures | | |
