@@ -1,0 +1,91 @@
+\documentclass{article}
+\input{preamble}
+\input{macros}
+\newcommand{\KR}{\mathrm{KR}}
+\newcommand{\TKR}{\mathrm{TKR}}
+\newcommand{\LQKR}{\mathrm{QTKR}}
+\newcommand{\AdvLQKR}[2]{\mathrm{AdvQTKR}_{#1}^{#2}}
+\newcommand{\keyspace}{\calK}
+\title{cs6831 exercises}
+\date{January 2019}
+
+\begin{document}
+
+\maketitle
+
+\section*{1/30/2019}
+
+\subsection*{Key recovery security}
+Figure~\ref{fig:kr} contains pseudocode descriptions of the target key-recovery security game $\TKR$ for a function $E\Colon\msgspace\rightarrow\msgspace$ and adversary $\advA$, a variant $\LQKR$ which limits the adversary to $q$ oracle queries, and the key-recovery security game $\KR$. Define the $\LQKR$ advantage of adversary $\advA$ with $q$ queries against function $E$ as
+$$
+\AdvLQKR{E}{\advA,q} = \Prob{\LQKR_{\advA,E,q}\Rightarrow 1}\; .
+$$
+
+\begin{figure}[h]
+\centering
+\hfpagesss{.25}{.33}{.35}{
+\procedurev{$\TKR_{\advA,E}$}\\
+$K\getsr\calK$\\
+$K'\getsr\advA^{Fn}$\\
+Return $K=K'$\medskip
+
+\procedurev{$Fn(M)$}\\
+Return $E_K(M)$
+}{
+\procedurev{$\LQKR_{\advA,E,q}$}\\
+$K\getsr\calK$\\
+$c\gets 0$\\
+$K'\getsr\advA^{Fn}$\\
+Return $K=K'$\medskip
+
+\procedurev{$Fn(M)$}\\
+$c \gets c+1$\\
+If $c>= q$ then Return $\bot$\\
+Return $E_K(M)$
+}{
+\procedurev{$\KR_{\advA,E}$}\\
+$\text{QueryMade}\gets\false$\\
+$\win\gets\true$\\
+$K\getsr\calK$\\
+$K^*\getsr\advA^{Fn}$\\
+For $M\in\calX$:\\
+\ind If $E_K(M)\ne E_{K^*}(M)$ then\\
+\ind \ind $\win\gets\false$\\
+Return $\win\wedge\text{QueryMade}$\medskip
+
+\procedurev{$Fn(M)$}\\
+$\text{QueryMade}\gets\true$\\
+$\calX \gets \calX\cup M$\\
+Return $E_K(M)$
+}
+\caption{Target key recovery security game $\TKR$, limited-query target key recovery game $\LQKR$, and key-recovery security game $\KR$.}
+\label{fig:kr}
+\end{figure}
+
+\noindent\textbf{Question 1} Design a function 
+$E\Colon \msgspace\rightarrow \msgspace$ so that for any $q$, $\AdvLQKR{E}{\advA,q}$ is small but $\AdvLQKR{E}{\advA,q+1}=1$. The input and output space $M$ need not be bit strings\textemdash you could set $M$ to be, for example, the integers mod a prime $p$. Recall that a function must be stateless.
+
+\noindent\textbf{Question 2} Does $\TKR$ imply $\LQKR$? What about the other direction?
+
+\subsection*{Pseudorandom functions}
+
+Let $E\Colon\keyspace\times\msgspace\rightarrow\msgspace$ be a function. Recall that the PRF advantage of an adversary $\advA$ against $E$ is its advantage in distinguishing between an oracle for $E_K$ (for randomly-chosen $K$) and a random function oracle on the same domain and range.
+
+\noindent\textbf{Question 3} Does PRF security imply $\TKR$ security? What about $\KR$ security?
+
+
+\noindent\textbf{Question 4} Design a function $E$ which is a good PRF when its entire key is hidden, but can be distinguished from a random function if any bit of the key is leaked.
+
+
+\subsection*{General}
+
+\noindent\textbf{Question 5} In all the security definitions we've seen so far, the adversary
+gets to see the output of its $i$th oracle query before deciding what its $i+1$st query will be.
+Such an adversary is usually called \emph{adaptive}. We could imagine an alternate definition where
+the adversary specifies all its inputs at once, then sees all the outputs at once. Usually this is
+called \emph{non-adaptive}. Would our definitions be more or less powerful if they were non-adaptive?
+For any of the security notions we've seen thus far, can you construct a scheme which
+meets the non-adaptive version of the security notion but \emph{not} the adaptive version?
+What about the other way around?
+
+\end{document}
