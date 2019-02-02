@@ -1,0 +1,483 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Ciphers and Initial Security Notions}
+\label{sec:se}
+
+\paragraph{Ciphers.}
+We start by defining a cipher. A cipher $\cipher = (\cipherE,\cipherD)$ is
+defined by a a pair of deterministic algorithms $\cipherE$ and $\cipherD$.  To
+any cipher $\cipher$ we associate sets called the key space $\keyspace$, message
+space $\msgspace$, and ciphertext space $\ctxtspace$. We do not surface these sets in the
+notation for a cipher, and we will require that the association be clear
+from context.
+
+Each algorithm has two inputs. Enciphering takes a key $K \in \keyspace$ and
+message $M \in \msgspace$, and outputs a ciphertext $C \in \ctxtspace$. Because
+$\cipherE$ is deterministic, we can equally formalize it as a map 
+$\cipherE\Colon\keyspace\times\msgspace\rightarrow\ctxtspace$. For a given key
+$K$ we let $\cipherE_K\Colon\msgspace\rightarrow\ctxtspace$ be defined by
+$\cipherE_K(M) = \cipherE(K,M)$ for all $M \in \msgspace$.  Deciphering takes a key $K\in \keyspace$ and ciphertext
+$C \in \ctxtspace$ and outputs a message $M \in \msgspace$. Again, we can view
+it as a map $\cipherD\Colon\keyspace\times\ctxtspace\rightarrow\msgspace$. 
+
+Both $\cipherE$ and $\cipherD$ must be efficiently computable for all $K \in
+\keyspace$.  (We have not defined efficiently computable and use the term here
+informally.) We require that a cipher be correct, meaning that
+$\forall M \in \msgspace, \forall K \in \keyspace, \cipherD_K(\cipherE_K(M)) = M$.
+
+\paragraph{Example.} One simple example of a cipher is the \textbf{one-time pad} (OTP). Let $\keyspace = \msgspace=\ctxtspace=\{0,1\}^n$ for some $n \in \N$. Then we define OTP as follows:
+\begin{align*}
+&\cipherE_K(M) = M \oplus K \\
+&\cipherD_K(C) = C \oplus K
+\end{align*}
+Claude Shannon proved that OTP is perfectly secure in 1949 \cite{shannon1949communication}.
+
+\paragraph{Security notions.} What do we intuitively expect of a cipher?
+Minimally:
+\begin{itemize}
+\item The secret key should remain secret.
+\item The message should remain secret.
+\end{itemize}
+
+Let's try to formalize these notions. We will start with a security notion called \textbf{target key recovery security} (TKR).
+As the name suggests, the goal of the adversary is to recover the challenge key given a chosen plaintext attack, meaning the adversary can choose which messages to query to the $\Fn$ oracle. The game pseudocode is provided in \figref{fig:tkr}. We let $\TKR_\cipher$-advantage of a $\TKR_\cipher$-adversary $\advA$ be defined by 
+\bnm
+\AdvTKR{\cipher}{\advA} = \Prob{\TKR^\advA_\cipherE \Rightarrow\true}  \;.
+\enm
+
+\begin{figure}[p]
+	\centering
+	\fpage{.45}{
+		\underline{$\TKR^\advA_\cipher$}\\[1pt]
+		$K \getsr \keyspace$\\
+		$K^* \getsr \advA^\Fn$\\
+		Ret $(K = K^*)$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		$C \gets \cipherE_K(M)$\\
+		Ret $C$
+	}
+	\caption{The target key recovery game.}
+	\label{fig:tkr}
+\end{figure}
+
+
+We must now ask ourselves how well TKR captures the security of a cipher. Let us first try to analyze the security of OTP using this definition. Notice that OTP actually fails to provide TKR security, which we show with the following adversary.
+\begin{align*}
+&\underline{\textbf{adversary } \advA} \\
+&K \gets \Fn(0^n) \\
+&\text{Return } K 
+\end{align*}	
+
+$\advA$ simply queries for $0^n$, which returns $0^n \oplus K = K$, thereby recovering the challenge key with $\AdvTKR{\cipher}{\advA} = 1$. This then means that OTP is actually insecure according to the TKR security definition. But as we noted earlier, OTP is considered secure! Our definition then fails to capture the security of OTP. 
+
+Now consider the identity cipher $\cipherE_{K}(M) = M$ for $\keyspace=\{0,1\}^k$. Since the cipher simply returns the message, no information about the key is included in the ciphertext. The best an adversary can do is return a random key, which has probability $2^{-k}$ of being the correct target key.
+Then for any adversary $\advA$, it holds that $\AdvTKR{\cipher}{\advA} = 2^{-k}$, meaning the identity cipher is secure! Clearly this is not the case, and thus TKR security does not provide message confidentiality. Furthermore, this security notion is ``unfair'' to an adversary, since there can be many keys that are \textit{consistent} on a query transcript. 
+
+\begin{figure}[p]
+	\centering
+	\fpage{.45}{
+		\underline{$\KR^\advA_\cipher$}\\[1pt]
+		$\win \gets \false$\\
+		$K \getsr \keyspace$\\
+		$K^* \getsr \advA^\Fn$\\ 
+		For $M \in \calX$:\\
+		\ind If $\cipherE_{K^*}(M) \ne \cipherE_{K}(M)$ then\\
+		\ind\ind $\win \gets \false$\\
+		Return $\win$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		$\win \gets \true$ \\
+		$\calX \gets \calX \cup \{M\}$\\
+		$C \gets \cipherE_K(M)$\\
+		Ret $C$
+	}
+	\caption{The key recovery game.}
+	\label{fig:kr}
+\end{figure}
+
+We then look at a different notion called \textbf{key recovery security} (KR). Under this definition, if an adversary outputs a key that is consistent with the query transcript, then it wins. The game pseudocode is provided in \figref{fig:kr}. We let $\KR_\cipher$-advantage of a $\KR_\cipher$-adversary $\advA$ be defined by 
+\bnm
+\AdvKR{\cipher}{\advA} = \Prob{\KR^\advA_\cipherE \Rightarrow\true}  \;.
+\enm
+
+\paragraph{Comparing security definitions.} We can formally compare security definitions. To show that some definition DEF1 does not imply another definition DEF2, we can show a \textit{counter-example}. This requires producing a scheme such that we can show that no (reasonable) DEF1-adversary has a good advantage. We then give a DEF2-adversary that gets good DEF2 advantage.
+
+Conversely, to show that DEF1 does imply DEF2, we can show a \textit{reduction}. This requires converting a DEF2-adversary $\advA$ into a DEF1-adversary $\advB$ such that $\advB$'s DEF1 advantage upper bounds $\advA$'s DEF2 advantage. 
+
+
+\begin{table}
+	\centering
+	\begin{tabular}{c | c}
+		DEF1 $\not \Rightarrow$ DEF2 & We show a counter-example. \\ \hline
+		DEF1 $\Rightarrow$ DEF2 & We show a reduction.
+	\end{tabular}
+\end{table}
+
+\begin{itemize}
+	\item First example: Our simple OTP cipher is not $\TKR$ secure? Go over example: $\advA$
+	queries once on arbitrary message, recovers $K$ by computing $M \oplus C$. This
+	is guaranteed to succeed because $M \oplus C$ uniquely defines $K$. What does
+	this mean? Isn't OTP considered secure? Shannon said so!
+	%
+	\item Second example: Give toy cipher $\cipher$ for which $\TKR_\cipher$ has
+	$\AdvTKR{\cipher}{\advA} = 0$ for any adversary $\advA$. What is it?
+	$\cipherE(K,M) = M$. It is correct 
+	%
+	\item Third example: Exhaustive key search attack against generic
+	cipher. Emphasize that lower-bounding the efficacy of this is not possible in
+	general. Why? Consider toy identity cipher! 
+	%
+	\item Discuss the KR definition. Rules out the
+	identity map as being relevant. Lower-bounding security is 
+	%
+	\item Shannon's perfect secrecy (one-time left-or-right indistinguishability). 
+\end{itemize}
+
+
+\begin{itemize}
+	\item KR security
+	\item (ot-)IND security
+\end{itemize}
+
+
+\begin{figure}[p]
+\fpage{.45}{
+\underline{$\OTIND^\advA_\cipher$}\\[1pt]
+$K \getsr \keyspace$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^\Fn$\\
+Ret $(b = b')$\medskip
+
+\underline{$\Fn(M_0,M_1)$}\\
+$C \gets \cipherE_K(M_b)$\\
+Ret $C$
+}
+\end{figure}
+
+We let $\OTIND_\cipher$-advantage of a $\OTIND_\cipher$-adversary $\advA$ be defined by 
+\bnm
+  \AdvOTIND{\cipher}{\advA} = 2\cdotsm\Prob{\OTIND^\advA_\cipherE \Rightarrow\true} - 1  \;.
+\enm
+
+\bigskip
+\bigskip
+
+
+
+
+\begin{theorem}
+Let $\cipher$ be a cipher. For any $\TKR_\cipher$-adversary $\advA$, we give a
+$\KR_\cipher$-adversary $\advB$ such that 
+  $\AdvKR{\cipher}{\advA} = \AdvTKR{\cipher}{\advB}$.
+\end{theorem}
+
+In our theorem statements including reductions,  we need to interpret the words
+``we give a''. We will focus on concrete, specified reductions. That means that
+the adversary $\advB$ not only exists, but is fully specified  --- minus the
+details of $\advA$ ---  within the proof.  In particular, if you give someone
+$\advA$ then $\advB$ becomes runnable.  Runnable reductions are generally
+speaking easier to interpret when it comes to implied security guarantees. They
+even allow us to use the human-ignorance model~\cite{rogaway2006formalizing}
+which, roughly, states that a reduction even to a mathematically easy assumption
+can still be meaningful. (We will revisit this particular issue with an example
+in the context of collision resistance.)
+An example of a non-runnable $\advB$ would be one that includes some constant
+value that we know exists, but don't know an exact value for. This comes up in
+various arguments, and can cause problems in interpreting the reduction in terms
+of concrete security.  This issue is subtle and we will revisit it.
+
+The takeaway here being that one interprets ``we give a'' to mean runnable
+adversaries that are specified fully in the proof. (Or when brevity is at stake,
+specified to a leave of detail that the average reader could specify it in
+detail easily.)  When we deviate from this convention we should remark on it.
+
+
+
+
+\begin{theorem}
+Let $\cipher$ be the OTP cipher. Then for any single-query
+$\OTIND_\cipher$-adversary $\advA$ it holds that $\AdvOTIND{\cipher}{\advA} = 0$. \end{theorem}
+
+
+\begin{theorem}
+Let $\cipher$ be a cipher defined 
+over $(\keyspace,\msgspace,\ctxtspace)$ such that for any $\OTIND_\cipherE$-adversary 
+$\advA$ it holds that $\AdvOTIND{\cipher}{\advA} = 0$. Then $|\keyspace| \ge
+|\msgspace|$. 
+\end{theorem}
+
+
+\begin{figure}
+\fpage{.45}{
+\underline{$\advA_{\textrm{eks}}$}\\[1pt]
+$C \gets \Fn(M)$\\
+For $K \in \calK$ do:\\
+\ind If $C = \cipherE(K,M)$ then\\
+\ind\ind Return $K$\\
+Return $\bot$
+}
+\end{figure}
+
+\paragraph{PRPs and PRFs.}
+
+\begin{itemize}
+\item Basic cipher definitions, key recovery attacks
+\item PRP and PRF definitions
+\item PRP/PRF switching lemma
+\begin{itemize}
+  \item Incorrect conditioning argument 
+  \item Correct game-playing argument
+\end{itemize}
+\item PRP from PRF constructions: Feistel networks
+\item Luby-Rackoff proof
+\end{itemize}
+
+
+\begin{figure}
+\fpage{.15}{
+\underline{$\PRP_{\cipher}^\advA$}\\
+$b \getsr \bits$\\
+$K \getsr \keyspace$\\
+$\pi \getsr \Perm(n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $(b = b')$\medskip
+
+\underline{$\Fn(M)$}\\
+If $b = 1$ then\\
+\ind Return $\cipherE_K(M)$\\
+Return $\pi(M)$
+}
+\end{figure}
+
+\bnm
+\AdvPRP{\cipher}{\advA} = 2\cdotsm\Prob{\PRP^\advA_\cipher\Rightarrow\true}- 1
+\enm
+
+\begin{figure}
+\hfpages{.25}{
+\underline{$\PRP1_{\cipher}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\cipherE_K(M)$\\
+}{
+\underline{$\PRP0_{\cipher}^\advA$}\\
+$\pi \getsr \Perm(n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\pi(M)$\\
+}
+
+
+\end{figure}
+
+
+\begin{figure}
+\hfpages{.25}{
+\underline{$\PRF1_{\cipher}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\cipherE_K(M)$\\
+}{
+\underline{$\PRF0_{\cipher}^\advA$}\\
+$\rho \getsr \Func(n,n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\rho(M)$\\
+}
+
+
+\end{figure}
+
+
+
+\begin{lemma} Let $\cipher$ be a cipher with ciphertext space $\bits^n$. 
+Let $\advA$ be an adversary making at most $q$ queries. Then
+\bnm
+  \left| \Prob{\PRF0_\cipher^\advA\Rightarrow 1} 
+      - \Prob{\PRP0_\cipher^\advA\Rightarrow1} \right| \le \frac{q^2}{2^n}  \;.
+\enm
+\end{lemma}
+
+\begin{align*}
+&\left| \Prob{\PRP0_\cipher^\advA\Rightarrow 1} 
+      - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right| \\ 
+     &\myInd\myInd\myInd =  \left|\Prob{\G0} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
+     &\myInd\myInd\myInd  =  \left|\Prob{\G1} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
+     &\myInd\myInd\myInd  \le \left|\Prob{\G2} + \Prob{\bad_2} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|\\
+     &\myInd\myInd\myInd  = \Prob{\bad_2}\\
+     &\myInd\myInd\myInd  \le \frac{q^2}{2^n}\\
+\end{align*}
+
+\begin{lemma} Let $\G$, $\Hgame$ be games that are identical-until-bad and $y$ be any
+value. Then
+\bnm
+  \big| \Prob{\G\Rightarrow y} 
+      - \Prob{\Hgame\Rightarrow y} \big| \le \Prob{\Hgame\setsbad} = \Prob{\G\setsbad}  \;.
+\enm
+\end{lemma}
+
+
+\begin{figure}
+\hfpagess{.20}{.20}{
+\underline{$\G0$}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+If $\TabF[M] = \bot$ then\\
+\ind $\TabF[M] \getsr \bits^n \setminus \TabF$\\
+Return $\TabF[M]$
+}{
+\underline{\fbox{$\G1$} \;\;\; $\G2$}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+$C \getsr \bits^n$\\
+If $C \in \TabF$ then\\
+\ind $\badtrue$\\
+\ind \fbox{$C \getsr \bits^n \setminus \TabF$}\\
+$\TabF[M] \gets C$\\
+Return $\TabF[M]$
+}
+
+
+\end{figure}
+
+
+
+\begin{figure}
+\hfpagessss{.20}{.20}{.20}{.20}{
+\underline{$\G0$}\\[2pt]
+$K \getsr \bits^k$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+$R_1 \gets L \oplus F_K(\langle 1\rangle \concat R)$\\
+$L_2 \gets R_1$\\
+$R_2 \gets L_1 \oplus F_K(\langle 2 \rangle \concat R_1)$\\
+$L_3 \gets R_2$\\
+$R_3 \gets L_2 \oplus F_K(\langle 3 \rangle \concat R_2)$\\
+Return $L_3 \concat R_3$
+}{
+\underline{$\G1$}\\[2pt]
+$\rho \getsr \Func(2n,n)$\\
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+$R_1 \gets L \oplus \rho(\langle 1\rangle \concat R)$\\
+$L_2 \gets R_1$\\
+$R_2 \gets L_1 \oplus \rho(\langle 2 \rangle \concat R_1)$\\
+$L_3 \gets R_2$\\
+$R_3 \gets L_2 \oplus \rho(\langle 3 \rangle \concat R_2)$\\
+Return $L_3 \concat R_3$
+}{
+\underline{$\fbox{\G2}$\;\;\;\G3}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+If $\TabF[1,R] = \bot$ then\\
+\ind $\TabF[1,R] \getsr \bits^n$\\
+$R_1 \gets L \oplus \TabF[1,R]$\\
+$L_2 \gets R_1$\\
+$X_2 \getsr \bits^n$\\
+If $\TabF[2,R_1] \ne \bot$ then\\
+\ind $\badtrue$\\
+\ind \fbox{$X_2 \gets \TabF[2,R_1]$}\\
+$\TabF[2,R_1] \gets X_2$\\
+$R_2 \gets L_1 \oplus X_2$\\
+$L_3 \gets R_2$\\
+$X_3 \getsr \bits^n$\\
+If $\TabF[3,R_2] \ne \bot$ then\\
+\ind $\badtrue$\\
+\ind \fbox{$X_3 \gets \TabF[2,R_2]$}\\
+$\TabF[3,R_2] \gets X_3$\\
+$R_3 \gets L_2 \oplus X_3$\\
+Return $L_3 \concat R_3$
+}{
+\underline{$\G4$}\\[2pt]
+$b' \getsr \advA^\Fn$\\
+Return $b'$\medskip
+
+\underline{$\Fn(LR)$}\\
+$L_1 \gets R$\\
+If $\TabF[1,R] = \bot$ then\\
+\ind $\TabF[1,R] \getsr \bits^n$\\
+$R_1 \gets L \oplus \TabF[1,R]$\\
+$L_2 \gets R_1$\\
+If $\TabF[2,R_1] \ne \bot$ then\\
+\ind $\badtrue$\\
+$\TabF[2,R_1] \gets 1$\\
+$R_2 \getsr \bits^n$\\
+$L_3 \gets R_2$\\
+%$X_3 \getsr \bits^n$\\
+If $\TabF[3,R_2] \ne \bot$ then\\
+\ind $\badtrue$\\
+$\TabF[3,R_2] \gets 1$\\
+$R_3 \getsr \bits^n$\\
+Return $L_3 \concat R_3$
+}
+\end{figure}
+
+\begin{figure}
+\fpage{.25}{
+\underline{$\advB^\Fn$}\\[2pt]
+$K \getsr \bits^k$\\
+$b' \getsr \advA^\FnSim$\\
+Return $b'$\medskip
+
+\underline{$\FnSim(LR)$}\\
+$L_1 \gets R$\\
+$R_1 \gets L \oplus \Fn(\langle 1\rangle \concat R)$\\
+$L_2 \gets R_1$\\
+$R_2 \gets L_1 \oplus \Fn(\langle 2 \rangle \concat R_1)$\\
+$L_3 \gets R_2$\\
+$R_3 \gets L_2 \oplus \Fn(\langle 3 \rangle \concat R_2)$\\
+Return $L_3 \concat R_3$
+}
+\end{figure}
+
+\newpage
+
+\begin{theorem}
+Let $\Feistel$ be the 3-round Feistel cipher using round function 
+$F\Colon\bits^k\times\bits^n\rightarrow \bits^n$. For any
+$\PRP_\cipher$-adversary $\advA$ making at most $q$ queries 
+we give an $\PRF_F$-adversary $\advB$ making at most $3q$ queries such that
+\bnm
+  \AdvPRP{\Feistel}{\advA} \le \AdvPRF{F}{\advB} + \frac{2q^2}{2^n} +
+  \frac{q^2}{2^{2n}} \;.
+\enm
+\end{theorem}
+
+
+
+\begin{align*}
+\AdvPRP{\cipher}{\advA} 
+    &= \left|\Prob{\PRP1^\advA_\cipher} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &= \left|\Prob{\G0} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\G1} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &=   \left|\Prob{\G2} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\G3} + \Prob{\bad_3} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &= \left|\Prob{\G4} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &\le \left|\Prob{\PRP0^\advA_\cipher} + \frac{q^2}{2^{2n}} + \Prob{\bad_4} + \AdvPRF{F}{\advB} - \Prob{\PRP0^\advA_\cipher}\right|\\
+    &= \frac{q^2}{2^{2n}} + \Prob{\bad_4} + \AdvPRF{F}{\advB}\\
+    &\le \frac{q^2}{2^{2n}} + \frac{2q^2}{2^n} + \AdvPRF{F}{\advB}\\
+\end{align*}
+
