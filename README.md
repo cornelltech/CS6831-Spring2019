@@ -130,6 +130,25 @@ All this will require some good will and coordination among students. If anyone
 has any concerns or problems, don't hesitate to talk to me.
 
 
+### Project
+
+We will partition semester project into two milestones. The first is a proposal,
+due on March 6, via email. It should be no more than one page, and be a brief
+description of the proposed project. It is ok to have groups, but the level of
+work should scale in the size of the group. The final deliverable will be a
+project report due at end of semester, exact date to be determined. 
+
+The project should have a well-defined goal that is on the cutting edge of
+cryptography, the litmus being some publishable result (not necessarily a whole
+paper, but a result within a publishable paper would be fine). You can propose 
+an ongoing research project as your class project, but make sure I know who is
+involved, what your contribution will be. Similarly the writeup can be
+dovetailed with a research paper in preparation, with the same requirement that
+your writing contribution should be identifiable.
+
+Time allowing we'll have either group presentations at the end of the semester,
+or meetings with just me to go over the project and other topics. 
+
 ### Background reading
 
 One of the goals of the course will be to produce lecture notes on this content
