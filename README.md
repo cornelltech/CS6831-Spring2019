@@ -163,7 +163,7 @@ what we're hoping to cover.
 | Jan 23 | Intro |  [Slides](slides/intro-lec1.pdf) | |
 | Jan 28 | Block ciphers, PRPs, PRFs | [Slides](slides/ciphers-lec2.pdf) | |
 | Jan 30 | PRP/PRF Switching lemma, Luby-Rackoff, Shuffling | [Slides](slides/ciphers2-lec3-markup.pptx) | |
-| Feb 4 |  Block ciphers, cryptanalysis  |  | |
+| Feb 4 |  Block ciphers, cryptanalysis  | [Slides](slides/cryptanalysis-lec4.pptx) | |
 | Feb 6 |  PRGs, Block cipher modes,  | | |
 | Feb 11 | message authentication, universal hashing |  | |
 | Feb 13 | Authenticated encryption |   | |
