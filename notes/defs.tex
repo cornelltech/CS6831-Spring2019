@@ -31,6 +31,8 @@
 
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 \usepackage{cleveref}
 \usepackage{mathtools}
 \allowdisplaybreaks[2]
@@ -360,6 +362,7 @@
 \newcommand{\getu}{{\:\stackrel{\raisebox{-0.5em}{{\hspace{0.1em}\mbox{\boldmath$\scriptscriptstyle \cup$}}}}{\leftarrow}\:}}
 \newcommand{\getdiff}{{\:\stackrel{{\scriptscriptstyle\hspace{0.2em} /}}{\leftarrow}\:}}
 \newcommand{\getsr}{{\:{\leftarrow{\hspace*{-3pt}\raisebox{.75pt}{$\scriptscriptstyle\$$}}}\:}}
+\newcommand{\get}[1]{{\:\leftarrow_{#1}\:}}
 %\newcommand{\getsr}{{\:{\raisebox{3pt}{\veryshortleftarrow{15}}{\raisebox{1pt}{$\scriptscriptstyle\$$}}}\:}}
 %\newcommand{\getsr}{{\:{\xleftarrow{\scriptscriptstyle\$}}\:}}
 %\newcommand{\getsr}{{\:\stackrel{\raisebox{-0.5em}{$\scriptscriptstyle \hspace{0.2em}\$$}}{\leftarrow}\:}}
@@ -986,10 +989,10 @@
 \newcommand{\kd}{\mathsl{k_{d}}}
 \newcommand{\lr}{\mathrm{LR}}
 
-\newcommand{\SE}{{\cal E}}
-\newcommand{\Skg}{{\cal SK}}
-\newcommand{\Senc}{{\sf SE}}
-\newcommand{\Sdec}{{\cal SD}}
+\newcommand{\SE}{{\mathsf{SE}}}
+\newcommand{\Skg}{{\mathsf{kg}}}
+\newcommand{\Senc}{{\mathsf{enc}}}
+\newcommand{\Sdec}{{\mathsf{dec}}}
 
 \newcommand{\KEM}{\Psi}
 \newcommand{\KEMkg}{{\cal KK}}
@@ -1345,7 +1348,6 @@
 \newcommand{\Rorac}{\$}
 \newcommand{\XSet}{\calX}
 \newcommand{\flag}{\textsf{flag}}
-\newcommand{\ROR}{\textrm{ROR}}
 \newcommand{\csROR}{\textrm{ROR}}
 
 \newcommand{\ComO}{\textbf{Com}}
@@ -1948,8 +1950,9 @@
 \newcommand{\BCDec}{\textnormal{BC-Dec}} 
 \newcommand{\BCVer}{\textnormal{BC-Ver}} 
 
-\newcommand{\TweakE}{\tilde{E}}
-\newcommand{\TweakD}{\tilde{D}}
+\newcommand{\tweakCipher}{\tilde{\calE}}
+\newcommand{\tweakE}{\tilde{E}}
+\newcommand{\tweakD}{\tilde{D}}
 
 \newcommand{\tlk}{\tilde{K}}
 \newcommand{\GSub}{\textnormal{G}}
@@ -2050,6 +2053,11 @@
 \newcommand{\PRP}{\textnormal{PRP}}
 \newcommand{\AdvPRP}[2]{\Adv^{\mathrm{prp}}_{#1}(#2)}
 
+\newcommand{\TPRP}{\textnormal{TPRP}}
+\newcommand{\AdvTPRP}[2]{\Adv^{\mathrm{tprp}}_{#1}(#2)}
+\newcommand{\tweakpi}{\tilde{\pi}}
+
+
 \newcommand{\SPRP}{\textnormal{SPRP}}
 \newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{sprp}}_{#1}(#2)}
 
@@ -2060,6 +2068,23 @@
 \newcommand{\Feistel}{\cipher}
 \newcommand{\Maj}{\textnormal{Maj}}
 
+\newcommand{\MRUMA}{\textnormal{MR-UMA}}
+\newcommand{\MRUMAideal}{\textnormal{MR-UMA-IDEAL}}
+\newcommand{\msgsampler}{\calP}
+\newcommand{\mdist}{p_m}
+\newcommand{\AdvMRUMA}[2]{\Adv^{\mathrm{mr\dash uma}}_{#1}(#2)}
+\newcommand{\hatE}{\hat{E}}
+
+\newcommand{\REAL}{\textnormal{REAL}}
+\newcommand{\RAND}{\textnormal{RAND}}
+\newcommand{\ROR}{\textnormal{ROR}}
+\newcommand{\AdvROR}[2]{\Adv^{\mathrm{ind\$}}_{#1}(#2)}
+
+
+\newcommand{\EncOracle}{\textnormal{Enc}}
+\newcommand{\Time}{\textsf{T}}
+
+\newcommand{\tildeC}{\tilde{C}}
 \newcommand{\EM}{\textnormal{EM}}
 \newcommand{\Sbox}{\textnormal{Sbox}}
 \newcommand{\myInd}{\hspace*{1em}}
