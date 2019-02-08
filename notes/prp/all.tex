@@ -1,0 +1,16 @@
+%!TEX root = ../main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tikzset{XOR/.style={thick,
+					draw,
+					circle,
+					append after command={
+					        [shorten >=\pgflinewidth, shorten <=\pgflinewidth,]
+					        (\tikzlastnode.north) edge[thick] (\tikzlastnode.south)
+					        (\tikzlastnode.east) edge[thick] (\tikzlastnode.west)
+        				},
+    				},
+}
+
+\input{prp/feistel}
+\input{prp/luby-rackoff}
+\input{prp/thorp-shuffle}

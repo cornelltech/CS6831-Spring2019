@@ -25,13 +25,14 @@
 \usepackage{rotating}
 \usepackage{xspace}
 \usepackage{tikz}
-\usetikzlibrary{calc,arrows,arrows.meta,shapes,positioning,matrix,decorations.pathreplacing,crypto.symbols}
+\usetikzlibrary{calc,arrows,arrows.meta,shapes,positioning,matrix,decorations.pathreplacing}
 \usepackage{amssymb}
 % \usepackage{amsthm}
 
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{cleveref}
+\usepackage{bm}
 \usepackage{mathtools}
 \allowdisplaybreaks[2]
 \usepackage{latexsym}
@@ -1223,13 +1224,13 @@
 \newcounter{mynote}[section]
 \newcommand{\notecolor}{blue}
 \newcommand{\scribenotecolor}{purple}
+\newcommand{\proofreadernotecolor}{green}
 
 \newcommand{\thenote}{\thesection.\arabic{mynote}}
 \newcommand{\tnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\notecolor}{$\ll$TCR~\thenote: {\sf #1}$\gg$}}\fi}
 \newcommand{\scribenote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\scribenotecolor}{$\ll$Scribe~\thenote: {\sf #1}$\gg$}}\fi}
+\newcommand{\pfreadernote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\proofreadernotecolor}{$\ll$Proofreader~\thenote: {\sf #1}$\gg$}}\fi}
 \newcommand{\fixme}[1]{\ifnum\authnotes=1\textbf{\textcolor{red}{[FIXME: #1]}}\fi}
-\newcommand{\snote}[1]{\refstepcounter{mynote}{\bf
-\textcolor{\notecolor}{$\ll$SK~\thenote: {\sf #1}$\gg$}}}
 
 
 
