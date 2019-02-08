@@ -1,0 +1,64 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Block Cipher Design and Cryptanalysis}
+\label{sec:cryptanalysis}
+
+We've seen some theoretical ways to build block ciphers, namely Feistel
+constructions using round functions that are secure as PRFs. There are other
+constructions as well, such as Evan-Mansour \tnote{Should probably include
+somewhere}. But this is reductive, since it's unclear how to build the PRFs
+themselves. One could imagine trying to use actual random functions, but this is
+intractable for large block sizes --- the secret key in this case being a random
+table requring $n2^n$ bits. 
+
+In practice block ciphers are built using a bag of design principles that have been built
+up over the last 60 or so years, in response to new techniques for
+cryptanalysis.
+
+\tnote{Perhaps discuss really trivially broken ciphers, such as ones that are
+completely linear functions, or partially linear functions}
+
+
+\paragraph{Linear cryptanalysis.} \tnote{Discuss Matsui's paper, the high level
+intuition and how it can be used to break DES}  
+
+\tnote{Also shown in Boneh-Shoup book}
+
+
+\bne
+\label{eq:linear-approx}
+  \Prob{M[S_m] \oplus C[S_c] = K[S_k]} = \frac{1}{2} + \epsilon
+\ene
+
+\begin{theorem}
+Let $\cipher$ be a cipher such that \eqref{eq:linear-approx} holds with
+$\epsilon > 0$, and let $K \in \calK$. Let $M_1,\ldots,M_q$ be sampled uniformly
+from $\bits^n$ and let $C_i = E_K(M_i)$ for $i \in \{1,\ldots,q\}$. Then 
+\bnm
+  \Prob{K[S_k] = \Maj\left(\{M_i[S_m]\oplus C_i[S_c]\}_{i=1}^q\right)} \ge 1 - e^{-q\epsilon^2/2} \;.
+\enm
+\end{theorem}
+
+
+\begin{theorem}[Chernoff bounds]
+Let $X = \sum_{i=1}^n X_i$, all $X_i$ independent and where $X_i = 1$ with probability $p_i$ and $X_i = 0$
+with probability $1-p_i$. Let $\mu = \Ex[X]$. Then  
+\begin{align}
+  \Prob{X \ge (1 + \delta)\mu} &\le e^{-\frac{\delta^2}{2+\delta}\mu}\\
+  \Prob{X \le (1 + \delta)\mu} &\le e^{-\frac{\delta^2}{2}\mu}
+\end{align}
+\end{theorem}
+
+
+\begin{lemma}
+Let $X_i$ for $1 \le i \le n$ be indendent random variables with probabilities
+$p_i$ of being one and $1-p_i$ of being zero. Then  
+\bnm
+  \Prob{X_1\oplus \cdots \oplus X_n = 0} = \frac{1}{2} + 2^{n-1}\prod_{i=1}^n
+  \left(p_i - \frac{1}{2}\right) \;.
+\enm
+\end{lemma}
+
+
+\bnm
+  \AdvPRF{\EM,P}{\advA} \le \frac{2\cdot q_1 \cdot q_2}{2^n}
+\enm
