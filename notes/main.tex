@@ -13,7 +13,7 @@
 \title{\textbf{Designing Secure Cryptography}}
 
 \author{
-  Cornell CS 6831 
+  Cornell CS 6831
 }
 
 
@@ -35,7 +35,7 @@
   \item Fix a pseudocode language, including randomness, and an associated model
     of computation. Treat memory usage as well as run times of algorithms. We
     will most often treat memory as subservient to run-time, bounding the former
-    by the latter. But special treatments are needed. 
+    by the latter. But special treatments are needed.
     The goal is to have a simplified abstraction, but which
     provides good predictions of running code.  Probably look at ``Careful with
     Composition'' paper as starting point.
@@ -43,19 +43,19 @@
  \item Algorithms are simply pseudocode that take input and produce an output.
     Define what it means for algorithm to be runnable. Define adversaries
     as algorithms and require they be runnable. Comment on how this interacts
-    with (and rules out) non-uniform reductions, other such things. 
+    with (and rules out) non-uniform reductions, other such things.
 
   \item  Algorithms can be parameterized, but this is just notational sugar. The result
     must still be runnable. They may have oracles, and this defines some
     interface.  Give conventions on resource usage of algorithms: number of
     oracle queries, run time (with oracle queries unit cost), etc. Discuss how
-    runnable algorithms can then be composed. 
+    runnable algorithms can then be composed.
 
   \item Associate probability space to any algorithm, be pedantic here since we
     may want to prove some basic stuff via direct manipulation of probability
-    space (i.e., coin-counting arguments). 
+    space (i.e., coin-counting arguments).
 
-  
+
   \item Introduce security definitions as special algorithms called games. The
     game is just another algorithm parameterized by some adversary, scheme, etc.
     Thus typically what we define as a game is actually a family of algorithms,
@@ -77,9 +77,9 @@
 
   \item Discuss assumptions. These are formalized as games. What separates them
     from security definitions is contextual. They are ``lower level'' and
-    less related to the goals of cryptographic protocols.  
+    less related to the goals of cryptographic protocols.
 
-  \item Reductions are runnable algorithms. 
+  \item Reductions are runnable algorithms.
 
   \item Using reductions to set security parameters. Maybe interleave some of
     this discussion with first couple of chapters
@@ -94,11 +94,11 @@
 %\input{ciphers}
 \newpage
 \input{ciphers-draft}
+\input{prp/all}
 \newpage
 \input{cryptanalysis}
 \newpage
 \input{freqanalysis}
-
 \newpage
 
 \printbibliography
@@ -108,4 +108,3 @@
 
 
 \end{document}
-
