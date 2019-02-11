@@ -120,5 +120,17 @@ Ret $C$
 \AdvROR{\SE}{\advA} = \left|\Prob{\REAL_{\SE}^\advA\Rightarrow 1} - \Prob{\REAL_{\SE}^\advA\Rightarrow1} \right| 
 \enm
 
+\begin{theorem}
+Let $\SE$ be the OCB CPA-core scheme built from tweakable cipher
+$\tweakCipher$ with tweak space $\bits^n\times[0,2^n-2]$.
+Then for any $\ROR_\SE$-adversary $\advA$
+making at most $q$ queries with aggregate length at most $\sigma$
+blocks, we give an adversary $\advB$ such that
+\bnm
+  \AdvROR{\SE}{\advA} \le \AdvTPRP{\tweakCipher}{\advB} + \frac{q^2}{2^n}
+\enm
+where $\advB$ runs in time that of $\advA$ and makes at most $\sigma$ queries.
+\end{theorem}
+
 
 

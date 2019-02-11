@@ -184,7 +184,8 @@ what we're hoping to cover.
 | Jan 30 | PRP/PRF Switching lemma, Luby-Rackoff, Shuffling | [Slides](slides/ciphers2-lec3-markup.pptx) | |
 | Feb 4 |  Block ciphers, cryptanalysis  | [Slides](slides/cryptanalysis-lec4.pptx) | |
 | Feb 6 |   Frequency analysis, tweakable block ciphers |[Slides](slides/tweakciphers-lec5.pptx) | |
-| Feb 11 | message authentication, universal hashing |  | |
+| Feb 11 | Tweakable block ciphers, randomized encryption |
+[Slides](slides/tweakciphers-lec6-markup.pptx) | |
 | Feb 13 | Authenticated encryption |   | |
 | Feb 18 | Nonce-based and robust authenticated encryption  |  | |
 | Feb 20 | Cryptographic hashing |  | |
