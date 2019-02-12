@@ -8,7 +8,7 @@
   backrefpages = {pages},% originally "cited on pages"
 }
 
-	
+
 \usepackage{framed}
 %\usepackage{cite}
 \usepackage[hidelinks]{hyperref}
@@ -34,6 +34,7 @@
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \usepackage{cleveref}
+\usepackage{bm}
 \usepackage{mathtools}
 \allowdisplaybreaks[2]
 \usepackage{latexsym}
@@ -151,6 +152,17 @@
 
 \newcommand{\SetFigFont}[5]{} % This is for xfig issue
 \newcommand{\SetFigFontNFSS}[5]{} % This is for xfig issue
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}%
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}%
+\DeclarePairedDelimiter\absv{\lvert}{\rvert}%
+%\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+\DeclarePairedDelimiter\prns{(}{)}%
+\DeclarePairedDelimiter\braces{\{}{\}}%
+\DeclarePairedDelimiter\bracks{[}{]}%
+\DeclarePairedDelimiterX\condprns[2]{(}{)}{\,#1 \;\delimsize\vert\; #2\,}
+\DeclarePairedDelimiterX\condbrks[2]{[}{]}{\,#1 \;\delimsize\vert\; #2\,}
+\DeclarePairedDelimiterX\condbraces[2]{\{}{\}}{\,#1 \;\delimsize\vert\; #2\,}
 
 % ========================================================================
 
@@ -741,7 +753,7 @@
  \newcommand{\ExpLOR}[2]{\mathbf{Exp}^{\mathrm{lor}}_{#1}(#2)}
  \newcommand{\ExpLORCCA}[2]{\mathbf{Exp}^{\mathrm{lor\dash cca}}_{#1}(#2)}
  \newcommand{\Enc}{\procfont{Enc}}
- 
+
  \newcommand{\Ectxtspace}{\calC}
  \newcommand{\coinspace}{\calR}
  \newcommand{\ctxtspacebar}{\overline{\calC}}
@@ -851,7 +863,7 @@
 \newcommand{\CTXT}{\textnormal{CTXT}}
 \newcommand{\CTXTce}{\textnormal{CTXT}}
 \newcommand{\PTXT}{\textnormal{PTXT}}
- 
+
 \newcommand{\MUUFCMA}{\textnormal{MU-UF-CMA}}
 
  \newcommand{\AdvMUUFCMA}[2]{\Adv^{\mathrm{mu\dash uf\dash cma}}_{#1}(#2)}
@@ -1176,7 +1188,7 @@
 	   \begin{minipage}[t]{#1\textwidth}\setstretch{\codestretch} #3 \end{minipage}
 	\end{tabular}
 	}
-	
+
 \newcommand{\hpagess}[4]{
     \begin{tabular}{c@{\hspace*{1.5em}}c}
 	   \begin{minipage}[t]{#1\textwidth}\setstretch{\codestretch} #3 \end{minipage}
@@ -1214,21 +1226,14 @@
 
 \newcounter{mynote}[section]
 \newcommand{\notecolor}{blue}
-\newcommand{\paulnotecolor}{red}
-\newcommand{\ydnotecolor}{purple}
-\newcommand{\joannenotecolor}{green}
-
+\newcommand{\scribenotecolor}{purple}
+\newcommand{\proofreadernotecolor}{green}
 
 \newcommand{\thenote}{\thesection.\arabic{mynote}}
 \newcommand{\tnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\notecolor}{$\ll$TCR~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\pgnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\paulnotecolor}{$\ll$PAG~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\jwnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\joannenotecolor}{$\ll$Joanne~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\ydnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\ydnotecolor}{$\ll$Yevgeniy~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\tsnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\tsnotecolor}{$\ll$TS~\thenote: {\sf #1}$\gg$}}\fi}
+\newcommand{\scribenote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\scribenotecolor}{$\ll$Scribe~\thenote: {\sf #1}$\gg$}}\fi}
+\newcommand{\pfreadernote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\proofreadernotecolor}{$\ll$Proofreader~\thenote: {\sf #1}$\gg$}}\fi}
 \newcommand{\fixme}[1]{\ifnum\authnotes=1\textbf{\textcolor{red}{[FIXME: #1]}}\fi}
-\newcommand{\snote}[1]{\refstepcounter{mynote}{\bf
-\textcolor{\notecolor}{$\ll$SK~\thenote: {\sf #1}$\gg$}}}
-\newcommand{\paulnote}[1]{\pgnote{#1}}
 
 
 
@@ -1582,6 +1587,7 @@
 \newcommand{\meegenctr}{\mathsf{MEE\dash GEN\dash CTR}}
 
 \newcommand{\prfkeyspace}{\calK_{\ma}}
+\newcommand{\prfkey}{K}
 \newcommand{\PaddingScheme}{\textsf{PadS}}
 
 \newcommand{\collevent}{\mathsc{DColl}}
@@ -1875,7 +1881,7 @@
 
 
 
-\newcommand{\FBfrank}{\textsf{FB}} 
+\newcommand{\FBfrank}{\textsf{FB}}
 \newcommand{\FBenc}{\textsf{FBEnc}}
 \newcommand{\FBdec}{\textsf{FBDec}}
 \newcommand{\FBver}{\textsf{FBVer}}
@@ -1916,39 +1922,39 @@
 
 \newcommand{\EtE}{\textnormal{EtE}} % nae = nonce-based auth enc
 
-\newcommand{\CtE}{\textnormal{CtE1}} 
-\newcommand{\CtEEnc}{\textnormal{CtE1-Enc}} 
-\newcommand{\CtEDec}{\textnormal{CtE1-Dec}} 
-\newcommand{\CtEVer}{\textnormal{CtE1-Ver}} 
+\newcommand{\CtE}{\textnormal{CtE1}}
+\newcommand{\CtEEnc}{\textnormal{CtE1-Enc}}
+\newcommand{\CtEDec}{\textnormal{CtE1-Dec}}
+\newcommand{\CtEVer}{\textnormal{CtE1-Ver}}
 
-\newcommand{\FCtE}{\textnormal{CtE2}} 
-\newcommand{\FCtEEnc}{\textnormal{CtE2-Enc}} 
-\newcommand{\FCtEDec}{\textnormal{CtE2-Dec}} 
-\newcommand{\FCtEVer}{\textnormal{CtE2-Ver}} 
+\newcommand{\FCtE}{\textnormal{CtE2}}
+\newcommand{\FCtEEnc}{\textnormal{CtE2-Enc}}
+\newcommand{\FCtEDec}{\textnormal{CtE2-Dec}}
+\newcommand{\FCtEVer}{\textnormal{CtE2-Ver}}
 
-\newcommand{\NCE}{\textnormal{nCE}} 
-\newcommand{\NCEKg}{\textnormal{Kg}} 
-\newcommand{\NCEEnc}{\textnormal{Enc}} 
-\newcommand{\NCEDec}{\textnormal{Dec}} 
-\newcommand{\NCEVer}{\textnormal{Ver}} 
+\newcommand{\NCE}{\textnormal{nCE}}
+\newcommand{\NCEKg}{\textnormal{Kg}}
+\newcommand{\NCEEnc}{\textnormal{Enc}}
+\newcommand{\NCEDec}{\textnormal{Dec}}
+\newcommand{\NCEVer}{\textnormal{Ver}}
 
-\newcommand{\FastNCE}{\textnormal{CEP}} 
-\newcommand{\FastKg}{\textnormal{CEP-Kg}} 
-\newcommand{\FastEnc}{\textnormal{CEP-Enc}} 
-\newcommand{\FastDec}{\textnormal{CEP-Dec}} 
-\newcommand{\FastVer}{\textnormal{CEP-Ver}} 
+\newcommand{\FastNCE}{\textnormal{CEP}}
+\newcommand{\FastKg}{\textnormal{CEP-Kg}}
+\newcommand{\FastEnc}{\textnormal{CEP-Enc}}
+\newcommand{\FastDec}{\textnormal{CEP-Dec}}
+\newcommand{\FastVer}{\textnormal{CEP-Ver}}
 \newcommand{\LCP}{\text{LCP}}
-\newcommand{\OCB}{\textnormal{OCB}} 
-\newcommand{\OCBKg}{\textnormal{OCB-Kg}} 
-\newcommand{\OCBEnc}{\textnormal{OCB-Enc}} 
-\newcommand{\OCBDec}{\textnormal{OCB-Dec}} 
-\newcommand{\OCBVer}{\textnormal{OCB-Ver}} 
+\newcommand{\OCB}{\textnormal{OCB}}
+\newcommand{\OCBKg}{\textnormal{OCB-Kg}}
+\newcommand{\OCBEnc}{\textnormal{OCB-Enc}}
+\newcommand{\OCBDec}{\textnormal{OCB-Dec}}
+\newcommand{\OCBVer}{\textnormal{OCB-Ver}}
 \newcommand{\querya}{a}
-\newcommand{\BC}{\textnormal{BC}} 
-\newcommand{\BCKg}{\textnormal{BC-Kg}} 
-\newcommand{\BCEnc}{\textnormal{BC-Enc}} 
-\newcommand{\BCDec}{\textnormal{BC-Dec}} 
-\newcommand{\BCVer}{\textnormal{BC-Ver}} 
+\newcommand{\BC}{\textnormal{BC}}
+\newcommand{\BCKg}{\textnormal{BC-Kg}}
+\newcommand{\BCEnc}{\textnormal{BC-Enc}}
+\newcommand{\BCDec}{\textnormal{BC-Dec}}
+\newcommand{\BCVer}{\textnormal{BC-Ver}}
 
 \newcommand{\tweakCipher}{\tilde{\calE}}
 \newcommand{\tweakE}{\tilde{E}}
@@ -2005,7 +2011,7 @@
 \newcommand{\moKG}{\textnormal{\textsf{mo\textnormal{-}\CKg}}}
 \newcommand{\aeadlen}{\textsf{aead.len}}
 \newcommand{\tagT}{T}
-\newcommand{\encrypt}{encryptment }%%%Macros for names of encryptment algorithsm 
+\newcommand{\encrypt}{encryptment }%%%Macros for names of encryptment algorithsm
 \newcommand{\opening}{opening }
 \newcommand{\ctxtAEC}{C_{\EC}}
 \newcommand{\ctxtBEC}{B_{\EC}}
@@ -2035,6 +2041,10 @@
 \newcommand{\keyspace}{\calK}
 \newcommand{\msgspace}{\calM}
 \newcommand{\ctxtspace}{\calC}
+\newcommand{\msg}{M}
+\newcommand{\ct}{C}
+\newcommand{\randfn}{\rho}
+
 
 \newcommand{\TKR}{\textnormal{TKR}} % security game for key recovery
 \newcommand{\Fn}{\textnormal{Fn}}
