@@ -18,10 +18,10 @@ we give an $\PRF_{\prf}$-adversary $\advB$ making at most $3q$ queries such that
 \scribenote{How are we doing cites? (Luby-Rackoff)}
 
 \begin{proof}
-Without loss of generality, we consider $\advA$ that make only unique queries to oracle $\Fn$.
+Without loss of generality, we consider an adversary $\advA$ that only makes unique queries to oracle $\Fn$.
 \scribenote{Be more formal about why this okay?}
 We bound the advantage of $\PRP$ adversary $\advA$ by bounding the advantage of each of a series of game hops.
-Pseudocode for the games is given in Figure~\ref{fig:games-luby-rackoff}.
+Pseudocode for these games is given in Figure~\ref{fig:games-luby-rackoff}.
 
 Game $\G0$ is constructed exactly as $\PRP1^{\advA}_{\Feistel}$; the oracle pseudocode expands out the computation of the 3-round Feistel network $\Feistel$:
 \bnm
@@ -49,7 +49,7 @@ $R_3 \gets L_2 \oplus \Fn(\langle 3\rangle \concat R_2)$\\
 Return $L_3 \concat R_3$
 }
 \end{center}
-
+\pfreadernote{Should this game be a figure?}
 Adversary $\advB$ simulates $\FnSim$ by running the 3-round Feistel network but replacing the round function with a call to its own oracle $\Fn$.
 In \PRF0, where $\advB$'s oracle $\Fn$ acts as the round function $\prf$, $\advB$ runs exactly $\G0$.
 In \PRF1, where $\Fn$ acts as a random function $\rho$, $\advB$ runs exactly $\G1$.
@@ -147,7 +147,7 @@ Return $L_3 \concat R_3$
 \label{fig:games-luby-rackoff}
 \end{figure}
 
-In games $\G2$ and $\G3$, we use a similar trick to as in our proof of the PRF-PRP switching lemma.
+In games $\G2$ and $\G3$, we use a similar trick to the one we used in our proof of the PRF-PRP switching lemma.
 Game $\G2$ replaces the random function $\rho$ with a lazy evaluation of a random function using a table $\TabF$.
 When the random function is queried on an input, the value in $\TabF$ keyed by the input is returned.
 If there is no such value, meaning the input has not been previously queried, a new random value is generated, returned, and stored in $\TabF$ for future queries.
@@ -189,16 +189,16 @@ And by the PRF-PRP switching lemma,
 	\absv*{\Prob{\PRF0_{\Feistel}^{\advA}\Rightarrow 1} - \Prob{\PRP0_{\Feistel}^{\advA}\Rightarrow1}} \le \frac{q^2}{2^{2n}}  \;.
 	\enm
 
-Lastly, we can bound the probability $\G4\setsbad$.
-First consider the probability $\G4\setsbad$ on query $i$; call this event $W_i$.
+Lastly, we can bound the probability that $\G4\setsbad$.
+First, consider the probability $\G4\setsbad$ on query $i$; call this event $W_i$.
 This event can be considered as two separate events depending on where the $\bad$ flag is set:
 denote the event that $R_1$ collides as $W_i^1$ and the event that $R_2$ collides as $W_i^2$.
 
-Let's first bound the easier case, the probability of $W_i^2$.
+It is simple to bound case of the probability of $W_i^2$.
 The probability of $R_2 = L_1 \xor X_2$ colliding with a previous $R_2$ on query $i$ is bounded by $q/2^n$ since $X_2$ is a fresh random string.
 
 Bounding the probability of $W_i^1$ is more nuanced.
-At first glance it appears that the logic should follow symmetrically to above where $R_1 = L_0\xor X_1$ for random $X_1$.
+At first glance, it appears that the logic should follow symmetrically to that from above where $R_1 = L_0\xor X_1$ for random $X_1$.
 To bound the probability of collision to $q/2^n$, we must argue that $X_1$ is independent of the inputs to $\Fn$.
 In the previous case, $X_2$ is freshly sampled on every query to $\Fn$ so independence is trivially satisfied.
 This is not the case for $X_1$.
