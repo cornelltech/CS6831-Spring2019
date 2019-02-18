@@ -26,15 +26,15 @@
 \usepackage{xspace}
 \usepackage{tikz}
 \usetikzlibrary{calc,arrows,arrows.meta,shapes,positioning,matrix,decorations.pathreplacing}
+\usepackage{amsthm}
 \usepackage{amssymb}
-% \usepackage{amsthm}
-
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \usepackage{cleveref}
 \usepackage{bm}
+\usepackage{listings}
 \usepackage{mathtools}
 \allowdisplaybreaks[2]
 \usepackage{latexsym}
@@ -48,6 +48,7 @@
 \usepackage[font=small]{caption}
 \def\authnotes{1}
 \newtheorem{thm}{Theorem} %[section]
+\newtheorem*{theorem*}{Theorem}
 \newtheorem{lem}{Lemma}
 
 \newtheorem{cor}[thm]{Corollary}
@@ -88,6 +89,7 @@
 
 
 % Deluxe proof enviroment
+\iffalse
     \def\qsym{\vrule width0.6ex height1em depth0ex}
     \def\qedsym{{\hspace{5pt}\rule[-1pt]{3pt}{9pt}}}
     \newcount\proofqeded
@@ -108,6 +110,7 @@
     \def\@nprf{\begin{rm}\protect\vspace{6pt}\noindent{\bf Proof:\ }%
     \addtolength{\parskip}{5pt}\setlength{\parindent}{0pt}}
   \makeatother
+\fi
 
 
 % Extra padding for table entries
@@ -368,6 +371,7 @@
 \newcommand{\veryshortleftarrow}[1]
       {\setlength{\unitlength}{.01in}
       \begin{picture}(#1,1) \put(#1,0){\vector(-1,0){#1}} \end{picture}}
+
 
 \newcommand{\getparse}[1]{{\:\stackrel{\raisebox{-0.5em}{{\hspace{0.1em}\mbox{\boldmath$\scriptscriptstyle
             #1$}}}}{\leftarrow}\:}}
@@ -2090,8 +2094,12 @@
 \newcommand{\ROR}{\textnormal{ROR}}
 \newcommand{\AdvROR}[2]{\Adv^{\mathrm{ind\$}}_{#1}(#2)}
 
+\newcommand{\INDSIM}{\textnormal{INDSIM}}
+\newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
+
 
 \newcommand{\EncOracle}{\textnormal{Enc}}
+\newcommand{\EncSim}{\textnormal{EncSim}}
 \newcommand{\Time}{\textsf{T}}
 
 \newcommand{\tildeC}{\tilde{C}}
