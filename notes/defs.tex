@@ -2052,6 +2052,7 @@
 
 \newcommand{\TKR}{\textnormal{TKR}} % security game for key recovery
 \newcommand{\Fn}{\textnormal{Fn}}
+\newcommand{\FnInv}{\textnormal{FnInv}}
 \newcommand{\FnSim}{\textnormal{FnSim}}
 \newcommand{\AdvTKR}[2]{\Adv^{\mathrm{tkr}}_{#1}(#2)}
 
@@ -2071,9 +2072,13 @@
 \newcommand{\AdvTPRP}[2]{\Adv^{\mathrm{tprp}}_{#1}(#2)}
 \newcommand{\tweakpi}{\tilde{\pi}}
 
+\newcommand{\STPRP}{\textnormal{STPRP}}
+\newcommand{\AdvSTPRP}[2]{\Adv^{\mathrm{\pm tprp}}_{#1}(#2)}
+
+
 
 \newcommand{\SPRP}{\textnormal{SPRP}}
-\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{sprp}}_{#1}(#2)}
+\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{\pm prp}}_{#1}(#2)}
 
 \newcommand{\PRF}{\textnormal{PRF}}
 \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
@@ -2093,12 +2098,15 @@
 \newcommand{\RAND}{\textnormal{RAND}}
 \newcommand{\ROR}{\textnormal{ROR}}
 \newcommand{\AdvROR}[2]{\Adv^{\mathrm{ind\$}}_{#1}(#2)}
+\newcommand{\RORCCA}{\textnormal{ROR-CCA}}
+\newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
 
 \newcommand{\INDSIM}{\textnormal{INDSIM}}
 \newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
 
 
 \newcommand{\EncOracle}{\textnormal{Enc}}
+\newcommand{\DecOracle}{\textnormal{Dec}}
 \newcommand{\EncSim}{\textnormal{EncSim}}
 \newcommand{\Time}{\textsf{T}}
 
