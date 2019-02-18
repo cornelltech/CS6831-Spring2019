@@ -2,7 +2,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Building PRPs from PRFs}
 We've seen how it is hard to distinguish between a PRF and a PRP.
-In the previous section, we showed that it is hard to distinguish between a PRF and a PRP.
+In the previous section, we showed that it is hard to distinguish between a PRF and a PRP. \pfreadernote{Maybe worth referring back to \lemref{switching-lem}.}
 However, as in the use case of block ciphers for length-preserving encryption and decryption, we specifically require a PRP for correctness purposes (in fact, we want an invertible PRP).
 This is to ensure that a single ciphertext does not have ambiguous decryptions.
 A natural question to ask is does the existence of a PRF imply the existence of a PRP, or more constructively, can we build a PRP given a PRF?
