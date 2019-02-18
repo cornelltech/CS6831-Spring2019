@@ -185,7 +185,7 @@ what we're hoping to cover.
 | Feb 4 |  Block ciphers, cryptanalysis  | [Slides](slides/cryptanalysis-lec4.pptx) | |
 | Feb 6 |   Frequency analysis, tweakable block ciphers |[Slides](slides/tweakciphers-lec5.pptx) | |
 | Feb 11 | Tweakable block ciphers, randomized encryption | [Slides](slides/tweakciphers-lec6-markup.pptx) | |
-| Feb 13 | Authenticated encryption |   | |
+| Feb 13 | Randomized encryption | [Slides](slides/randomized-lec7_markup.pptx)  | |
 | Feb 18 | Nonce-based and robust authenticated encryption  |  | |
 | Feb 20 | Cryptographic hashing |  | |
 | Feb 25 | No Lecture (February break) | |
