@@ -9,7 +9,7 @@ In particular, we want to show that the output of the $\prf_{\prfkey}(\langle 2 
 Let $\Feistel$ be the 3-round Feistel cipher using round function
 $\prf\Colon\bits^k\times\bits^{2n}\rightarrow \bits^n$. For any
 $\PRP_\cipher$-adversary $\advA$ making at most $q$ queries
-we give an $\PRF_{\prf}$-adversary $\advB$ making at most $3q$ queries such that
+we give a $\PRF_{\prf}$-adversary $\advB$ making at most $3q$ queries such that
 \bnm
   \AdvPRP{\Feistel}{\advA} \le \AdvPRF{\prf}{\advB} + \frac{2q^2}{2^n} +
   \frac{q^2}{2^{2n}} \;.

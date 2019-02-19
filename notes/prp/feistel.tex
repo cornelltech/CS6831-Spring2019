@@ -1,7 +1,7 @@
 %!TEX root = ../main.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Building PRPs from PRFs}
-We've seen how it is hard to distinguish between a PRF and a PRP.
+We've seen how it is hard to distinguish between a PRF and a PRP. \pfreadernote{This first sentence might be redundant given the next sentence}
 In the previous section, we showed that it is hard to distinguish between a PRF and a PRP. \pfreadernote{Maybe worth referring back to \lemref{switching-lem}.}
 However, as in the use case of block ciphers for length-preserving encryption and decryption, we specifically require a PRP for correctness purposes (in fact, we want an invertible PRP).
 This is to ensure that a single ciphertext does not have ambiguous decryptions.
@@ -79,13 +79,13 @@ R_1 &\gets L_0 \oplus \prf_{\prfkey}(R_0)\,.
   Thus,
 \begin{align*}
 \AdvPRP{\cipher}{\advA} &= \absv*{\Prob{\PRP1_\cipher^\advA\Rightarrow 1} - \Prob{\PRP0_\cipher^\advA\Rightarrow1} }\\
-&\geq 1 - \frac{1}{2^n}\,.
+&\geq 1 - \frac{1}{2^n}\,.   
 \end{align*}
 \end{example}
-
+\pfreadernote{I think the above is just equals?}
 We see that it is trivial to distinguish a 1-round Feistel network from a random permutation, since the second half of the input is mapped directly to the first half of the output.
 Does the randomness of the permutation improve by performing numerous Feistel rounds?
-One way to construct a multi-round Feistel network is by feeding the outputs of the previous round as inputs to the next round, and where each round is keyed with a different unique key.
+One way to construct a multi-round Feistel network is by feeding the outputs of the previous round as inputs to the next round, where each round is keyed with a different unique key.
 To use only a single key, we could consider an alternate construction, where the round function $\prf$ in each Feistel round has a different domain, $\prf:\braces{0,1}^{k}\times\braces{0,1}^{2n}\rightarrow\braces{0,1}^n$.
 As before, the round function will take in the second half of the input, but it will also take in an $n$-bit round counter.
 To stack Feistel rounds into a multi-round Feistel network, we simply ensure that each round uses a different round counter.
