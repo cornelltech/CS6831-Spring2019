@@ -100,7 +100,7 @@ $(L_0, R_0) \gets \msg$\\
 $L_1 \gets R_0$\\
 If $\TabF[\langle1\rangle\concat R_0] = \bot$ then\\
 \ind $\TabF[\langle1\rangle\concat R_0] \getsr \bits^n$\\
-$X_1 \gets \TabF[\langle1\rangle\concat R_1]$\\
+$X_1 \gets \TabF[\langle1\rangle\concat R_0]$\\
 $R_1 \gets L_0 \oplus X_1$\\
 $L_2 \gets R_1$\\
 $X_2 \getsr \bits^n$\\
@@ -127,7 +127,7 @@ $(L_0, R_0) \gets \msg$\\
 $L_1 \gets R_0$\\
 If $\TabF[\langle1\rangle\concat R_0] = \bot$ then\\
 \ind $\TabF[\langle1\rangle\concat R_0] \getsr \bits^n$\\
-$X_1 \gets \TabF[\langle1\rangle\concat R_1]$\\
+$X_1 \gets \TabF[\langle1\rangle\concat R_0]$\\
 $R_1 \gets L_0 \oplus X_1$\\
 $L_2 \gets R_1$\\
 $X_2 \getsr \bits^n$\\
@@ -195,7 +195,7 @@ This event can be considered as two separate events depending on where the $\bad
 denote the event that $R_1$ collides as $W_i^1$ and the event that $R_2$ collides as $W_i^2$.
 
 It is simple to bound the probability of $W_i^2$.
-The probability of $R_2 = L_1 \xor X_2$ colliding with a previous $R_2$ on query $i$ is bounded by $q/2^n$ since $X_2$ is a fresh random string.
+The probability of $R_2 = L_1 \xor X_2$ colliding with a previous $R_2$ on query $i$ is bounded by $q/2^n$ since $X_2$ is a fresh random string. \pfreadernote{$\G4$ just samples $R_2$ randomly, not $R_2 = L_1 \xor X_2$ so it might be good to refresh the reader's memory that we're using Pr[G3 sets bad] = Pr[G4 sets bad] here. Also maybe mention union bound for how you upper bounded the probability?}
 
 Bounding the probability of $W_i^1$ is more nuanced.
 At first glance, it appears that the logic should follow symmetrically to that from above where $R_1 = L_0\xor X_1$ for random $X_1$.
@@ -203,7 +203,7 @@ To bound the probability of collision to $q/2^n$, we must argue that $X_1$ is in
 In the previous case, $X_2$ is freshly sampled on every query to $\Fn$ so independence is trivially satisfied.
 This is not the case for $X_1$.
 However, we can argue that $\advA$'s queries are dependent only on $\advA$'s random coins and the previous outputs of $\Fn$.
-Since in $\G4$, the outputs of $\Fn$ are independently drawn random samples, we have that the outputs of $\Fn$ are independent of $X_1$.
+Since in $\G4$ the outputs of $\Fn$ are independently drawn random samples, we have that the inputs of $\Fn$ are independent of $X_1$.
 \scribenote{May need to argue this more formally?}
 
 Thus, by two applications of the union bound, we have
