@@ -187,7 +187,7 @@ what we're hoping to cover.
 | Feb 11 | Tweakable block ciphers, randomized encryption | [Slides](slides/tweakciphers-lec6-markup.pptx) | |
 | Feb 13 | Randomized encryption | [Slides](slides/randomized-lec7_markup.pptx)  | |
 | Feb 18 | Authenticated encryption  | [Slides](slides/activeattacks-lec8-markup.pptx)  | |
-| Feb 20 | Cryptographic hashing |  | |
+| Feb 20 | Message authentication | [Slides](slides/unforgeability-lec9.pptx)  | |
 | Feb 25 | No Lecture (February break) | |
 | Feb 27 | Password hashing, randomness extractors |  | |
 | Mar 4  | Public-key encryption RSA PKE |  | |
