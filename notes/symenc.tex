@@ -1,0 +1,257 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Randomized and Nonce-Respecting Symmetric Encryption}
+\label{sec:freqanalysis}
+
+
+\fpage{.25}{
+\underline{$\INDCPA^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+If $|M_0| \ne |M_1|$ then\\
+\myInd Ret $\bot$\\
+$C \getsr \enc_K(M_b)$\\
+Ret $C$
+}
+
+
+\bnm
+\AdvINDCPA{\SE}{\advA} = 2\cdotsm\Prob{\INDCPA_\SE^\advA\Rightarrow\true} - 1
+\enm
+
+\bnm
+\AdvINDCPA{\SE}{\advA} = 
+    \left|\Prob{\INDCPA1_{\SE}^\advA\Rightarrow 1} - \Prob{\INDCPA0_{\SE}^\advA\Rightarrow1} \right| 
+\enm
+
+
+\begin{theorem}
+Let $\SE$ be a symmetric encryption scheme. Let $\advA$ be any
+$\INDCPA_\SE$-adversary making at most $q$ queries. 
+We give an $\ROR_\SE$-adversary $\advB$ such that
+\bnm
+  \AdvINDCPA{\SE}{\advA} \le 2\cdotsm\AdvROR{\SE}{\advB}
+\enm
+Adversary $\advB$ makes at most $q$ 
+queries and runs in time that of $\advA$.
+\end{theorem}
+
+\tnote{We'll possibly introduce the following at some point, but didn't need it
+here yet.}
+We sometimes use $\bigO$ notation to hide small values that can be derived from
+proofs, but don't matter to the interpretation of the theorem. If we were to do
+an asymptotic treatment, this would correspond to hiding constants, hence the
+abuse of notation.  Thus in above theorem we would replace $q+3$ with
+$\bigO(q)$. 
+
+
+\fpage{.20}{
+\underline{$\advB^{\Enc}$}\\[1pt]
+$b \getsr \bits$\\
+$b' \getsr \advA^\EncSim$\\
+If $(b = b')$ then Ret 1\\
+Ret 0\medskip
+
+\underline{$\EncSim(M_0,M_1)$}\\
+Return $\Enc(M_b)$
+}
+
+\begin{align*}
+\AdvROR{\SE}{\advB} 
+    &= \left|\Prob{\ROR1_\SE^\advB\Rightarrow 1} -
+                                \Prob{\ROR0_\SE^\advB\Rightarrow 1}\right|\\
+    &= \left|\Prob{\INDCPA_\SE^\advA\Rightarrow\true} - \frac{1}{2}\right|\\
+    &= \left|\frac{1}{2} +
+    \frac{1}{2}\cdot\AdvINDCPA{\SE}{\advA} - \frac{1}{2}\right|\\
+    &= \frac{1}{2}\cdot\AdvINDCPA{\SE}{\advA}
+\end{align*}
+
+
+
+\fpage{.25}{
+\underline{$\INDSIM1^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \enc_K(M)$\\
+Ret $C$
+}
+
+\fpage{.25}{
+\underline{$\INDSIM0^{\advA,\simu}_{\SE}$}\\[1pt]
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \simu(|M|)$\\
+Ret $C$
+}
+\bnm
+\AdvINDSIM{\SE,\simu}{\advA} = 
+    \left|\Prob{\INDSIM1_{\SE}^\advA\Rightarrow 1} - \Prob{\INDSIM0_{\SE,\simu}^\advA\Rightarrow1} \right| 
+\enm
+
+\begin{theorem*}
+Let $\SE$ be a symmetric encryption scheme. We give a simulator $\simu$ such
+that for any  an
+$\INDSIM_\SE$-adversary $\advA$, we can give 
+a $\ROR_\SE$-adversary $\advB$ such that
+\bnm
+  \AdvINDSIM{\SE,\simu}{\advA} \le \AdvROR{\SE}{\advB} \;.
+\enm
+Adversary $\advB$ runs in time that of $\advA$ and makes the same number of
+queries. Simulator $\simu$ requires just two operations.
+\end{theorem*}
+
+\begin{align*}
+  \Prob{\INDSIM1_{\SE}^\advA} &= \Prob{\ROR1_{\SE}^\advB}\\ 
+  \Prob{\INDSIM0_{\SE}^\advA} &= \Prob{\ROR0_{\SE}^\advB} 
+\end{align*}
+
+\fpage{.15}{
+\underline{$\simu(\ell)$}\\
+$C \getsr \bits^{\ctxtlen(\ell)}$\\
+Ret $C$
+}
+
+\fpage{.15}{
+\underline{$\advB^\Enc$}\\
+$b' \getsr \advA^{\EncSim}$\\
+Ret $b'$\medskip
+
+\underline{$\EncSim(M)$}\\
+Return $\Enc(M)$
+}
+
+Notation $X_1,\ldots,X_m \getparse{n} X$ takes a string $X$ and partitions it
+into as many full $n$-bit blocks as possible, and lets $X_m$ be remaining bits,
+thus $|X_m| = |X| \bmod n$. Also recall that we assume that  $X \oplus Y$ for
+$|X| > |Y|$ 
+first truncates $X$ to $|Y|$ bits, and returns the exclusive or of that
+truncated string with $Y$. We similarly define the operation when $|X| < |Y|$.
+
+\fpage{.25}{
+\underline{$\Enc(K,M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets E_K(\IV \oplus \langle i\rangle) \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$\medskip
+
+\underline{$\Dec(K,C)$}\\
+If $|C| \le n$ then Ret $\bot$\\
+$\IV,C_1,\ldots,C_m \getparse{n} C$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets E_K(\IV \oplus \langle i\rangle) \oplus C_i$\\
+Ret $M_1 \concat\cdots\concat M_m$
+}
+
+\begin{theorem*}
+Let $\CTR$ be the CTR-mode symmetric encryption scheme built using blockcipher
+$\cipherE\Colon\bits^k\times\bits^n\rightarrow\bits^n$. Let $\advA$ be an
+$\ROR_\CTR$-adversary making at most~$q$ queries each totaling at most~$\sigma$
+blocks. Then we give an $\PRF_\cipher$-adversary $\advB$ such
+that
+\bnm
+  \AdvROR{\CTR}{\advA} \le \AdvPRF{\cipher}{\advB} + \frac{2\sigma q^2}{2^n}
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus $\bigO(q\sigma)$ and makes at most
+$\sigma$ queries.
+\end{theorem*}
+
+
+\begin{align*}
+  \AdvROR{\CTR}{\advA} 
+    &= \left| \Prob{\REAL_\CTR^\advA} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \left| \Prob{\G0} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &\le \left| \Prob{\G1} + \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \left| \Prob{\G2} + \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &\le \left| \Prob{\G3} + \Prob{\bad_3} \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \left| \Prob{\G4} + \Prob{\bad_4} + \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \Prob{\bad_4} + \AdvPRF{\cipher}{\advB}\\
+    &\le \AdvPRF{\cipher}{\advB} + \frac{2q\sigma^2}{2^n}
+\end{align*}
+
+To analyze the setting of $\bad_4$ we, first, observe that the choices of $\IV$
+are independent of the adversary's queries. For query $i$, let $m_i$ be the
+length in blocks of that query and $\IV_i$ be the value $\IV$ chosen.
+Let $X_{i,j} = \IV_i \oplus \langle j\rangle$ for $1 \le j \le m_i$. Then we are
+asking whether there are any collisions among 
+\begin{align*}
+    &\IV_1 , \IV_1 \oplus \langle 1\rangle, \ldots , \IV_1 \oplus \langle m_1\rangle \\
+    &\IV_2 , \IV_2 \oplus \langle 1\rangle, \ldots , \IV_2 \oplus \langle m_2\rangle \\
+    &\phantom{\IV_2 , \IV_2 \oplus \langle 1\rangle, } \vdots\\
+    &\IV_q , \IV_q \oplus \langle 1\rangle, \ldots , \IV_q \oplus \langle m_q\rangle \\
+\end{align*}
+If $m_i < 2^n-1$ for all queries then we can ignore wraparound effects, and so
+no collisions on each row. Now consider any two pairs of rows $1 < i < j$. We
+can consider $\IV_i$ to be fixed, and so a collision across rows occurs if
+$\IV_j \in \{\IV_i + \alpha \;:\; -\sigma +1 \le \alpha \le \sigma-1\}$. This
+occurs with probability $(2\sigma-1) / 2^n$. Since there are at most $q^2$ such
+pairs, we have that the total probability of a collision is at most 
+$2q^2\sigma / 2^n$.
+
+%\begin{align*}
+%  \Prob{\bad_4} = \Prob{\wedge_i X_i \in T_i  \lor X_2 \in T_i \cdots \lor X_{
+%\end{align*}
+
+\hfpagessss{.23}{.23}{.23}{.23}{
+\underline{$\G0$}\\
+$K \getsr \bits^k$\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets E_K(\IV \oplus \langle i\rangle) \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}{
+\underline{$\G1$}\\
+$\rho \getsr \Func(n,n)$\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets \rho(\IV \oplus \langle i\rangle) \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}{
+\underline{\fbox{$\G2$} \;\;\; $\G3$}\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $P_i \getsr \bits^n$\\
+\myInd If $\TabT[\IV\oplus \langle i \rangle] \ne \bot$ then\\
+\myInd\myInd $\bad\gets\true$\\
+\myInd\myInd \fbox{$C_i \gets \TabT[\IV \oplus \langle i\rangle]$}\\
+\myInd $\TabT[\IV \oplus \langle i\rangle] \gets P_i $\\
+\myInd $C_i \gets P_i \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}{
+\underline{$\G4$}\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd If $\TabT[\IV\oplus \langle i \rangle] \ne \bot$ then\\
+\myInd\myInd $\bad\gets\true$\\
+\myInd $\TabT[\IV \oplus \langle i\rangle] \gets 1 $\\
+\myInd $C_i \getsr \bits^n$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}
