@@ -26,9 +26,8 @@
 \usepackage{xspace}
 \usepackage{tikz}
 \usetikzlibrary{calc,arrows,arrows.meta,shapes,positioning,matrix,decorations.pathreplacing}
+\usepackage{amsthm}
 \usepackage{amssymb}
-% \usepackage{amsthm}
-
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -49,6 +48,7 @@
 \usepackage[font=small]{caption}
 \def\authnotes{1}
 \newtheorem{thm}{Theorem} %[section]
+\newtheorem*{theorem*}{Theorem}
 \newtheorem{lem}{Lemma}
 
 \newtheorem{cor}[thm]{Corollary}
@@ -89,6 +89,7 @@
 
 
 % Deluxe proof enviroment
+\iffalse
     \def\qsym{\vrule width0.6ex height1em depth0ex}
     \def\qedsym{{\hspace{5pt}\rule[-1pt]{3pt}{9pt}}}
     \newcount\proofqeded
@@ -109,6 +110,7 @@
     \def\@nprf{\begin{rm}\protect\vspace{6pt}\noindent{\bf Proof:\ }%
     \addtolength{\parskip}{5pt}\setlength{\parindent}{0pt}}
   \makeatother
+\fi
 
 
 % Extra padding for table entries
@@ -370,6 +372,7 @@
       {\setlength{\unitlength}{.01in}
       \begin{picture}(#1,1) \put(#1,0){\vector(-1,0){#1}} \end{picture}}
 
+
 \newcommand{\getparse}[1]{{\:\stackrel{\raisebox{-0.5em}{{\hspace{0.1em}\mbox{\boldmath$\scriptscriptstyle
             #1$}}}}{\leftarrow}\:}}
 \newcommand{\getu}{{\:\stackrel{\raisebox{-0.5em}{{\hspace{0.1em}\mbox{\boldmath$\scriptscriptstyle \cup$}}}}{\leftarrow}\:}}
@@ -499,7 +502,6 @@
 % Definitions for this paper
 \newcommand{\secparam}{\kappa}
 \newcommand{\ctr}{\mathit{ctr}}
-\newcommand{\MA}{\mathsf{MA}}
 \newcommand{\MAC}{\mathsf{MAC}}
 \newcommand{\kwfont}[1]{\textrm{#1}}
 \newcommand{\procfont}[1]{\textbf{#1}}
@@ -865,7 +867,9 @@
 \newcommand{\CTXTce}{\textnormal{CTXT}}
 \newcommand{\PTXT}{\textnormal{PTXT}}
 
+\newcommand{\UFCMA}{\textnormal{UF-CMA}}
 \newcommand{\MUUFCMA}{\textnormal{MU-UF-CMA}}
+\newcommand{\SUFCMA}{\textnormal{SUF-CMA}}
 
  \newcommand{\AdvMUUFCMA}[2]{\Adv^{\mathrm{mu\dash uf\dash cma}}_{#1}(#2)}
  \newcommand{\AdvUFCMA}[2]{\Adv^{\mathrm{uf\dash cma}}_{#1}(#2)}
@@ -956,7 +960,6 @@
 \newcommand{\encsign}{{\cal ES}}
 \newcommand{\sign}{{\sf S}}
 \newcommand{\mac}{{\sf Mac}}
-%\newcommand{\ver}{{\sf Vfy}}
 \newcommand{\verdecc}{{\cal VD}}
 \newcommand{\henc}{{\cal HE}}
 \newcommand{\hkg}{{\cal HK}}
@@ -1552,7 +1555,6 @@
 \newcommand{\andthen}{\thinspace : \thinspace}
 \newcommand{\bitsorc}{\$}
 \newcommand{\newmsg}{\mathrm{new\mbox{-}msg}}
-\newcommand{\mtag}{T}
 
 %\newcommand{\botse}{\bot_e}
 %\newcommand{\botma}{\bot_m}
@@ -1621,7 +1623,6 @@
 \newcommand{\padlenmax}{\psi}
 \newcommand{\padblen}{p}
 \newcommand{\tagidx}{t}
-\newcommand{\mactag}{\mtag}
 \newcommand{\numpadblocks}{\gamma}
 \newcommand{\header}{H}
 
@@ -1729,7 +1730,6 @@
 \newcommand{\bktz}[1]{\bracketize{#1}}
 \newcommand{\dbktz}[2]{\bracketize{#1}\bracketize{#2}}
 \newcommand{\sid}{\mathrm{sid}}
-\newcommand{\ver}{\mathrm{ver}}
 \newcommand{\kex}{\mathrm{kex}}
 \newcommand{\kexguess}{\mathrm{kex}^*}
 \newcommand{\hello}{\mathrm{hel}}
@@ -2049,6 +2049,7 @@
 
 \newcommand{\TKR}{\textnormal{TKR}} % security game for key recovery
 \newcommand{\Fn}{\textnormal{Fn}}
+\newcommand{\FnInv}{\textnormal{FnInv}}
 \newcommand{\FnSim}{\textnormal{FnSim}}
 \newcommand{\AdvTKR}[2]{\Adv^{\mathrm{tkr}}_{#1}(#2)}
 
@@ -2068,9 +2069,13 @@
 \newcommand{\AdvTPRP}[2]{\Adv^{\mathrm{tprp}}_{#1}(#2)}
 \newcommand{\tweakpi}{\tilde{\pi}}
 
+\newcommand{\STPRP}{\textnormal{STPRP}}
+\newcommand{\AdvSTPRP}[2]{\Adv^{\mathrm{\pm tprp}}_{#1}(#2)}
+
+
 
 \newcommand{\SPRP}{\textnormal{SPRP}}
-\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{sprp}}_{#1}(#2)}
+\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{\pm prp}}_{#1}(#2)}
 
 \newcommand{\PRF}{\textnormal{PRF}}
 \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
@@ -2089,16 +2094,38 @@
 \newcommand{\REAL}{\textnormal{REAL}}
 \newcommand{\RAND}{\textnormal{RAND}}
 \newcommand{\ROR}{\textnormal{ROR}}
-\newcommand{\AdvROR}[2]{\Adv^{\mathrm{ind\$}}_{#1}(#2)}
+\newcommand{\AdvROR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\RORCCA}{\textnormal{ROR-CCA}}
+\newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
+
+\newcommand{\INDSIM}{\textnormal{INDSIM}}
+\newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
 
 
 \newcommand{\EncOracle}{\textnormal{Enc}}
+\newcommand{\DecOracle}{\textnormal{Dec}}
+\newcommand{\EncSim}{\textnormal{EncSim}}
 \newcommand{\Time}{\textsf{T}}
 
 \newcommand{\tildeC}{\tilde{C}}
 \newcommand{\EM}{\textnormal{EM}}
 \newcommand{\Sbox}{\textnormal{Sbox}}
 \newcommand{\myInd}{\hspace*{1em}}
+
+\newcommand{\MA}{\mathsf{MA}}
+\newcommand{\mtag}{\mathsf{tag}}
+\newcommand{\ver}{\mathsf{ver}}
+
+\newcommand{\msgset}{\textsf{MsgSet}}
+\newcommand{\pairset}{\textsf{PairSet}}
+\newcommand{\TagOracle}{\textnormal{Tag}}
+\newcommand{\VerOracle}{\textnormal{Ver}}
+
+\newcommand{\cAU}{\textnormal{cAU}}
+\newcommand{\AdvcAU}[2]{\Adv^{\mathrm{cau}}_{#1}(#2)}
+
+
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"
