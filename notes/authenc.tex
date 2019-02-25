@@ -143,3 +143,165 @@ it into previous chapter later.}
 \enm
 
 
+\subsection{Scribe notes.}
+
+We left off understanding how to build CPA secure schemes.
+
+Recall IND-\$. 
+
+We saw the ROR last time. That's one of many ways to define CPA encryption.
+
+IND-CPA (or Left or Right indistinguishability) implies not learning anything about plaintext.
+
+% ---------------
+None of these CPA settings say much about what you can do in active attack settings, in which ciphertexts are \emph{mauled}. This is a confidentiality issue as well as integrity issue.
+
+Let's remind ourselves of the simplest CPA-seure scheme, CTR mode.
+
+Use the block cipher as a one-time pad. Pad enough such that you can XOR enough bits with the message. We can prove CTR is secure in ROR. As long as input to $E_k$ never collides (don't generate too much messages using the same key, it should be refreshed).
+
+What does CTR mode not do in terms of security? Deniability attacks: change the ciphertext such that it decrypts to a different message that was not originally written. Trivial example: flip bits from a message (2:07pm).
+
+Active attack example: session handling and login. First, a regular HTTP GET which sends anonymous cookie. Allows the server to link one request to a subequent one. When you click submit on login button, submits over HTTPS using the anon cookie. If auth is good, makes a new cookie to identify you as authenticated.
+
+Problem with Facebook authentication in 2011? Length of the password could leak despite HTTPS.
+
+But your account info (session ID) is being sent in plaintext. You could hijack other accounts by sniffing some local network. Extract it and then use it in a connection request to Facebook without needing to login. There was even a tool called Firesheep used to do this (a Firefox browser extension).
+
+Bad way to do session IDs? Outsourcing security relevant state about the client in the cookie. 
+
+Bad libraries in the past have encrypted cookies with CTR mode. Sometimes permissions levels are included in that encrypted cookie. Could XOR bits in the right spots (if you know the scheme) and could get yourself permissions you shouldn't have.
+
+
+
+CBC mode has ``malleability'' issues, too. It's IND-\$ secure. How do we change the first bits of the message sent to the server?
+Change any of the C0 bits, and you'll modify M0.
+Can modify bits of C2, as well, but bits of M2 would be randomized.
+
+% --------------------
+These encryption modes (CTR, CBC) do not provide \emph{integrity}. We need authenticated encryption.
+
+As mentioned before, there are also confidentiality risks with these modes. In CBC, possible to use malleability tricks and clever queries to recover all of the plaintext.
+
+CBC needs padding in order to work. We use \emph{padding}. This gives rise to Padding Oracle Attacks.
+
+A simple case of this problem: padding by one byte. When we decrypt, we decrypt with CBC mode and check if the padding byte is what it's supposed to be (0) that the padding rules defined. If you give an adversary some ciphertext under encryption $E_k$, claim is that you can recover one byte of plaintext data using the decryption oracle. 
+
+The decryption oracle is as follows:
+
+Dec(K, C'):
+M[1]' || M[2]' || P' = CBC-Dec(K,C')
+If P' $\neq$ 0x00 then 
+    Return error
+Else
+    Return ok
+
+Would get back `ok' (2:22pm). If we flip last C1 bit then decryption will get error.
+
+How do we learn a byte about the message?
+
+Flip all of the bits until you reach the beginning of the padding.
+
+If we flip a bit in C1 (second to least significant byte), we'd get back ok.
+
+Oracle only tells us about padding.
+
+Replace C2 with C1, and C1 with C0. C0 XORed M1 is M1 (2:26pm). We'd get an error unless M1 low byte is $0^n$. 
+
+We could search over all byte values to keep trying to get an `ok'. When low byte of M1 = i. C0 XOR'ed i XOR'ed message byte equals 0.
+
+If we move the ciphertext blocks around this way, could get oracle to operate on confidential message bits.
+
+CBC is actually much more vulnerable than in this example. PKCS#7 padding in practice. P repetitions of byte encoding number of bytes padded. 
+
+01
+02 02
+03 03 03
+04 04 04 04
+...
+FF FF FF FF ... FF (could go up to 256).
+
+Why want more padding than necessary to get to block offset? This allows us to try to obfuscate the lengths of messages. This only prevents leaking some lower bits. But in general on the Web, this type of padding doesn't work very well.
+
+What happens if your message ends in a padding sequence? How do we recover the original message from the padded message? Look at the last byte recovered from CBC mode and remove that much (the remaining prefix is the actual message).
+
+CBC decryption with PKCS#7 padding pseudocode:
+Dec(K,C)
+M[1] || ... || M[m] = CBC-Dec(K,C)
+P = RemoveLastbyte(M[m])
+while i < int(P):
+    P' = RemoveLastByte(M[m])
+    If P' != P then Return error
+    i++
+Return ok
+
+If you saw first byte as (2:33pm).
+
+Let's attack the CBC with PKCS#7 padding. We have a padding decryption oracle as seen above in pseudocode.
+
+Most likely, we found a relationship between i and the actual message byte in C0 such that it looks like the padding byte 
+Low byte M1 = i XOR 0, % see notes. (2:36pm).
+
+Flip bits of 15th byte in decrypted value. Would get error . Can rule out that case with one additional query (2:38pm).
+
+We know M[1][16] and can search for second byte of message in C[2](?)
+
+Ability to provide message confidentiality is compromised in the face of active attacks on CBC mode.
+
+Can we change decryption implementation? Need some padding checks to tell server what to return to application layer. (2:41pm). Some implementations can make padding oracle attacks harder to do. Don't return errors, obfuscate with other return info (really hard because of timing side channels).
+
+2:44pm to 2:47pm various chosen ciphertext (CCA) attacks against CBC mode. Long litany of attacks.
+
+% -------------------
+\subsection{Authenticated Encryption Security.}
+
+Root cause is that our encryption algorithms don't have confidentiality or intregity guarantees in the face of active attacks.
+
+First variant:
+
+Authenticated encryption security.
+
+Encryption oracle or random bits oracle (ROR).
+
+Now we add a decryption oracle to which you can submit ciphertexts.
+
+add games here.
+ROR-CCA1 and ROR-CCA0.
+2:50pm curly C is a set, regular C is a string.
+
+In the 0 (ideal world) decryption always outputs error symbol. No way to produce a ciphertext by mauling.
+
+Will CBC mode be secure under this motion? Obviously not.
+
+Why restriction that attacker can't send to dec that you get from enc? Then you'd have to add more logic about what ciphertexts are returned (table of decryptions). If not in table, return bottom. These definitions can be shown equivalent pretty straightforwardly.
+
+
+As an aside (to scribe notes) 2:52pm, there's an all-in-one definition. (Leave it to notes.)
+
+New notion ciphertext integrity just focuses on ability to build encryption that doesn't decrypt to bottom. Game for this on the slide 21. 
+
+Have encryption and dec oracle. Try to get dec to return something other than error.
+
+Turns out that ROR-CCA
+Easy to prove ROR+CTXT.
+
+Variant of ROR-CCA which in this game could return...
+
+Let's see about building ROR-CCA: OCB.
+
+Recall the tweakable block ciphers (OCB-CCA) scheme. Per-message randomness. (2:58pm).
+Not CTXT secure.
+Example of how we could craft a message trivially to decrypt into something valid? A CTXT attack would be: any ciphertext string of $0^{4n}$ and it would decrypt. No error in any case unless it's the wrong length.
+
+We need redundancy in encryption to reject good vs bad decryptions for a message.
+
+Idea (3:01pm). Encode $0^n / 2$. Make the messages smaller blocks and then pad out the blocks... Is this secure? If you query random ciphertexts, could forge decryption in $q^{3n} / 2$. Bounds might be okay...but bounds .
+Query until you get a valid padding. Better than birthday bound.
+
+Per-block of encryption, only processing half as many bits of plaintext.
+
+Other idea: add XORed random number in M1 (3:06pm). Might not work.
+
+Cute trick that people with came up with OCB realized (3:08pm). Add another block...
+
+Tweak on a tag value needs to be different from other tweaks. This suffices to provide integrity. Just running the block cipher one more time. This can all be done in one pass. Rather than encrypting in one, and then authenticating.
