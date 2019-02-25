@@ -2,9 +2,35 @@
 \section{Deterministic Encryption and Frequency Analysis}
 \label{sec:freqanalysis}
 
+We have seen how cryptoanalysts design block ciphers for practical use, such as AES and DES, with the hope that enough study of such ciphers will allow us to create stronger ciphers before these are broken.
+ Such ciphers are used both as a building block towards randomized and authenticating encryption but also as applications themselves.
+
+\paragraph{Length Preserving Encryption} 
+Length preserving encryption (LPE) is simply encryption where a message and its ciphertext have the same length. The need for such encryption originated with hard disks. If private information is stored on some unencrypted physical disk, stealing the information is just a matter of stealing the disk itself. However, if the encryption is expanding then we could use much more (valuable) disk space. If we can use length preserving encryption on the disk layer, than deleting the secret key effectively erases the hard drive. There are many implementations of LPE including ECB-Mask-ECB (EME)\cite{Halevi2004EME}, CBC-Mask-CBC (CMC)\cite{Halevi2003CMC}, and linear-Transformation; linear-Transformation (TET)\cite{Halevi2007TET}.
+
+\paragraph{Format Preserving Encryption}
+Format preserving encryption(FPE) is a superset of LPE. In FPE, we may want a ciphertext to be the same length as the message, but we may also want more features of the message to be preserved.
+For example, the first use of FPE was when certain companies began transitioning databases that held credit card numbers in plaintext into encrypted databases. Software using the numbers assumed a certain syntactic format, so it was useful to have the encryption preserve such a format in addition to length.
+
+Additionally, deterministic encryption is used to encrypt sensitive databases, such as those holding credit card numbers. As the main function of databases is to actually use the data, it would be ideal if database queries were supported on the encrypted database. For example, it would be useful for the encrypted database to support equality search (find all rows where the name is ``Alice"), range queries (find all rows where the age is between 20 and 30), and to return sorted lists (return the records ordered by salary). Whether or not the database supports such operations depends on the method of encryption. 
+
+\paragraph{Proxy Based Encrypted Database} One simple approach is proxy-based. That is, there is some proxy between the client and the server. The client only sees plaintext and the server holds the entire database but with every entry encrypted. The client sends its queries to the proxy which encrypts information from the client entry by entry. The proxy then gives the server the same query with all the data encrypted. The server returns back encrypted data which is decrypted by the proxy and sent back to the client. 
+
+In this case deterministic encryption is useful. Given, say, a search query for all rows with Name=``Alice", the proxy can simply ask the server for all rows where the value in the corresponding column is the encryption of ``Alice" and return to the client the decryption of the rows returned by the server. Because encryption is deterministic, ``Alice" encrypts to the same value every time, so the proxy only needs to search the one value.
+
+This approach, however has certain drawbacks in that it reveals unwanted information. The server can see every time a plaintext is encrypted more than once with the same key.
+Thus the server has access to frequency information of the database. As each column uses one key throughout the column, the server can see when plaintexts are repeated in a column, which is often in many real-world databases. This will allow for what we will call a \textit{frequency analysis attack}.
+    
+One possible solution might be to use a different key for every entry so that messages do not encrypt to the same ciphertext every time. However, the proxy must then encrypt every entry in a column in order to do a search query, which  is detrimental to the efficiency of the proxy.
 
 
-\begin{figure}
+\paragraph{Frequency Analysis Attacks}
+    Why is the knowledge of a repeated plaintext sensitive information? Suppose the most common name is ``Bob", and in the US 20\% of people are named ``Bob". If I have a database which is sampled fairly uniformly among people in the US and 20\% of the ciphertexts in the name column are $0x000000$, I can be fairly confident that the decryption of this name is in fact ``Bob". This is already more information than we would like to share with an untrusted server, but if we can easily recover a high percentage of names, and we can in a similar fashion recover a high percentage of information in other columns, we reveal information throughout specific rows and possibly of specific users.
+    
+    More generally, a frequency analysis attack uses the adversary's knowledge of distribution of messages to match ciphertexts to plaintexts. That is, given a list of ciphertexts which were ecrypted from messages sampled from a known distribution, the adversary attempts to correctly guess which message encrypts to which ciphertext. Consider the following game $\MRUMA$:
+    
+\begin{figure}[H]
+\centering
 \fpage{.22}{
 		\underline{$\MRUMA^{\advA}_{\cipher,\mdist,q}$}\\[1pt]
 		$K \getsr \keyspace$\\
@@ -16,10 +42,55 @@
 	}
 \end{figure}
 
-\begin{figure}
+Here we assume that the adversary $\advA$ has access to probability distribution $\mdist$, and this distribution can be sampled efficiently. The notation $\get{\mdist}$ means to sample from $\mdist$. Thus the adversary wins if it can find which message produced which ciphertext and return the resulting map (encryption scheme).
+
+The advantage that an adversary would like to maximize is the following:
+\bnm
+   \AdvMRUMA{\cipher,\mdist,q}{\calA} = \Prob{\MRUMA^\advA_{\cipher,\mdist,q}\Rightarrow\true}
+\enm
+
+We claim that, for a ``good" encryption scheme, the best adversary for $\MRUMA$ simply matches the $i$-th most common ciphertext with the $i$-th most probable message. Formally, let the adversary $\advA^*$ be the following:
+
+%Such databases need to support certain database operations, such as search  ideally while encrypted.
+\begin{figure}[H]
+ \centering
+\fpage{.40}{
+
+		\underline{$\advA^*(C_1,\ldots,C_q)$}\\[1pt]
+    Let $c$ be number of unique ciphertexts in $C_1,\ldots,C_q$\\
+    Let $\tildeC_1,\ldots,\tildeC_c$ be unique ciphertexts\\
+    Let $N_{\tildeC_i}$ be number of occurences of $\tildeC_i$\\
+    $\hatE \gets \argmax_f \prod_{i=1}^{c} \mdist\left(f^{-1}(\tildeC_i)\right)^{N_{\tildeC_i}}$\\
+    Ret $\hatE$
+	}  
+\end{figure}
+
+	
+ Note that this adversary literally picks the most likely map. For every map of messages to ciphertexts, $\advA^*$ chooses the one that was most likely to result in $\tildeC_i$ occurring $N_{\tildeC_i}$ times. Because multiplication is an increasing function, this happens to be the map which matches the most common ciphertexts with the most probable messages.
+ 
+ We conjecture that any adversary which does significantly better that $\advA^*$ ``breaks" the cipher.
+\begin{theorem}[Optimality Frequency Analysis Attack]
+	\label{freq-opt}
+
+Let $\cipher$ be a cipher, $\mdist$ a message distribution, and $q>0$. Let
+$\advA^*$ be the frequency analysis $\MRUMA_{\cipher,q}$-adversary and $\advA$
+be some $\MRUMA_{\cipher,q}$-adversary. Then we give a
+$\PRP_\cipher$-adversary $\advB$ such that
+\bnm
+  \AdvMRUMA{\cipher,\mdist,q}{\advA} \le 
+        \AdvMRUMA{\cipher,\mdist,q}{\advA^*} + \AdvPRP{\cipher}{\advB}
+\enm
+$\advB$ makes $q$ queries and runs in time 
+$\Time(\advA) + 2q+q\cdotsm\Time(\mdist)$.
+\end{theorem}
+
+ \begin{proof}[\thref{freq-opt}]We begin by considering the following game which is the same as $\MRUMA$ except instead of a cipher, we use a random permutation\footnote{We use a permutation to avoid considering noise in the frequencies caused by function collisions.}.
+
+\begin{figure}[H]
+\centering
 \fpage{.22}{
 		\underline{$\G1$}\\[1pt]
-		$\rho \getsr \Func(\msgspace)$\\
+		$\rho \getsr \Perm(\msgspace)$\\
      For $i = 1$ to $q$\\
     \myInd $M_i \get{\mdist} \msgspace$\\
     \myInd $C_i \gets \rho(M_i)$\\
@@ -28,41 +99,77 @@
 	}
 \end{figure}
 
-\fpage{.40}{
-		\underline{$\advA^*(C_1,\ldots,C_q)$}\\[1pt]
-    Let $c$ be number of unique ciphertexts in $C_1,\ldots,C_q$\\
-    Let $\tildeC_1,\ldots,\tildeC_c$ be unique ciphertexts\\
-    Let $N_{\tildeC_i}$ be number of occurences of $\tildeC_i$\\
-    $\hatE \gets \argmax_f \prod_{i=1}^{c} \mdist\left(f^{-1}(\tildeC_i)\right)^{N_{\tildeC_i}}$\\
-    Ret $\hatE$
+Let the advantage for this game be the following:
+$$\Adv^{\textrm{G1}}_{\mdist,q}(\advA)=\Prob{\textrm{G1}^\advA_{\mdist,q}\Rightarrow\true}.$$
+
+\begin{lemma}
+\label{freqsidelem}
+Let $\mdist$ be a message distribution, and $q>0$. For any G1-adversary $\advA$, $\Adv^{\textrm{G1}}_{\mdist,q}(\advA)\leq\Adv^{\textrm{G1}}_{\mdist,q}(\advA^*)$.
+\end{lemma}
+
+\begin{proof}[\lemref{freqsidelem}]
+
+I claim that $A^*$ is the adversary with the highest advantage for G1.  This is because we are looking to maximize 
+$\Prob{\textrm{G1}^\advA_{\mdist,q}\Rightarrow\true}$
+and so we want $\advA$ to output the function $\hatE$ which maximizes $\Prob{\forall_{i=1}^q \left(\hatE(M_i) = C_i\right)}$. In other words, the best we can do is 
+
+$$\hatE=\argmax_f \Prob{\forall_{i=1}^q \left(f(M_i) = C_i\right)}=$$
+$$\argmax_f \sum_{\pi\in\Perm}\CondProb{\pi=\rho}{\rho\getsr\Perm(\msgspace)} \sum_{m_1, \ldots,m_q\in \msgspace} \mdist(m_1)\ldots\mdist(m_q)\Prob{\forall_{i=1}^q (f(m_i)=\pi(m_i))}=$$
+$$\argmax_f \sum_{\pi\in\Perm}\sum_{m_1, \ldots,m_q\in \msgspace} \mdist(m_1)\ldots\mdist(m_q)\Prob{\forall_{i=1}^q (f(m_i)=\pi(m_i))}$$
+
+Here the last step is true because $\CondProb{\pi=\rho}{\rho\getsr\Perm(\msgspace)} $ is a constant. Now if $\advA$ is deterministic, then $\Prob{\forall_{i=1}^q (f(m_i)=\pi(m_i))}$ is 1 or 0 because $\advA$ outputs the same $f$ whenever $\pi$ and $m_1,\ldots,m_q$ are the same. In this sense, $\Prob{\forall_{i=1}^q (f(m_i)=\pi(m_i))}$ is the same as 1 if $\forall_{i=1}^q f(m_i)=\pi(m_i)$ and 0 otherwise  Thus we have
+
+$$\hatE=\argmax_f \sum_{m_1, \ldots,m_q\in \msgspace }\sum_{\substack{\pi\in\Perm \\ \forall_{i=1}^q f(m_i)=\pi(m_i)}} \mdist(m_1)\ldots\mdist(m_q).$$
+
+Becuase $\pi$ is a permutation and thus a bijection, we can replace $m_i$ in our bounds with $c_i$ such that $\pi(m_i)=c_i$ to get 
+
+$$\hatE=\argmax_f \sum_{c_1, \ldots,c_q\in \msgspace }\sum_{\substack{\pi\in\Perm \\\forall_{i=1}^q f(\pi^{-1}(c_i))=c_i}} \mdist(\pi^{-1}(c_1))\ldots\mdist(\pi^{-1}(c_q)).$$
+
+We can disregard $f$ which is not 1-1 or onto because for all such $f$,  $\forall_{i=1}^q f(m_i)=\pi(m_i)$ will not hold. This is useful so that $f^{-1}$ is well defined. This means the condition $\forall_{i=1}^q f(\pi^{-1}(m_i))=c_i$ is equivalent to $\forall_{i=1}^q \pi^{-1}(m_i)=f^{-1}(c_i)$. Now we have
+
+$$\hatE=\argmax_f \sum_{c_1, \ldots,c_q\in \msgspace }\sum_{\substack{\pi\in\Perm \\\forall_{i=1}^q \pi^{-1}(c_i)=f^{-1}(c_i)}} \mdist(f^{-1}(c_1))\ldots\mdist(f^{-1}(c_q))=$$
+$$\argmax_f \mdist(f^{-1}(c_1))\ldots\mdist(f^{-1}(c_q)).$$
+
+The last equality holds because we can mazimize a sum by maximizing the summand. Thus the best function we can hope for is the one returned by $\advA^*$, so long as the adversary must be deterministic. \qedsym
+\end{proof}
+
+
+If $\advA$ can be nondeterministic, it still cannot beat $\advA^*$. This is because the probability of success is now over all sets of random coins that $\advA^*$ receives. The coins that it receives are based only on $q$, so if for any $q$, the probability of success for $\advA$ is greater than the probability of success of $\advA^*$, then there is one set of random coins for which the probability of success for $\advA$ is greater than the probability of success of $\advA^*$. This implies that for each $q$, there is a deterministic machine which beats $\advA^*$, which we have proven in the previous lemma is false. \authnote{Did we do that??}{Shir} Thus $\advA^*$ is actually the best deterministic or nondeterministic machine for G1.
+
+Now to prove the theorem, we will define $\advB$ based on $\advA$. Remember that because $\advB$ is a $\PRP_\cipher$-adversary, it is given access to an oracle and is successful if it can decide if the oracle is a random permutation or not.
+\begin{figure}[H]
+\centering
+\fpage{.22}{
+		\underline{$\advB^\textrm{Fn}$}\\[1pt]
+	%$\rho \getsr \Perm(\msgspace)$\\
+    For $i = 1$ to $q$\\
+    \myInd $M_i \get{\mdist} \msgspace$\\
+    \myInd $C_i \gets \textrm{Fn}(M_i)$\\
+    $\hatE \getsr \advA(C_1,\ldots,C_q)$\\
+    If $\forall_{i=1}^q \left(\hatE(M_i) = C_i\right)$ then return 1 else return 0
 	}
+\end{figure}
+
+Here, $\textrm{F}_0$ is a random That is, $\advB$ returns 1 if and only if $\advA$ ``wins" its $\MRUMA$ game. This means that $\Prob{\PRP1_\cipher^\advA\Rightarrow 1}= \AdvMRUMA{\cipher,\mdist,q}{\advA}$ and
+$\Prob{\PRP0_\cipher^\advA\Rightarrow1}=\Adv^{\textrm{G1}}_{\cipher,\mdist,q}(\advA)$
+In our analysis of G1, we have shown that $\Adv^{\textrm{G1}}_{\cipher,\mdist,q}(\advA)\leq\Adv^{\textrm{G1}}_{\cipher,\mdist,q}(\advA^*)$. Thus we have $$\AdvPRP{\cipher}{\advB}=\left| \AdvMRUMA{\cipher,\mdist,q}{\advA}-\Adv^{\textrm{G1}}_{\mdist,q}(\advA) \right|$$
+$$\AdvMRUMA{\cipher,\mdist,q}{\advA}\leq\AdvPRP{\cipher}{\advB}+\Adv^{\textrm{G1}}_{\mdist,q}(\advA) $$
+$$\AdvMRUMA{\cipher,\mdist,q}{\advA}\leq\AdvPRP{\cipher}{\advB}+\Adv^{\textrm{G1}}_{\mdist,q}(\advA^*) $$.
+
+However, $\advA^*$ will be correct with the same probability given the same messages no matter what encryption function is used, so long as the ciphertexts of different messages are different. If we notice that the ciphertexts of different messages are the same, we can automatically return 0 and only increase the advantage of $\advB$. Thus 
+$$ \AdvMRUMA{\cipher,\mdist,q}{\advA} \le 
+        \AdvMRUMA{\cipher,\mdist,q}{\advA^*} + \AdvPRP{\cipher}{\advB}.$$
+\qedsym
+\end{proof}
 
 
-\bnm
-   \AdvMRUMA{\cipher,\mdist,q}{\calA} = \Prob{\MRUMA^\advA_{\cipher,\mdist,q}\Rightarrow\true}
-\enm
+In actuality, the assumptions we have made for \thref{freq-opt} do not necessarily hold. For example the adversary likely does not have access to the exact probability distribution of any column in any database. Thus it is unclear whether this attack should work in practice. However, there have been simulated case studies which have shown the effectiveness of $\advA^*$ despite practical issues.
 
+Generally, these case studies use machine learning techniques on some representative dataset, such as healthcare data or even a breach dataset, to create a message probability distribution $\hat p_m$ which estimates $\mdist$. Then they run $\advA^*$ with $\hat p_m$ many times on some independent dataset to find its the success rate.
 
-\begin{theorem}
-Let $\cipher$ be a cipher, $\mdist$ a message distribution, and $q>0$. Let
-$\advA^*$ be the frequency analysis $\MRUMA_{\cipher,q}$-adversary and $\advA$
-be some $\MRUMA_{\cipher,q}$-adversary. Then we give a
-$\PRF_\cipher$-adversary $\advB$ such that
-\bnm
-  \AdvMRUMA{\cipher,\mdist,q}{\advA} \le 
-        \AdvMRUMA{\cipher,\mdist,q}{\advA^*} + \AdvPRF{\cipher}{\advB}
-\enm
-$\advB$ makes $q$ queries and runs in time 
-$\Time(\advA) + 2q+q\cdotsm\Time(\mdist)$.
-\end{theorem}
+The success of such attacks has so far depended on factors such as the size and uniformity of the message space. If a message space is small and very nonuniform then the attack should work better. For example, if the message is 0 with 99\% probability and 1 with 1\% probability, it should be obvious with enough samples which ciphertext decrypts to which bit. The closer the probabilities move to 50\% each, or the more messages in the message space, the less clear it will be.
 
-
-\begin{align*}
-  &\argmax_f \CondProb{C_1,\ldots,C_q}{f} \\
-  &\myInd\myInd  = \argmax_f \prod_{i=1}^q \CondProb{C_i}{M_1 = f^{-1}(C_1),\ldots,M_q = f^{-1}(C_q)}\\
-  &\myInd\myInd = \argmax_f \prod_{i=1}^{c} \mdist(f^{-1}(\tilde{C}_i))^{N_{\tilde{C}_i}}
-\end{align*}
-
+In actual experiments, this is exactly what happened. In a hospital dataset in which most columns had few possibilities and were nonuniform, 100\% of the deterministically encrypted values were recovered \cite{Bindschaelder2018tao}. Similarly, \cite{Naveed2015inference} saw that attributes like sex and whether a patient died during their stay were much more easily recoverable than age or admission month, which have more values and are more uniform.
 
 \bnm
 \tweakCipher\Colon\keyspace\times\tweakspace\times\msgspace \rightarrow \msgspace

@@ -1,0 +1,597 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Randomized and Nonce-Respecting Symmetric Encryption}
+\label{sec:symenc}
+
+\subsection{Security Conditions}
+
+\paragraph{Real-or-Random Indistinguishability (\INDRAND or \ROR)}
+
+\fpage{.25}{
+  \underline{$\RORreal^{\advA}_{\SEscheme}$}\\[1pt]
+  $K \getsr \kg$ \\
+  $b' \getsr \advA^{\CEnc}$ \\
+  return $b'$ \\ \\
+  \underline{$\SEenc(M)$} \\
+  $C \getsr \enc_{K}(M)$ \\
+  return $C$
+}
+\fpage{.25}{
+  \underline{$\RORrand^{\advA}_{\SEscheme}$}\\[1pt]
+  $b' \getsr \advA^{\SEenc}$ \\
+  return $b'$ \\ \\ \\
+  \underline{$\SEenc(M)$} \\
+  $C \getsr \{0,1\}^{\ctxtlen(\absv{M})}$ \\
+  return $C$
+}
+
+Intuitively, this condition captures the notion that ciphertext ``look'' like
+random bits under chosen-plaintext attacks. In the figure above, two
+games are defined: in $\RORreal$, the oracle for the adversary actually
+encrypts the adversary's chosen plaintexts, while in $\RORrand$ the oracle
+just generates a random bitstring. The advantage for the adversary $\advA$ given
+symmetric encryption scheme $\SEscheme$ is
+
+\bnm
+\AdvROR{\SE}{\advA} =
+\absv{\Prob{\RORreal_{\SE}^{\advA} \Rightarrow 1} - 
+      \Prob{\RORrand_{\SE}^{\advA} \Rightarrow 1}}
+\enm
+
+Thus the adversary has high advantage when it can guess correctly whether it is
+in the ``real world'' or the ``random world''.
+
+\paragraph{Indistinguishability under Chosen-Plaintext Attack (\INDCPA)}
+
+
+\fpage{.25}{
+\underline{$\INDCPA^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+If $|M_0| \ne |M_1|$ then\\
+\myInd Ret $\bot$\\
+$C \getsr \enc_K(M_b)$\\
+Ret $C$
+}
+
+This condition captures the notion that, given two plaintexts, we can't infer
+which of two plaintexts were encrypted. This means that ciphertexts don't leak
+information about their messages. In the figure above, a challenge bit is
+drawn randomly, and the adversary's oracle uses it to determine which one
+of two plaintexts chosen by the adversary is encrypted and returned.
+Because the adversary can correctly guess the challenge bit with probability
+$1/2$ just by randomly drawing from $\{0,1\}$, 
+the advantage for adversary $\advA$ given symmetric encryption scheme
+$\SEscheme$  is scaled as follows:
+
+\bnm
+\AdvINDCPA{\SE}{\advA} = 2\cdotsm\Prob{\INDCPA_\SE^\advA\Rightarrow\true} - 1
+\enm
+
+Thus the adversary has high advantage if it can reliably guess the challenge
+bit.
+
+Alternatively, if we define two games $\INDCPA1$ and $\INDCPA0$ where the
+challenge bit is set to 1 and 0 respectively, 
+
+\bnm
+\AdvINDCPA{\SE}{\advA} = 
+    \left|\Prob{\INDCPA1_{\SE}^\advA\Rightarrow 1} - \Prob{\INDCPA0_{\SE}^\advA\Rightarrow1} \right| 
+\enm
+
+\paragraph{Simulation-based security (\INDSIM)}
+
+\fpage{.25}{
+\underline{$\INDSIM1^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \enc_K(M)$\\
+Ret $C$
+}
+
+\fpage{.25}{
+\underline{$\INDSIM0^{\advA,\simu}_{\SE}$}\\[1pt]
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \simu(|M|)$\\
+Ret $C$
+}
+
+Finally, this condition captures the notion that
+''having ciphertext is as good as not having ciphertext'' --- more specifically,
+ciphertexts are indistinguishable from the output of a simulator that only
+knows about the length of the plaintext.
+In the figure above, two games are defined: in $\INDSIM1$, the oracle for the
+adversary actually encrypts the adversary's chosen plaintexts, while in
+$\INDSIM0$ the oracle returns the output of simulator $\simu$.
+The advantage for the adversary $\advA$ given symmetric
+encryption scheme $\SEscheme$ is
+
+\bnm
+\AdvINDSIM{\SE,\simu}{\advA} = 
+    \left|\Prob{\INDSIM1_{\SE}^\advA\Rightarrow 1} - \Prob{\INDSIM0_{\SE,\simu}^\advA\Rightarrow1} \right| 
+\enm
+
+Thus the adversary has high advantage if it can distinguish between
+actual ciphertexts and simulator output.
+
+\subsection{Reductions and Separations}
+\label{sec:randomenc-reduct}
+
+We have discussed three security conditions: \INDRAND, \INDCPA, and \INDSIM.
+What is the relationship between these? It turns out that \INDRAND is
+strictly stronger than \INDCPA and \INDSIM, and that \INDCPA and \INDSIM are
+equivalent. We give a series of reductions and counterexamples to prove this.
+
+\subsubsection*{$\INDRAND \Rightarrow \INDCPA$}
+
+\begin{theorem}
+Let $\SE$ be a symmetric encryption scheme. Let $\advA$ be any
+$\INDCPA_\SE$-adversary making at most $q$ queries. 
+We give an $\ROR_\SE$-adversary $\advB$ such that
+\bnm
+  \AdvINDCPA{\SE}{\advA} \le 2\cdotsm\AdvROR{\SE}{\advB}
+\enm
+Adversary $\advB$ makes at most $q$ 
+queries and runs in time that of $\advA$.
+\end{theorem}
+
+\tnote{We'll possibly introduce the following at some point, but didn't need it
+here yet.}
+We sometimes use $\bigO$ notation to hide small values that can be derived from
+proofs, but don't matter to the interpretation of the theorem. If we were to do
+an asymptotic treatment, this would correspond to hiding constants, hence the
+abuse of notation.  Thus in above theorem we would replace $q+3$ with
+$\bigO(q)$. 
+
+\paragraph{Proof.}
+
+Construct $\advB$ as follows: take $\advA$ and provide it an $\SEencsim$
+oracle with the same signature as $\advA$'s $\SEenc$ oracle (i.e., it takes two
+messages $M_0, M_1$ as input and returns some ciphertext) that encrypts one
+of two messages according to some challenge bit $b$.
+
+\fpage{.20}{
+\underline{$\advB^{\Enc}$}\\[1pt]
+$b \getsr \bits$\\
+$b' \getsr \advA^\EncSim$\\
+If $(b = b')$ then Ret 1\\
+Ret 0\medskip
+
+\underline{$\EncSim(M_0,M_1)$}\\
+Return $\Enc(M_b)$
+}
+
+Notice that that $\advB$ playing the $\RORreal$ game is equivalent to 
+$\advA$ playing the $\INDCPA$ game, such that
+
+\bnm
+\Prob{\RORreal_{\SEscheme}^{\advB} \Rightarrow 1} =
+\Prob{\INDCPA_{\SEscheme}^{\advA} \Rightarrow \true}
+\enm
+
+Also notice that for $\advB$ playing the $\RORrand$ game, its oracle returns
+random bitstrings instead of actual ciphertext such that $\advA$, used by
+$\advB$, gets no information about the scheme whatsoever.  Thus
+$\Prob{\RORrand_{\SEscheme}^{\advB} \Rightarrow 1} = 1/2$.
+
+With these two facts and some elementary algebra, we get
+
+\begin{align*}
+\AdvROR{\SE}{\advB} 
+    &= \left|\Prob{\ROR1_\SE^\advB\Rightarrow 1} -
+                                \Prob{\ROR0_\SE^\advB\Rightarrow 1}\right|\\
+    &= \left|\Prob{\INDCPA_\SE^\advA\Rightarrow\true} - \frac{1}{2}\right|\\
+    &= \left|\frac{1}{2} +
+    \frac{1}{2}\cdot\AdvINDCPA{\SE}{\advA} - \frac{1}{2}\right|\\
+    &= \frac{1}{2}\cdot\AdvINDCPA{\SE}{\advA}
+\end{align*}
+
+as needed. $\blacksquare$
+
+\subsubsection*{$\INDRAND \Rightarrow \INDSIM$}
+
+\begin{theorem*}
+Let $\SE$ be a symmetric encryption scheme. We give a simulator $\simu$ such
+that for any  an
+$\INDSIM_\SE$-adversary $\advA$, we can give 
+a $\ROR_\SE$-adversary $\advB$ such that
+\bnm
+  \AdvINDSIM{\SE,\simu}{\advA} \le \AdvROR{\SE}{\advB} \;.
+\enm
+Adversary $\advB$ runs in time that of $\advA$ and makes the same number of
+queries. Simulator $\simu$ requires just two operations.
+\end{theorem*}
+
+\paragraph{Proof.}
+
+Construct $\simu$ and $\advB$ as follows:
+
+\fpage{.15}{
+\underline{$\simu(\ell)$}\\
+$C \getsr \bits^{\ctxtlen(\ell)}$\\
+Ret $C$
+}
+
+\fpage{.15}{
+\underline{$\advB^\Enc$}\\
+$b' \getsr \advA^{\EncSim}$\\
+Ret $b'$\medskip
+
+\underline{$\EncSim(M)$}\\
+Return $\Enc(M)$
+}
+
+The intuition is that the simulator draws random bits much like the
+$\RORrand$ game and thus $\advA$  essentially is playing the
+$\RORreal$ and $\RORrand$ games respectively for
+$\INDSIM1$ and $\INDSIM0$, such that, given $\advB$ is just an elementary
+wrapper over $\advA$,
+$\Prob{\RORreal_{\SEscheme}^{\advB}} = \Prob{\INDSIM1_{\SEscheme}^{\advA}}$
+and
+$\Prob{\RORrand_{\SEscheme}^{\advB}} = \Prob{\INDSIM0_{\SEscheme}^{\advA}}$.
+Thus
+
+\begin{align*}
+  \AdvROR{\SEscheme}{\advB} &=
+  \absv{\Prob{\RORreal^{\advB}_{\SEscheme}} - \Prob{\RORrand^{\advB}_{\SEscheme}}} \\
+  &= \absv{\Prob{\INDSIM1^{\advA}_{\SEscheme}} - \Prob{\INDSIM0^{\advA}_{\SEscheme}}} \\
+  &= \AdvINDSIM{\SEscheme}{\advA} \\
+  &\geq \AdvINDSIM{\SEscheme}{\advA}
+\end{align*}
+
+as needed. $\blacksquare$
+
+\subsubsection*{$\INDCPA \not\Rightarrow \INDRAND$}
+
+Intuitively, a scheme with ciphertexts indistinguishable from each other
+doesn't necessarily have ciphertexts indistinguishable from random bits.
+We show a separation by constructing a scheme $\overline{\SEscheme}$ and
+$\INDRAND$-adversary $\advA$ such that for any $\INDCPA$-adversary $\advB$,
+
+\bnm
+\AdvROR{\overline{\SEscheme}}{\advA} \geq
+\AdvINDCPA{\overline{\SEscheme}}{\advB}
+\enm
+
+\paragraph{Proof.}
+
+Pick a scheme $\SEscheme = (\textbf{kg},\textbf{enc},\textbf{dec})$
+such that for some $0 < p < 1$, $\adv_{\SEscheme}^{\INDCPA}(\advB) \leq p$
+for any $\INDCPA$-adversary $\advB$.
+Construct scheme
+$\overline{\SEscheme} = (\textbf{kg},\overline{\textbf{enc}},\overline{\textbf{dec}})$
+by padding ciphertexts generated by $\SEscheme$ with 0s. The width of the
+padding, given by $n$, is calculated from $p$: specifically, $n$ must be picked
+such that $n \geq f(p)$ for function $f$ defined below.
+$\overline{\textbf{enc}}$ is defined below as well.
+$\overline{\textbf{dec}}$ strips the padding from the ciphertext before
+decrypting with $\textbf{dec}$.
+
+\fpage{.25}{
+  \underline{$\overline{\enc}_K(M)$}\\[1pt]
+  $C \getsr \enc_K(M)$ \\
+  return $0^n \parallel C$
+}
+
+Notice that the padding is the same for all ciphertexts, so
+$\INDCPA$-adversaries does not learn any additional information from the
+padding. This implies that for all $\INDCPA$-adversaries $\advB$,
+
+\bnm
+\AdvINDCPA{\overline{\SEscheme}}{\advB} = \AdvINDCPA{\SEscheme}{\advB}
+\enm
+
+Next we construct a $\INDRAND$-adversary $\advA$ that uses its $\Enc$ oracle to
+encrypt a random bitstring and then checks whether the first $n$ bits of the
+ciphertext is 0s; if it does, $\advA$ guesses it is in the real world.
+
+\fpage{.25}{
+  \underline{$\advA^{\SEenc}$}\\[1pt]
+  $M \getsr \{0,1\}$ \\
+  $C \gets \SEenc(M)$ \\
+  if $C[1..n] = 0^n$ then \\
+  \ind return $1$ \\
+  else \\
+  \ind return $0$
+}
+
+By construction of $\overline{\SEscheme}$, if $\advA$ is playing the
+$\RORreal$-game then it always guesses it is in the real world.
+If $\advA$ is playing the $\RORrand$-game, with probability $1 / 2^n$
+(the probability of drawing a random bitstring whose first $n$ bits is all 0s)
+it guesses that it is in the real world. Thus 
+
+\bnm
+\adv_{\overline{\SEscheme}}^{\INDRAND}(\advA) = 1 - \frac{1}{2^n}
+\enm
+
+Recall that $n$ is picked such that $n \geq f(n)$, where intuitively $f$ is a
+lower bound on the width of padding required so that $\advA$ obtains high enough
+advantage over any $\advB$. Define $f$ as
+
+\bnm
+f(p) \geq \log_2(1 - p)
+\enm
+
+We arrive at the definition of $f$ by solving for the following inequality:
+
+\begin{align*}
+  p &\leq 1 - 1 / 2^{f(p)} \\
+  1 / 2^{f(p)} &\leq 1 - p \\
+  \log_2(1 / 2^{f(p)}) &\leq \log_2(1 - p) \\
+  - f(p) &\leq \log_2(1 - p) \\
+  f(p) &\geq \log_2(1 - p)
+\end{align*}
+
+Putting it all together, for any $\INDCPA$-adversary $\advB$ we have
+
+\bnm
+  \AdvINDCPA{\overline{\SEscheme}}{\INDCPA}{\advB}
+  = \AdvINDCPA{\SEscheme}{\advB} \\
+  \leq p \\
+  \leq 1 - 1 / 2^{f(p)} \\
+  \leq 1 - 1 / 2^n \\
+  = \AdvROR{\overline{\SEscheme}}{\advA}
+\enm
+
+as needed. $\blacksquare$
+
+\subsubsection*{$\INDSIM \not\Rightarrow \INDRAND$}
+
+This separation immediately follows from composing the reduction
+$\INDCPA \Rightarrow \INDSIM$ (below) and separation
+$\INDCPA \not\Rightarrow \INDRAND$.
+
+\subsubsection*{$\INDCPA \Rightarrow \INDSIM$}
+
+TODO: show for any symmetric encryption scheme $\SEscheme$, there is
+a simulator $\simu$ such that for all $\INDSIM$-adversaries $\advA$ there is
+a $\INDCPA$-adversary $\advB$ such that 
+
+\bnm
+\AdvINDSIM{\SEscheme}{\advA} \leq \AdvINDCPA{\SEscheme}{\advB}
+\enm
+
+\subsubsection*{$\INDSIM \Rightarrow \INDCPA$}
+
+Let $\SEscheme$ be a symmetric encryption scheme. For any $\INDCPA$-adversary
+$\advA$, we construct a $\INDSIM$-adversary $\advB$ such that
+
+\bnm
+\AdvINDCPA{\SEscheme}{\advA} \leq \AdvINDSIM{\SEscheme}{\advB}
+\enm
+
+\paragraph{Proof.}
+
+\fpage{.25}{
+  \underline{$\simu(\ell)$}\\[1pt]
+  $C \gets \{0,1\}^\ctxtlen(\ell)$ \\
+  return $C$
+}
+\fpage{.25}{
+  \underline{$\advB^{\SEenc}$}\\[1pt]
+  $b \getsr \{0,1\}$ \\
+  $b' \getsr \advA^{\SEencsim}$ \\
+  return $b = b'$ \\ \\
+  \underline{$\SEencsim(M_0, M_1)$}\\[1pt]
+  return $\SEenc(M_b)$
+}
+
+This reduction is very similar to $\INDRAND \Rightarrow \INDCPA$.  The
+constructed $\INDSIM$-adversary $\advB$ is essentially the same as the
+constructed adversary for that reduction. Since $\advB$ playing the $\INDSIM1$
+game is the same as $\advA$ playing the $\RORreal$ game,
+$\Prob{\INDSIM1_{\SE}^{\advB} \Rightarrow 1} = \Prob{\RORreal_{\SE}^{\advA} \Rightarrow 1}$.
+Notice that when $\advB$ plays the $\RORrand$ game its oracle returns random
+bitstrings instead of actual ciphertext such that $\advA$, used by $\advB$,
+gets no information about the scheme whatsoever.  Thus
+$\Prob{\INDSIM0_{\SEscheme}^{\advB} \Rightarrow 1} = 1/2$.
+
+Then
+
+\begin{align*}
+  \AdvINDSIM{\SEscheme}{\advB} &=
+    \absv{\Prob{\INDSIM1^{\advB}_{\SEscheme} \Rightarrow 1} -
+          \Prob{\INDSIM0^{\advB}_{\SEscheme} \Rightarrow 1}} \\
+  &= \absv{\Prob{\INDCPA^{\advA}_{\SEscheme} \Rightarrow \true} - 1 / 2} \\
+  &= \absv{1 / 2 + 1 / 2 \cdot \AdvINDCPA{\SEscheme}{\advA} - 1 / 2} \\
+  &= 1 / 2 \cdot \AdvINDCPA{\SEscheme}{\advA} \\
+  &\geq 1 / 2 \cdot \AdvINDCPA{\SEscheme}{\advA}
+\end{align*}
+
+as needed. $\blacksquare$
+
+\subsection{Example: IND\$ for CTR mode}
+
+\fpage{.25}{
+\underline{$\Enc(K,M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets E_K(\IV \oplus \langle i\rangle) \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$\medskip
+
+\underline{$\Dec(K,C)$}\\
+If $|C| \le n$ then Ret $\bot$\\
+$\IV,C_1,\ldots,C_m \getparse{n} C$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets E_K(\IV \oplus \langle i\rangle) \oplus C_i$\\
+Ret $M_1 \concat\cdots\concat M_m$
+}
+
+Notation $X_1,\ldots,X_m \getparse{n} X$ takes a string $X$ and partitions it
+into as many full $n$-bit blocks as possible, and lets $X_m$ be remaining bits,
+thus $|X_m| = |X| \bmod n$. Also recall that we assume that  $X \oplus Y$ for
+$|X| > |Y|$ 
+first truncates $X$ to $|Y|$ bits, and returns the exclusive or of that
+truncated string with $Y$. We similarly define the operation when $|X| < |Y|$.
+
+Given a block cipher $\varepsilon$, we can construct the $\CTR$-mode
+symmetric encryption scheme as seen above. We then show that
+this scheme is $\INDRAND$ secure.
+
+\begin{theorem*}
+Let $\CTR$ be the CTR-mode symmetric encryption scheme built using blockcipher
+$\cipherE\Colon\bits^k\times\bits^n\rightarrow\bits^n$. Let $\advA$ be an
+$\ROR_\CTR$-adversary making at most~$q$ queries each totaling at most~$\sigma$
+blocks. Then we give an $\PRF_\cipher$-adversary $\advB$ such
+that
+\bnm
+  \AdvROR{\CTR}{\advA} \le \AdvPRF{\cipher}{\advB} + \frac{2\sigma q^2}{2^n}
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus $\bigO(q\sigma)$ and makes at most
+$\sigma$ queries.
+\end{theorem*}
+
+\paragraph{Proof.}
+
+The proof is a game-hopping argument, as seen below.
+
+\hfpagessss{.23}{.23}{.23}{.23}{
+\underline{$\G0$}\\
+$K \getsr \bits^k$\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets E_K(\IV \oplus \langle i\rangle) \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}{
+\underline{$\G1$}\\
+$\rho \getsr \Func(n,n)$\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $C_i \gets \rho(\IV \oplus \langle i\rangle) \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}{
+\underline{\fbox{$\G2$} \;\;\; $\G3$}\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd $P_i \getsr \bits^n$\\
+\myInd If $\TabT[\IV\oplus \langle i \rangle] \ne \bot$ then\\
+\myInd\myInd $\bad\gets\true$\\
+\myInd\myInd \fbox{$C_i \gets \TabT[\IV \oplus \langle i\rangle]$}\\
+\myInd $\TabT[\IV \oplus \langle i\rangle] \gets P_i $\\
+\myInd $C_i \gets P_i \oplus M_i$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}{
+\underline{$\G4$}\\
+$b' \getsr \advA^\EncOracle$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$\IV \getsr \bits^n$\\
+$M_1,\ldots,M_m \getparse{n} M$\\
+For $i = 1$ to $m$ do\\
+\myInd If $\TabT[\IV\oplus \langle i \rangle] \ne \bot$ then\\
+\myInd\myInd $\bad\gets\true$\\
+\myInd $\TabT[\IV \oplus \langle i\rangle] \gets 1 $\\
+\myInd $C_i \getsr \bits^n$\\
+Ret $\IV \concat C_1 \concat\cdots\concat C_m$
+}
+
+First, notice that $G0$ game is the same as the $\RORreal$ game for $\INDRAND$
+security, and thus
+
+\bnm
+\Prob{\RORreal^{\advA}_{\CTR} \Rightarrow 1} = \Prob{G0 \Rightarrow 1}
+\enm
+
+Next, notice that $G0$ corresponds to $\textup{PRF1}$ and $G1$ corresponds to
+$\textup{PRF0}$. So
+
+\begin{align*}
+  \absv{\Prob{G0 \Rightarrow 1} - \Prob{G1 \Rightarrow 1}} = \adv^{\textup{prf}}_{\varepsilon}(\advB) \\
+  \Prob{G0 \Rightarrow 1} \leq \Prob{G1 \Rightarrow 1} + \adv^{\textup{prf}}_{\varepsilon}(\advB) \\
+\end{align*}
+
+Next, since in $G2$ the value in $\TabT$ is re-used in the event of a collision,
+it essentially acts a random function, which implies
+$\Prob{G1 \Rightarrow 1} = \Prob{G2 \Rightarrow 1}$.
+
+Since $G2$ and $G3$ are identical-until-bad, by the fundamental lemma of
+game playing we have
+
+\bnm
+\Prob{G2 \Rightarrow 1} \leq \Prob{G3 \Rightarrow 1} + \Prob{\bad_3}
+\enm
+
+The only difference between $G3$ and $G4$ is that $G3$ derives ciphertext
+using one-time pads and $G4$ derives ciphertext from random strings. But being
+a $\INDCPA$-adversary, $\advA$ should not be able to distinguish one from the
+other. So $\Prob{G3 \Rightarrow 1} = \Prob{G4 \Rightarrow 1}$.
+Furthermore, notice that $\bad$ is set in the same conditions as $G3$ and $G4$,
+so $\Prob{\bad_3} = \Prob{\bad_4}$. Then
+
+\bnm
+\Prob{G3 \Rightarrow 1} + \Prob{\bad_3} = \Prob{G4 \Rightarrow 1} + \Prob{\bad_4}
+\enm
+
+Next, since $G4$ assigns the ciphertext to random bitstrings,
+
+\bnm
+\Prob{G4 \Rightarrow 1} = \Prob{\RORrand^{\advA}_{\CTR} \Rightarrow 1}
+\enm
+
+To analyze the setting of $\bad_4$ we, first, observe that the choices of $\IV$
+are independent of the adversary's queries. For query $i$, let $m_i$ be the
+length in blocks of that query and $\IV_i$ be the value $\IV$ chosen.
+Let $X_{i,j} = \IV_i \oplus \langle j\rangle$ for $1 \le j \le m_i$. Then we are
+asking whether there are any collisions among 
+\begin{align*}
+    &\IV_1 , \IV_1 \oplus \langle 1\rangle, \ldots , \IV_1 \oplus \langle m_1\rangle \\
+    &\IV_2 , \IV_2 \oplus \langle 1\rangle, \ldots , \IV_2 \oplus \langle m_2\rangle \\
+    &\phantom{\IV_2 , \IV_2 \oplus \langle 1\rangle, } \vdots\\
+    &\IV_q , \IV_q \oplus \langle 1\rangle, \ldots , \IV_q \oplus \langle m_q\rangle \\
+\end{align*}
+If $m_i < 2^n-1$ for all queries then we can ignore wraparound effects, and so
+no collisions on each row. Now consider any two pairs of rows $1 < i < j$. We
+can consider $\IV_i$ to be fixed, and so a collision across rows occurs if
+$\IV_j \in \{\IV_i + \alpha \;:\; -\sigma +1 \le \alpha \le \sigma-1\}$. This
+occurs with probability $(2\sigma-1) / 2^n$. Since there are at most $q^2$ such
+pairs, we have that the total probability of a collision is at most 
+$2q^2\sigma / 2^n$. See Lemma 5.18 of Bellare-Rogaway for more details.
+
+Putting all of these together, we arrive at
+
+\begin{align*}
+  \AdvROR{\CTR}{\advA} 
+    &= \left| \Prob{\REAL_\CTR^\advA} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \left| \Prob{\G0} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &\le \left| \Prob{\G1} + \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \left| \Prob{\G2} + \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &\le \left| \Prob{\G3} + \Prob{\bad_3} \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \left| \Prob{\G4} + \Prob{\bad_4} + \AdvPRF{\cipher}{\advB} - \Prob{\RAND_\CTR^\advA}\right|\\
+    &= \Prob{\bad_4} + \AdvPRF{\cipher}{\advB}\\
+    &\le \AdvPRF{\cipher}{\advB} + \frac{2q\sigma^2}{2^n}
+\end{align*}
+
+as needed. $\blacksquare$
+
+
+%\begin{align*}
+%  \Prob{\bad_4} = \Prob{\wedge_i X_i \in T_i  \lor X_2 \in T_i \cdots \lor X_{
+%\end{align*}
+
