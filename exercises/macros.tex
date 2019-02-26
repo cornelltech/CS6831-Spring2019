@@ -13,6 +13,22 @@
 \newtheorem{rem}[thm]{Remark}
 \newtheorem{exa}{Example}
 
+\makeatletter
+\newtoks\answerscollect
+\newcounter{question}
+\setcounter{question}{0}
+\def\thequestion{{\bfseries{Question \arabic{question}. }}\\}
+
+\def\answer#1{%
+\protected@edef\answertmp{%
+\the\answerscollect\vspace{.5\baselineskip}\noindent\thequestion#1\par}%
+\par\answerscollect=\expandafter{\answertmp}}
+\def\printanswers{\the\answerscollect\answerscollect={}}
+\def\initbox{\answerscollect={\par\noindent Answers:\par}}
+
+\newcommand{\question}[1]{\stepcounter{question}\par\noindent\thequestion#1}
+\makeatother
+
 %\newenvironment{theorem}{\begin{thm}
 %    \begin{sl}
 %    }%

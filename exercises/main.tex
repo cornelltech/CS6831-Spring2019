@@ -2,20 +2,43 @@
 \input{preamble}
 \input{macros}
 \newcommand{\KR}{\mathrm{KR}}
+\newcommand{\inv}{^{-1}}
 \newcommand{\TKR}{\mathrm{TKR}}
 \newcommand{\LQKR}{\mathrm{QTKR}}
 \newcommand{\AdvLQKR}[2]{\mathrm{AdvQTKR}_{#1}^{#2}}
 \newcommand{\keyspace}{\calK}
-\title{cs6831 exercises}
-\date{January 2019}
+\newcommand{\PRFReal}{\text{PRF-Real}}
+\newcommand{\PRFIdeal}{\text{PRF-Ideal}}
+\newcommand{\RFRange}{\calR} 
+\newcommand{\RFun}{\mathbf{R}}
+\newcommand{\Fun}{\mathsf{Fn}}
+\newcommand{\SPRPIdeal}{\text{SPRP-Ideal}}
+\newcommand{\SPRPReal}{\text{SPRP-Real}}
+\newcommand{\PRPIdeal}{\text{PRP-Ideal}}
+\newcommand{\PRPReal}{\text{PRP-Real}}
+\newcommand{\TSPRPIdeal}{\text{TSPRP-Ideal}}
+\newcommand{\TSPRPReal}{\text{TSPRP-Real}}
+\newcommand{\TPRPIdeal}{\text{TPRP-Ideal}}
+\newcommand{\TPRPReal}{\text{TPRP-Real}}
+\newcommand{\RPerm}{\Pi}
+\newcommand{\RPermInv}{\Pi\inv}
+\newcommand{\tbce}{\widetilde{E}}
+\newcommand{\tbcd}{\widetilde{D}}
+\newcommand{\tbc}{\text{TBC}}
+\newcommand{\tweakspace}{\calT}
+\newcommand{\gf}[1]{\text{GF}(#1)}
+\newcommand{\SE}{\mathsf{SE}}
+\newcommand{\xe}{\mathsf{XE}}
+\newcommand{\xeenc}{\xe.\enc}
+\newcommand{\xedec}{\xe.\dec}
+\title{CS6831 Exercises}
+\date{Spring 2019}
 
 \begin{document}
 
 \maketitle
 
-\section*{1/30/2019}
-
-\subsection*{Key recovery security}
+\section*{Key recovery security}
 Figure~\ref{fig:kr} contains pseudocode descriptions of the target key-recovery security game $\TKR$ for a function $E\Colon\msgspace\rightarrow\msgspace$ and adversary $\advA$, a variant $\LQKR$ which limits the adversary to $q$ oracle queries, and the key-recovery security game $\KR$. Define the $\LQKR$ advantage of adversary $\advA$ with $q$ queries against function $E$ as
 $$
 \AdvLQKR{E}{\advA,q} = \Prob{\LQKR_{\advA,E,q}\Rightarrow 1}\; .
@@ -26,19 +49,19 @@ $$
 \hfpagesss{.25}{.33}{.35}{
 \procedurev{$\TKR_{\advA,E}$}\\
 $K\getsr\calK$\\
-$K'\getsr\advA^{Fn}$\\
+$K'\getsr\advA^{\Fun}$\\
 Return $K=K'$\medskip
 
-\procedurev{$Fn(M)$}\\
+\procedurev{$\Fun(M)$}\\
 Return $E_K(M)$
 }{
 \procedurev{$\LQKR_{\advA,E,q}$}\\
 $K\getsr\calK$\\
 $c\gets 0$\\
-$K'\getsr\advA^{Fn}$\\
+$K'\getsr\advA^{\Fun}$\\
 Return $K=K'$\medskip
 
-\procedurev{$Fn(M)$}\\
+\procedurev{$\Fun(M)$}\\
 $c \gets c+1$\\
 If $c>= q$ then Return $\bot$\\
 Return $E_K(M)$
@@ -47,13 +70,13 @@ Return $E_K(M)$
 $\text{QueryMade}\gets\false$\\
 $\win\gets\true$\\
 $K\getsr\calK$\\
-$K^*\getsr\advA^{Fn}$\\
+$K^*\getsr\advA^{\Fun}$\\
 For $M\in\calX$:\\
 \ind If $E_K(M)\ne E_{K^*}(M)$ then\\
 \ind \ind $\win\gets\false$\\
 Return $\win\wedge\text{QueryMade}$\medskip
 
-\procedurev{$Fn(M)$}\\
+\procedurev{$\Fun(M)$}\\
 $\text{QueryMade}\gets\true$\\
 $\calX \gets \calX\cup M$\\
 Return $E_K(M)$
@@ -62,29 +85,294 @@ Return $E_K(M)$
 \label{fig:kr}
 \end{figure}
 
-\noindent\textbf{Question 1} Design a function 
+\begin{question}
+Design a function 
 $E\Colon \msgspace\rightarrow \msgspace$ so that for any $q$, $\AdvLQKR{E}{\advA,q}$ is small but $\AdvLQKR{E}{\advA,q+1}=1$. The input and output space $M$ need not be bit strings\textemdash you could set $M$ to be, for example, the integers mod a prime $p$. Recall that a function must be stateless.
+\end{question}
 
-\noindent\textbf{Question 2} Does $\TKR$ imply $\LQKR$? What about the other direction?
-
-\subsection*{Pseudorandom functions}
-
-Let $E\Colon\keyspace\times\msgspace\rightarrow\msgspace$ be a function. Recall that the PRF advantage of an adversary $\advA$ against $E$ is its advantage in distinguishing between an oracle for $E_K$ (for randomly-chosen $K$) and a random function oracle on the same domain and range.
-
-\noindent\textbf{Question 3} Does PRF security imply $\TKR$ security? What about $\KR$ security?
+\question{Does $\TKR$ imply $\LQKR$? What about the other direction?}
 
 
-\noindent\textbf{Question 4} Design a function $E$ which is a good PRF when its entire key is hidden, but can be distinguished from a random function if any bit of the key is leaked.
 
-\subsection*{General}
 
-\noindent\textbf{Question 5} In all the security definitions we've seen so far, the adversary
-gets to see the output of its $i$th oracle query before deciding what its $i+1$st query will be.
-Such an adversary is usually called \emph{adaptive}. We could imagine an alternate definition where
-the adversary specifies all its inputs at once, then sees all the outputs at once. Usually this is
-called \emph{non-adaptive}. Would our definitions be more or less powerful if they were non-adaptive?
-For any of the security notions we've seen thus far, can you construct a scheme which
-meets the non-adaptive version of the security notion but \emph{not} the adaptive version?
-What about the other way around?
+\section*{Pseudorandom functions}
+
+\begin{figure}[h]
+\centering
+\hfpages{.25}{
+\procedurev{$\PRFReal_{\advA,F}$}\\
+$K\getsr\calK$\\
+$b\getsr\advA^{\Fun}$\\
+Return $b$\medskip
+
+\procedurev{$\Fun(M)$}\\
+Return $F_K(M)$
+}{
+\procedurev{$\PRFIdeal_{\advA}$}\\
+$T\gets [\;]$\\
+$b\getsr\advA^{\RFun}$\\
+Return $b$\medskip
+
+\procedurev{$\RFun(M)$}\\
+If $T[M]=\bot$ then\\
+\ind $T[M]\getsr\msgspace$\\
+Return $T[M]$
+}
+\caption{Real and ideal games for pseudorandom function security of a function $F$}
+\label{fig:prf}
+\end{figure}
+
+Let $F\Colon\keyspace\times\msgspace\rightarrow\msgspace$ be a function. Recall that the PRF advantage of an adversary $\advA$ against $F$ is its advantage in distinguishing between an oracle for $F_K$ (for randomly-chosen $K\in\keyspace$) and a random function oracle on the same domain and range. These two games are formalized in Figure~\ref{fig:prf}.
+
+\question{ Does PRF security imply $\TKR$ security? What about $\KR$ security?}
+
+
+\question{ Design a function $F$ which is a good PRF when its entire key is hidden, but can be distinguished from a random function if any bit of the key is leaked.}
+
+\begin{question}
+If $F$ is a PRF, must $F_K(\cdot)\oplus K$ also be a PRF?
+\end{question}
+
+\section*{General concepts}
+
+\begin{question} In most of the definitions we've seen thus far, the adversary can decide what its $i$th oracle query will be based on the outputs of all previous oracle queries. A definition that lets the adversary do this is usually called \emph{adaptive}. 
+
+One could imagine a different kind of definition that forces the adversary to specify all its oracle queries up front, and gives it outputs of its queries in one batch. This kind of definition is usually called \emph{non-adaptive}. 
+
+In general, are non-adaptive definitions weaker or stronger than adaptive ones? For any of the definitions we've seen thus far, can you prove adaptive security implies non-adaptive security? What about the other direction?
+\end{question}
+
+\section*{Pseudorandom permutations}
+
+Let $F\Colon\keyspace\times\msgspace\rightarrow\msgspace$ be an invertible function. Recall that the PRP advantage of an adversary $\advA$ against $F$ is its advantage in distinguishing between an oracle for $F_K$ (for randomly-chosen $K\in\keyspace$) and a random permutation oracle. This is formalized in the scribe notes. 
+
+We can define the \emph{strong} PRP advantage of the function $F$ analogously to "regular" PRP advantage, except in both real and ideal games the adversary has access to the inverse of $F$. This is formalized in the scribe notes.
+
+\begin{question} Recall the three-round Feistel construction of a permutation we saw in class. We proved that if the round function is a PRF, the three-round Feistel construction gives a good PRP. However, three rounds of Feistel is not a good \emph{strong} pseudorandom permutation. Show an adversary with high SPRP advantage against the three-round Feistel construction. 
+\end{question}
+
+\question{Analyze the SPRP security of four-round Feistel networks.}
+
+
+
+\begin{question} Let $\tbc\Colon\keyspace\times\tweakspace\times\msgspace\rightarrow\msgspace$ be a tweakable block cipher with enciphering $\tbce$ and deciphering $\tbcd$. Define a hash function on two $n$-bit blocks $M_1\concat M_2$ as $\tbc_K(\tbc_K(T_0, M_1)\oplus M_1, M_2)\oplus M_2$ for random key $K$ (known to the adversary). Is this hash function collision-resistant?
+\end{question}
+
+
+\section*{Pseudorandom generators}
+
+\begin{question} Let $G\Colon\zon{n}\rightarrow\zon{n+1}$ be any secure pseudorandom generator. For a bit string $x$, define $x_{1, \ldots, i}$ to be the first $i$ bits of $x$ or all of $x$ if $|x|\leq i$. Define a function $G'$ on the same domain and range as $G'(s) = G(s\oplus G(s)_{1, \ldots, n})$. Is $G'$ always a secure pseudorandom generator?
+\end{question}
+
+\section*{Randomized encryption}
+
+\begin{question}
+Take an $F\Colon\keyspace\times\zon{m}\rightarrow\zon{m}$ to be a PRF. Define an encryption scheme with plaintext space $\ints{n}$ and ciphertext space $\zon{m}\times\ints{n}$ as in Figure~\ref{fig:modn_ctr}. Is this encryption scheme real-or-random secure for all values of $m$ and $n$?
+\end{question}
+
+\begin{figure}[h]
+\centering
+\fpage{.25}{
+\procedurev{$\enc(K, M)$}\\
+$i\getsr\zon{m}$\\
+$R\gets F(K, i)$\\
+$C\gets M + R\mod n$\\
+Return $i\concat C$
+}
+\caption{An encryption scheme.}
+\label{fig:modn_ctr}
+\end{figure}
+
+
+
+
+%%%JUNKYARD
+%%%All this stuff on TBCs is in its own document now
+\iffalse
+\section*{2/11/2019 scribe notes}
+
+Topics: Tweakable block ciphers and randomized encryption
+
+Adiantum - Google's disk encryption construction is a Feistel which uses (reduced-round) ChaCha
+
+Homework assignment - look at Adiantum spec, figure out what their construction is.
+
+\subsection*{Tweakable block ciphers}
+Let $\tbc\Colon\keyspace\times\tweakspace\times\msgspace\rightarrow\msgspace$ be a tweakable block cipher.
+
+Security: indistinguishability from a family of random permutations, one per tweak. See Figure~\ref{fig:tprp}
+
+
+\begin{figure}[h]
+\centering
+\hfpagessss{.22}{.22}{.22}{.22}{
+\procedurev{$\PRPReal_{\advA,F}$}\\
+$K\getsr\calK$\\
+$b\getsr\advA^{\Fun}$\\
+Return $b$\medskip
+
+\procedurev{$\Fun(M)$}\\
+Return $F_K(M)$
+}{
+\procedurev{$\PRPIdeal_{\advA}$}\\
+$\pi\gets [\;]$\\
+$b\getsr\advA^{\RFun}$\\
+Return $b$\medskip
+
+\procedurev{$\RPerm(M)$}\\
+If $\pi[M]=\bot$ then\\
+\ind $\pi[M]\getsr\msgspace\setminus \pi$\\
+Return $\pi[M]$
+}{
+\procedurev{$\SPRPReal_{\advA,F}$}\\
+$K\getsr\calK$\\
+$b\getsr\advA^{\Fun}$\\
+Return $b$\medskip
+
+\procedurev{$\Fun(M)$}\\
+Return $F_K(M)$\medskip
+
+\procedurev{$\Fun\inv(C)$}\\
+Return $F\inv_K(C)$
+}{
+\procedurev{$\SPRPIdeal_{\advA}$}\\
+$\pi\gets [\;]$\\
+$\pi\inv \gets [\; ]$\\
+$b\getsr\advA^{\RPerm}$\\
+Return $b$\medskip
+
+\procedurev{$\RPerm(M)$}\\
+If $\pi[M]=\bot$ then\\
+\ind $C\getsr\msgspace\setminus \pi$\\
+\ind $\pi[M]\gets C$\\
+\ind $\pi\inv[C] \gets M$\\
+Return $C$
+
+\procedurev{$\RPermInv(C)$}\\
+If $\pi\inv[C]=\bot$ then\\
+\ind $M\getsr\msgspace\setminus \pi\inv$\\
+\ind $\pi\inv[C]\gets M$\\
+\ind $\pi[M] \gets C$\\
+Return $M$
+}
+
+\caption{Real and ideal games for pseudorandom permutation and strong pseudorandom permutation security of a function $F$}
+\label{fig:prp}
+\end{figure}
+
+
+\begin{figure}[h]
+\centering
+\hfpagessss{.22}{.22}{.22}{.22}{
+\procedurev{$\TPRPReal_{\advA,\tbc}$}\\
+$K\getsr\calK$\\
+$b\getsr\advA^{\Fun}$\\
+Return $b$\medskip
+
+\procedurev{$\Fun(M,T)$}\\
+Return $\tbce^{T}_{K}(M)$
+}{
+\procedurev{$\TPRPIdeal_{\advA}$}\\
+$\pi\gets [\;]$\\
+$b\getsr\advA^{\RFun}$\\
+Return $b$\medskip
+
+\procedurev{$\RPerm(M,T)$}\\
+If $\pi[M]=\bot$ then\\
+\ind $\pi[M]\getsr\msgspace\setminus \pi$\\
+Return $\pi[M]$
+}{
+\procedurev{$\TSPRPReal_{\advA,\tbc}$}\\
+$K\getsr\calK$\\
+$b\getsr\advA^{\Fun}$\\
+Return $b$\medskip
+
+\procedurev{$\Fun(M,T)$}\\
+Return $\tbce^{T}_{K}(M)$\medskip
+
+\procedurev{$\Fun\inv(C,T)$}\\
+Return $\tbcd^{T}_{K}(C)$
+}{
+\procedurev{$\TSPRPIdeal_{\advA}$}\\
+$\pi\gets [\;]$\\
+$\pi\inv \gets [\; ]$\\
+$b\getsr\advA^{\RPerm}$\\
+Return $b$\medskip
+
+\procedurev{$\RPerm(M,T)$}\\
+If $\pi[M]=\bot$ then\\
+\ind $C\getsr\msgspace\setminus \pi$\\
+\ind $\pi[M]\gets C$\\
+\ind $\pi\inv[C] \gets M$\\
+Return $C$
+
+\procedurev{$\RPermInv(C,T)$}\\
+If $\pi\inv[C]=\bot$ then\\
+\ind $M\getsr\msgspace\setminus \pi\inv$\\
+\ind $\pi\inv[C]\gets M$\\
+\ind $\pi[M] \gets C$\\
+Return $M$
+}
+
+\caption{Real and ideal games for pseudorandom permutation and strong pseudorandom permutation security of a tweakable block cipher $\tbc = (\tbce,\tbcd)$}
+\label{fig:tprp}
+\end{figure}
+
+\paragraph{Building TBCs.} How do we build? Take block cipher $E_K$ and do $\tbce^{T}_K(M) = E_K(T\concat M)$. Doesn't work because domains are different.
+
+Other way: let $\tbce^{T}_{K} = E_{E_K(T)}(M)$. Slow because key scheduling can be expensive, and you need to change key every time. For AES this construction has about a factor of 2 overhead
+
+Another way: can tweak Luby-Rackoff easily if round function is variable-length PRF. Proof proceeds via extension of Luby-rackoff proof from previous notes. Not ideal because need several PRF calls per TBC invocation
+
+A broken construction: $\tbce^{T}_K(M) = E_K(T\oplus M)$. To distinguish, query oracle twice on two different $(T, M)$ pairs with the same XOR. In real world the have the same value w.p. 1 but in ideal world only $1/2^n$.
+
+LRW idea: $\tbce^T_K(M) = E_K(T\oplus E_K(M))$ (prove this)
+observation about this construction: it's the same as CBC-MAC on msg space of size 2n
+
+LRW construction requires 2 block cipher calls per msg block... can we do better? Assume msg space is $\msgspace = \zon{n}$ and $\tweakspace = \zon{n} \times [0, \ldots, 2^n-2]$. Take $\tbce^T_K(M) = E_K(E_K(T)\oplus i \oplus M)$. Does not work b/c can choose $i,M$ to cause collision
+
+\paragraph{Essentials on finite fields} $\gf{2^n}$ is a finite (Galois) field over $n$-bit strings. Represent point $a$ equivalently as:
+\begin{itemize}
+    \item polynomial $a(x) = a_{n-1}x^{n-1} + \cdots + a_1 x + a_0$
+    \item integer $a = \sum\limits_{i=0}^{n-1} a_i 2^i$
+    \item bit string $a= a_{n-1}\cdots a_0$
+\end{itemize}
+
+\textbf{addition} of $a$ and $b$: bitwise XOR of points
+
+\textbf{Multiplication} of $a$ and $b$: fix primitive polynomial, e.g. $x^{128} + x^{7} + x^2 + x + 1$. Multiply points by treating as polynomials: multiply formal polys and take remainder modulo the primitive polynomial. Benefit: element $2=(0^{126}10)$ generates multiplicative subgroup of $\gf{2^n}$. Multiplication by 2 is fast!
+
+\paragraph{Fast TPRPs: XE construction} Let $\tbce^{T,i}_K(M) = E_K(M\oplus \Delta)$ where $\Delta = E_K(T)\cdot 2^i$
+
+\begin{figure}[h]
+\centering
+\hfpages{.25}{
+\procedurev{$\xeenc(K, T, i, M)$}\\
+$\Delta\gets E_K(T)\odot 2^i$\\
+Return $E_K(M\oplus \Delta)$
+}{
+\procedurev{$\xedec(K, T, i, C)$}\\
+$\Delta\gets E_K(T)\odot 2^i$\\
+Return $D_K(C)\oplus\Delta$
+}
+\caption{$\xe[E]$ construction encryption and decryption for block cipher $E$. The symbol $\odot$ denotes multiplication in $\gf{2^{128}}$}
+\label{fig:xe}
+\end{figure}
+
+\paragraph{Application: randomized symmetric encryption} Take ECB mode. Build "CPA-core of OCB mode" using TBC. For three-block message $M_1, M_2, M_3$ encrypt as $C_i = \tbce^{N, i}_K(M_i)$ for $i\in[1, 2, 3]$ for nonce $N$. 
+
+\paragraph{Randomized encryption} Symmetric encryption scheme is tuple $\SE = (\kg, \enc, \dec)$
+\begin{itemize}
+    \item randomized key generation
+    \item randomized encryption
+    \item deterministic decryption
+\end{itemize}
+
+Assume length of ciphertext determined solely by length of message
+
+Security: Real-or-random indistinguishability... can't distinguish encryption oracle from random bits oracle (give definition)
+
+Can show "CPA-core" of OCB is RoR-secure. (Write this up for scribe notes)
+\fi
 
 \end{document}
