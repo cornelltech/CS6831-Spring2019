@@ -270,6 +270,7 @@
 \newcommand{\indsm}{\hspace*{.75em}}
 \newcommand{\indeqn}{\;\;\;\;\;\;\;}
 \newcommand{\bits}{\{0,1\}}
+\newcommand{\zon}[1]{\bits^{#1}}
 \newcommand{\emptystring}{\varepsilon}
 \newcommand{\xor}{{\:\oplus\:}}
 %\newcommand{\concat}{\,,\,}
@@ -431,6 +432,8 @@
 
 \newcommand{\badSet}{\calS}
 \newcommand{\bad}{\ensuremath{\mathsf{bad}}}
+\newcommand{\cbad}{\bad}
+\newcommand{\ctrue}{\true}
 \newcommand{\notbad}{\overline{\bad}}
 \newcommand{\win}{\ensuremath{\mathsf{win}}}
 \newcommand{\outputs}{\:{\Rightarrow}\:}
@@ -2076,6 +2079,50 @@
 
 \newcommand{\SPRP}{\textnormal{SPRP}}
 \newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{\pm prp}}_{#1}(#2)}
+
+
+
+% \newcommand{\inv}{^{-1}}
+% \newcommand{\Adv}{\mathbf{Adv}}
+% \newcommand{\keyspace}{\calK}
+\newcommand{\PRFReal}{\text{PRF-Real}}
+\newcommand{\PRFIdeal}{\text{PRF-Ideal}}
+\newcommand{\RFRange}{\calR}
+\newcommand{\RFun}{\mathbf{R}}
+\newcommand{\Fun}{\mathsf{Fn}}
+\newcommand{\SPRPIdeal}{\text{SPRP-Ideal}}
+\newcommand{\SPRPReal}{\text{SPRP-Real}}
+\newcommand{\PRPIdeal}{\text{PRP-Ideal}}
+\newcommand{\PRPReal}{\text{PRP-Real}}
+\newcommand{\TSPRPIdeal}{\text{TSPRP-Ideal}}
+\newcommand{\TSPRPReal}{\text{TSPRP-Real}}
+\newcommand{\TPRPIdeal}{\text{TPRP-Ideal}}
+\newcommand{\TPRPReal}{\text{TPRP-Real}}
+\newcommand{\AdvTSPRP}[2]{\AdvSTPRP{#1}{#2}}
+%\newcommand{\AdvTPRP}[2]{\Adv^{\mathrm{tprp}}_{#1}(#2)}
+\newcommand{\RPerm}{\Pi}
+\newcommand{\RPermInv}{\Pi\inv}
+%\newcommand{\tbce}{\widetilde{E}}
+%\newcommand{\tbcd}{\widetilde{D}}
+%\newcommand{\tbc}{\text{TBC}}
+%\newcommand{\tweakspace}{\calT}
+\newcommand{\noncespace}{\calN}
+%\newcommand{\ctxtspace}{\calC}
+\newcommand{\gf}[1]{\text{GF}(#1)}
+%\newcommand{\SE}{\mathsf{SE}}
+\newcommand{\xe}{\mathsf{XE}}
+\newcommand{\lrw}{\mathsf{LRW}}
+\newcommand{\xeenc}{\xe.\enc}
+\newcommand{\xedec}{\xe.\dec}
+\newcommand{\Perms}{\text{Perms}}
+\newcommand{\Funs}{\text{Funs}}
+\newcommand{\ocbcore}{\mathsf{OCB\dash Core}}
+\newcommand{\ocbcoreenc}{\mathsf{OCB\dash Core}.\enc}
+\newcommand{\ocbcoredec}{\mathsf{OCB\dash Core}.\dec}
+\newcommand{\clen}{\ctxtlen}
+\newcommand{\rorcpareal}{\text{RoR-CPA-Real}}
+\newcommand{\rorcpaideal}{\text{RoR-CPA-Ideal}}
+\newcommand{\integers}{\mathbb{Z}}
 
 \newcommand{\PRF}{\textnormal{PRF}}
 \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}

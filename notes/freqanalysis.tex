@@ -171,73 +171,73 @@ The success of such attacks has so far depended on factors such as the size and 
 
 In actual experiments, this is exactly what happened. In a hospital dataset in which most columns had few possibilities and were nonuniform, 100\% of the deterministically encrypted values were recovered \cite{Bindschaelder2018tao}. Similarly, \cite{Naveed2015inference} saw that attributes like sex and whether a patient died during their stay were much more easily recoverable than age or admission month, which have more values and are more uniform.
 
-\bnm
-\tweakCipher\Colon\keyspace\times\tweakspace\times\msgspace \rightarrow \msgspace
-\enm
+% \bnm
+% \tweakCipher\Colon\keyspace\times\tweakspace\times\msgspace \rightarrow \msgspace
+% \enm
 
-Let $\Perm(\tweakspace,\msgspace$ be set of all functions
-$\tweakspace\times\msgspace\rightarrow\msgspace$ for which 
+% Let $\Perm(\tweakspace,\msgspace$ be set of all functions
+% $\tweakspace\times\msgspace\rightarrow\msgspace$ for which 
 
-\hfpages{.15}{
-		\underline{$\TPRP1_{\tweakCipher}^\advA$}\\
-		$K \getsr \keyspace$\\
-		$b' \getsr \advA^\Fn$\\
-		Return $b'$\medskip
+% \hfpages{.15}{
+% 		\underline{$\TPRP1_{\tweakCipher}^\advA$}\\
+% 		$K \getsr \keyspace$\\
+% 		$b' \getsr \advA^\Fn$\\
+% 		Return $b'$\medskip
 		
-		\underline{$\Fn(T,M)$}\\[1pt]
-		Return $\tweakE_K(T,M)$
-	}{
-		\underline{$\TPRP0_{\tweakCipher}^\advA$}\\
-		$\tweakpi \getsr \Perm(\tweakspace,\msgspace)$\\
-		$b' \getsr \advA^\Fn$\\
-		Return $b'$\medskip
+% 		\underline{$\Fn(T,M)$}\\[1pt]
+% 		Return $\tweakE_K(T,M)$
+% 	}{
+% 		\underline{$\TPRP0_{\tweakCipher}^\advA$}\\
+% 		$\tweakpi \getsr \Perm(\tweakspace,\msgspace)$\\
+% 		$b' \getsr \advA^\Fn$\\
+% 		Return $b'$\medskip
 		
-		\underline{$\Fn(T,M)$}\\[1pt]
-		Return $\tweakpi(T,M)$
-	}
+% 		\underline{$\Fn(T,M)$}\\[1pt]
+% 		Return $\tweakpi(T,M)$
+% 	}
 
-\bnm
-\AdvTPRP{\tweakCipher}{\advA} = \left|\Prob{\TPRP1^\advA\Rightarrow1} - \Prob{\TPRP0^\advA\Rightarrow1} \right|
-\enm
+% \bnm
+% \AdvTPRP{\tweakCipher}{\advA} = \left|\Prob{\TPRP1^\advA\Rightarrow1} - \Prob{\TPRP0^\advA\Rightarrow1} \right|
+% \enm
 
-\fpage{.25}{
-\underline{$\REAL^\advA_{\SE}$}\\[1pt]
-$K \getsr \kg$\\
-$b' \getsr \advA^{\EncOracle}$\\
-Ret $b'$\medskip
+% \fpage{.25}{
+% \underline{$\REAL^\advA_{\SE}$}\\[1pt]
+% $K \getsr \kg$\\
+% $b' \getsr \advA^{\EncOracle}$\\
+% Ret $b'$\medskip
 
-\underline{$\EncOracle(M)$}\\
-$C \getsr \enc_K(M)$\\
-Ret $C$
-}
-
-
-\fpage{.25}{
-\underline{$\RAND^\advA_{\SE}$}\\[1pt]
-$b' \getsr \advA^{\EncOracle}$\\
-Ret $b'$\medskip
-
-\underline{$\EncOracle(M)$}\\
-$C \getsr \bits^{\ctxtlen(M)}$\\
-Ret $C$
-}
+% \underline{$\EncOracle(M)$}\\
+% $C \getsr \enc_K(M)$\\
+% Ret $C$
+% }
 
 
-\bnm
-\AdvROR{\SE}{\advA} = \left|\Prob{\REAL_{\SE}^\advA\Rightarrow 1} - \Prob{\REAL_{\SE}^\advA\Rightarrow1} \right| 
-\enm
+% \fpage{.25}{
+% \underline{$\RAND^\advA_{\SE}$}\\[1pt]
+% $b' \getsr \advA^{\EncOracle}$\\
+% Ret $b'$\medskip
 
-\begin{theorem}
-Let $\SE$ be the OCB CPA-core scheme built from tweakable cipher
-$\tweakCipher$ with tweak space $\bits^n\times[0,2^n-2]$.
-Then for any $\ROR_\SE$-adversary $\advA$
-making at most $q$ queries with aggregate length at most $\sigma$
-blocks, we give an adversary $\advB$ such that
-\bnm
-  \AdvROR{\SE}{\advA} \le \AdvTPRP{\tweakCipher}{\advB} + \frac{q^2}{2^n}
-\enm
-where $\advB$ runs in time that of $\advA$ and makes at most $\sigma$ queries.
-\end{theorem}
+% \underline{$\EncOracle(M)$}\\
+% $C \getsr \bits^{\ctxtlen(M)}$\\
+% Ret $C$
+% }
+
+
+% \bnm
+% \AdvROR{\SE}{\advA} = \left|\Prob{\REAL_{\SE}^\advA\Rightarrow 1} - \Prob{\REAL_{\SE}^\advA\Rightarrow1} \right| 
+% \enm
+
+% \begin{theorem}
+% Let $\SE$ be the OCB CPA-core scheme built from tweakable cipher
+% $\tweakCipher$ with tweak space $\bits^n\times[0,2^n-2]$.
+% Then for any $\ROR_\SE$-adversary $\advA$
+% making at most $q$ queries with aggregate length at most $\sigma$
+% blocks, we give an adversary $\advB$ such that
+% \bnm
+%   \AdvROR{\SE}{\advA} \le \AdvTPRP{\tweakCipher}{\advB} + \frac{q^2}{2^n}
+% \enm
+% where $\advB$ runs in time that of $\advA$ and makes at most $\sigma$ queries.
+% \end{theorem}
 
 
 
