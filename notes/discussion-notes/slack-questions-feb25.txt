@@ -1,0 +1,76 @@
+- Don't think we finished covering why the XE construction was only TPRP-secure and not STPRP-secure; can you elaborate?
+
+
+Yes XE is not TPRP-secure. There is an attack that succeeds in distinguishing
+with probability close to one given just a few queries. We did not work out
+the details during class, but I think some of the students have worked out the
+attack.
+
+
+- Not sure if I misheard something in lecture, but you mentioned briefly there was an example of an algorithm that was CTXT-secure but not STPRP-secure? The lecture slides imply that CTXT => STPRP so this was a surprise.
+
+There's a syntactic problem with saying CTXT => STPRP, which is that the two
+security definitions are for different types of primitives. CTXT is for
+symmetric encryption (SE) schemes and STPRP is for block ciphers. While both
+ciphers and SE schemes are symmetric primitives, they are not the same.
+Importantly, block ciphers are deterministic and have define a permutation for
+each key. SE schemes are not necessarily deterministic, and do not define a
+permutation for each key, just an injection. This means that, in particular,
+not all strings in the ciphertext space will necessarily be mapped to under
+any specific key, unlike in the case of a block cipher. So, any block cipher
+can be considered to be an SE scheme, but an arbitrary SE scheme is not
+necessarily a block cipher.
+
+So let's restrict attention to block ciphers, which can always also be
+interested as an SE scheme. However, block ciphers are never CTXT. 
+To see why, note that CTXT requires not forging a message, so no scheme with a "dense" ciphertext
+space will suffice. By "dense" I mean that all ciphertexts are valid ones for
+any key. By definition a block cipher is dense, since it's domain
+and range are the same. Thus every point in the range, e.g., all strings of
+length n, are valid for every key. A winning CTXT adversary is one that simply
+queries its Dec oracle on an arbitrary point in the ciphertext space. This
+shows that no block cipher can be CTXT, making the implication CTXT => STPRP
+vacuous, even if it did hold.
+
+Looking at the definition of CTXT we can see that it doesn't say anything
+about the seeming distribution of ciphertexts, just that one can't forge them.
+But for any block cipher meeting STPRP security, it must be that their
+ciphertexts are indistinguishable from random ones. So you wouldn't expect
+CTXT => STPRP, even beyond the discussion above.
+
+
+- I don't understand why in the message authentication scheme, the tagging function requires a key to be secure. Say A sends B a message, and an attacker changes the ciphertext mid-transit to change what B sees after B finishes decrypting. But if A also sends B, say, a SHA-2 of the plaintext, what can the attacker do to still make B see a valid message? After the attacker changes the ciphertext, they don't know what falsely valid plaintext B will see, so they can't SHA-2 that. Then SHA-2 becomes a valid tagging function that only needs the plaintext, no key.
+
+
+You're intuition isn't alone, many people had the same one, but it's
+unfortunately wrong in general. It's a bit subtle, this is a good potential
+homework assignment, though to make it good, one would need to specify the
+particular SE scheme that uses a non-keyed hash for integrity. One example
+would be to do an MAC-then-CTR in which you have encryption be:
+
+CTR(K,M || H(M) )
+
+where H is SHA256 or some other secure hash function with range {0,1}^n. Decryption works by
+decrypting via CTR mode, and then rehashing M and checking that the last n
+bits are match the recomputed hash value.
+
+Think about how you can show a CTXT adversary against this scheme. It should
+require one a single Enc query.  
+
+
+- We can go one more step and say that the encryption method used by A and B isn't STPRP secure; say Dec(K, C xor Foo) = P xor Foo for any Foo (and ciphertext C and plaintext P). Now the attacker has the power to change C such that they know what will be altered once B finishes decrypting. But even then, the attacker can't send B a falsely valid SHA-2, since the difference between SHA-2(P) and SHA-2(P xor Foo) is unpredictable for any Foo != 0 as long as P is unknown. Then SHA-2 is still a valid tagger that doesn't need a key.
+
+
+I don't actually follow the example here. Is this meant to be a counter-example?
+
+
+- We didn't have time to go over why mac-then-encrypt was insecure, but here's a first guess: because the recipient only has C and decrypts it to get concat(M, T), there must be some disambiguating functionality in the concat operation that can be taken advantage of, while encrypt-then-mac doesn't have any such issue. Is this on the right track?
+
+
+Yeah, that's true. In fact, MAC-then-Encrypt *can* be secure for specific
+encryption schemes, so when we say MAC-then-Encrypt is not secure, we mean
+there exists a secure MAC scheme (SUF-CMA) and a secure encryption scheme
+(ROR) such that their MAC-then-Encrypt composition is not secure. The
+insecurity lies within achieving CTXT in this way. Think about coming up with
+an example. 
+

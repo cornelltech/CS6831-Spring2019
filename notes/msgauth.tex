@@ -1,0 +1,126 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Message Authentication}
+\label{sec:msgauth}
+
+
+A message authentication scheme $\MA = (\kg,\mtag,\ver)$ is a triple of
+algorithms. Key generation is randomized and outputs a key. Message
+authentication $\mac$ takes as input a key and message an outputs a tag.
+Verification takes as input a key, a message, and a tag, and outputs a bit. 
+\tnote{Fill in correctness conditions}
+
+
+
+\fpage{.2}{
+\underline{$\UFCMA_\MA^\advA$}\\[1pt]
+$K \getsr \kg$\\
+$(M^*,T^*) \getsr \advA^{\TagOracle}$\\
+If $M^* \in \msgset$ then\\
+\myInd Ret $\false$\\
+Ret $\ver(K,M^*,T^*)$\medskip
+
+\underline{$\TagOracle(M)$}\\
+$\msgset \gets \msgset \cup \{M\}$\\
+Ret $\mtag(K,M)$
+}
+
+
+\bnm
+  \AdvUFCMA{\MA}{\advA} = \Prob{\UFCMA_\MA^\advA\Rightarrow 1} 
+\enm
+
+
+\fpage{.25}{
+\underline{$\SUFCMA_\MA^\advA$}\\[1pt]
+$K \getsr \kg$\\
+$\win\gets\false$\\
+$(M^*,T^*) \getsr \advA^{\TagOracle,\VerOracle}$\\
+Ret $\win$\medskip
+
+\underline{$\TagOracle(M)$}\\
+$T \gets \mtag(K,M)$\\
+$\pairset \gets \pairset \cup \{(M,T)\}$\\
+Ret $T$\medskip 
+
+\underline{$\VerOracle(M,T)$}\\
+If $(M,T) \in \pairset$ then \\
+\myInd Ret $\bot$\\
+$b \gets \ver(K,M,T)$\\
+If $b = 1$ then $\win\gets\true$\\
+Ret $b$
+}
+
+
+\bnm
+  \AdvUFCMA{\MA}{\advA} = \Prob{\UFCMA_\MA^\advA\Rightarrow 1} 
+\enm
+
+\begin{theorem*}
+Let $F\Colon\bits^k\times\msgspace\rightarrow\bits^n$. Then for any
+$\UFCMA_F$-adversary $\advA$ making $q$ queries, we give a $\PRF_F$-adversary $\advB$ such that
+\bnm
+  \AdvUFCMA{F}{\advA} \le \AdvPRF{F}{\advB} + \frac{1}{2^n} \;.
+\enm
+Adversary $\advB$ runs in time that of $\advA$ and makes $q+1$ queries.
+\end{theorem*}
+
+\bnm
+F\Colon\bits^k\times\msgspace\rightarrow\bits^n
+\enm
+
+
+\fpage{.20}{
+\underline{$\advA^{\Tag}$}\\[1pt]
+$T_1 \gets \TagOracle(0^n)$\\
+$M = 0^n\concat T_1$\\
+Ret $(M,T_1)$
+}
+
+
+A keyed function $H\Colon\bits^k\times\msgspace\rightarrow\bits^n$ is
+an $\epsilon$-almost universal (AU) hash function  if for all $M \ne M'$
+\bnm
+  \Prob{H_K(M) = H_K(M')} \le \epsilon
+\enm
+where the probability is over choice of $K$.
+
+A computational AU hash function is one for 
+\fpage{.10}{
+\underline{$\cAU_H^\advA$}\\[1pt]
+$M,M' \getsr \advA$\\
+$K \getsr \bits^k$\\
+If $M = M'$ then Ret $\false$\\
+Ret $H_K(M) = H_K(M')$
+}
+
+
+\bnm
+  \AdvcAU{H}{\advA} = \Prob{\cAU^\advA_H\Rightarrow\true}
+\enm
+
+
+\begin{theorem*}
+Let $E\Colon\bits^k\times\bits^n\rightarrow\bits^n$ and $H$ be the CBC-MAC. 
+Then for any $\cAU_H$-adversary $\advA$ outputting messages of length at most
+$\sigma$ blocks, we give a $\PRF_E$-adversary $\advB$
+such that
+\bnm
+  \AdvcAU{H}{\advA} \le \AdvPRF{E}{\advB} + \frac{\sigma^2}{2^n} \;.
+\enm
+Adversary $\advB$ runs in time that of $\advA$ and makes at most $2\sigma$
+queries.
+\end{theorem*}
+
+
+\begin{theorem*}
+Let $\SE$ be an SE scheme and $\MA$ be a MAC and $\EtM$ be the Encrypt-then-Mac
+scheme built from them.  Let $\advA$ be an $\RORCCA_\EtM$-adversary making at most
+$q$ queries. Then we give a $\ROR_\SE$-adversary $\advB_{\textrm{se}}$ 
+and a $\UFCMA_\MA$-adversary  $\advB_\textrm{mac}$ 
+such that
+\bnm
+  \AdvRORCCA{\EtM}{\advA} \le \AdvROR{\SE}{\advB_\textrm{se}} + 2\cdotsm\AdvUFCMA{\MA}{\advB_{\textrm{mac}}} \;.
+\enm
+Adversaries $\advB_\textrm{se}$ and $\advB_{\textrm{mac}}$ each run in time that of 
+$\advA$ plus small overhead and each make at most $q$ queries.
+\end{theorem*}

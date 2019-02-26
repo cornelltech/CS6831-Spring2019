@@ -1,0 +1,124 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Tweakable Ciphers}
+\label{sec:freqanalysis}
+
+
+
+\begin{figure}
+\fpage{.22}{
+		\underline{$\MRUMA^{\advA}_{\cipher,\mdist,q}$}\\[1pt]
+		$K \getsr \keyspace$\\
+    For $i = 1$ to $q$\\
+    \myInd $M_i \get{\mdist} \msgspace$\\
+    \myInd $C_i \gets E_K(M_i)$\\
+		$\hatE \getsr \advA(C_1,\ldots,C_q)$\\
+    Ret $\forall_{i=1}^q \left(\hatE(M_i) = C_i\right)$
+	}
+\end{figure}
+
+\begin{figure}
+\fpage{.22}{
+		\underline{$\G1$}\\[1pt]
+		$\rho \getsr \Func(\msgspace)$\\
+     For $i = 1$ to $q$\\
+    \myInd $M_i \get{\mdist} \msgspace$\\
+    \myInd $C_i \gets \rho(M_i)$\\
+    $\hatE \getsr \advA(C_1,\ldots,C_q)$\\
+    Ret $\forall_{i=1}^q \left(\hatE(M_i) = C_i\right)$
+	}
+\end{figure}
+
+\fpage{.40}{
+		\underline{$\advA^*(C_1,\ldots,C_q)$}\\[1pt]
+    Let $c$ be number of unique ciphertexts in $C_1,\ldots,C_q$\\
+    Let $\tildeC_1,\ldots,\tildeC_c$ be unique ciphertexts\\
+    Let $N_{\tildeC_i}$ be number of occurences of $\tildeC_i$\\
+    $\hatE \gets \argmax_f \prod_{i=1}^{c} \mdist\left(f^{-1}(\tildeC_i)\right)^{N_{\tildeC_i}}$\\
+    Ret $\hatE$
+	}
+
+
+\bnm
+   \AdvMRUMA{\cipher,\mdist,q}{\calA} = \Prob{\MRUMA^\advA_{\cipher,\mdist,q}\Rightarrow\true}
+\enm
+
+
+\begin{theorem}
+Let $\cipher$ be a cipher, $\mdist$ a message distribution, and $q>0$. Let
+$\advA^*$ be the frequency analysis $\MRUMA_{\cipher,q}$-adversary and $\advA$
+be some $\MRUMA_{\cipher,q}$-adversary. Then we give a
+$\PRF_\cipher$-adversary $\advB$ such that
+\bnm
+  \AdvMRUMA{\cipher,\mdist,q}{\advA} \le 
+        \AdvMRUMA{\cipher,\mdist,q}{\advA^*} + \AdvPRF{\cipher}{\advB}
+\enm
+$\advB$ makes $q$ queries and runs in time 
+$\Time(\advA) + 2q+q\cdotsm\Time(\mdist)$.
+\end{theorem}
+
+
+\begin{align*}
+  &\argmax_f \CondProb{C_1,\ldots,C_q}{f} \\
+  &\myInd\myInd  = \argmax_f \prod_{i=1}^q \CondProb{C_i}{M_1 = f^{-1}(C_1),\ldots,M_q = f^{-1}(C_q)}\\
+  &\myInd\myInd = \argmax_f \prod_{i=1}^{c} \mdist(f^{-1}(\tilde{C}_i))^{N_{\tilde{C}_i}}
+\end{align*}
+
+
+\bnm
+\tweakCipher\Colon\keyspace\times\tweakspace\times\msgspace \rightarrow \msgspace
+\enm
+
+Let $\Perm(\tweakspace,\msgspace$ be set of all functions
+$\tweakspace\times\msgspace\rightarrow\msgspace$ for which 
+
+\hfpages{.15}{
+		\underline{$\TPRP1_{\tweakCipher}^\advA$}\\
+		$K \getsr \keyspace$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(T,M)$}\\[1pt]
+		Return $\tweakE_K(T,M)$
+	}{
+		\underline{$\TPRP0_{\tweakCipher}^\advA$}\\
+		$\tweakpi \getsr \Perm(\tweakspace,\msgspace)$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(T,M)$}\\[1pt]
+		Return $\tweakpi(T,M)$
+	}
+
+\bnm
+\AdvTPRP{\tweakCipher}{\advA} = \left|\Prob{\TPRP1^\advA\Rightarrow1} - \Prob{\TPRP0^\advA\Rightarrow1} \right|
+\enm
+
+\fpage{.25}{
+\underline{$\REAL^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \enc_K(M)$\\
+Ret $C$
+}
+
+
+\fpage{.25}{
+\underline{$\RAND^\advA_{\SE}$}\\[1pt]
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \bits^{\ctxtlen(M)}$\\
+Ret $C$
+}
+
+
+\bnm
+\AdvROR{\SE}{\advA} = \left|\Prob{\REAL_{\SE}^\advA\Rightarrow 1} - \Prob{\REAL_{\SE}^\advA\Rightarrow1} \right| 
+\enm
+
+
+

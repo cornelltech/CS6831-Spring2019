@@ -130,6 +130,25 @@ All this will require some good will and coordination among students. If anyone
 has any concerns or problems, don't hesitate to talk to me.
 
 
+### Project
+
+We will partition semester project into two milestones. The first is a proposal,
+due on March 6, via email. It should be no more than one page, and be a brief
+description of the proposed project. It is ok to have groups, but the level of
+work should scale in the size of the group. The final deliverable will be a
+project report due at end of semester, exact date to be determined. 
+
+The project should have a well-defined goal that is on the cutting edge of
+cryptography, the litmus being some publishable result (not necessarily a whole
+paper, but a result within a publishable paper would be fine). You can propose 
+an ongoing research project as your class project, but make sure I know who is
+involved, what your contribution will be. Similarly the writeup can be
+dovetailed with a research paper in preparation, with the same requirement that
+your writing contribution should be identifiable.
+
+Time allowing we'll have either group presentations at the end of the semester,
+or meetings with just me to go over the project and other topics. 
+
 ### Background reading
 
 One of the goals of the course will be to produce lecture notes on this content
@@ -163,12 +182,12 @@ what we're hoping to cover.
 | Jan 23 | Intro |  [Slides](slides/intro-lec1.pdf) | |
 | Jan 28 | Block ciphers, PRPs, PRFs | [Slides](slides/ciphers-lec2.pdf) | |
 | Jan 30 | PRP/PRF Switching lemma, Luby-Rackoff, Shuffling | [Slides](slides/ciphers2-lec3-markup.pptx) | |
-| Feb 4 |  Block ciphers, cryptanalysis  |  | |
-| Feb 6 |  PRGs, Block cipher modes,  | | |
-| Feb 11 | message authentication, universal hashing |  | |
-| Feb 13 | Authenticated encryption |   | |
-| Feb 18 | Nonce-based and robust authenticated encryption  |  | |
-| Feb 20 | Cryptographic hashing |  | |
+| Feb 4 |  Block ciphers, cryptanalysis  | [Slides](slides/cryptanalysis-lec4.pptx) | |
+| Feb 6 |   Frequency analysis, tweakable block ciphers |[Slides](slides/tweakciphers-lec5.pptx) | |
+| Feb 11 | Tweakable block ciphers, randomized encryption | [Slides](slides/tweakciphers-lec6-markup.pptx) | |
+| Feb 13 | Randomized encryption | [Slides](slides/randomized-lec7_markup.pptx)  | |
+| Feb 18 | Authenticated encryption  | [Slides](slides/activeattacks-lec8-markup.pptx)  | |
+| Feb 20 | Message authentication | [Slides](slides/unforgeability-lec9.pptx)  | |
 | Feb 25 | No Lecture (February break) | |
 | Feb 27 | Password hashing, randomness extractors |  | |
 | Mar 4  | Public-key encryption RSA PKE |  | |

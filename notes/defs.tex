@@ -8,11 +8,11 @@
   backrefpages = {pages},% originally "cited on pages"
 }
 
-	
+
 \usepackage{framed}
 %\usepackage{cite}
 \usepackage[hidelinks]{hyperref}
-\usepackage{cleveref}
+
 \usepackage{color}
 \usepackage{float}
 \usepackage{setspace}
@@ -26,11 +26,15 @@
 \usepackage{xspace}
 \usepackage{tikz}
 \usetikzlibrary{calc,arrows,arrows.meta,shapes,positioning,matrix,decorations.pathreplacing}
+\usepackage{amsthm}
 \usepackage{amssymb}
-% \usepackage{amsthm}
-
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\usepackage{cleveref}
+\usepackage{bm}
+\usepackage{listings}
 \usepackage{mathtools}
 \allowdisplaybreaks[2]
 \usepackage{latexsym}
@@ -44,6 +48,7 @@
 \usepackage[font=small]{caption}
 \def\authnotes{1}
 \newtheorem{thm}{Theorem} %[section]
+\newtheorem*{theorem*}{Theorem}
 \newtheorem{lem}{Lemma}
 
 \newtheorem{cor}[thm]{Corollary}
@@ -84,6 +89,7 @@
 
 
 % Deluxe proof enviroment
+\iffalse
     \def\qsym{\vrule width0.6ex height1em depth0ex}
     \def\qedsym{{\hspace{5pt}\rule[-1pt]{3pt}{9pt}}}
     \newcount\proofqeded
@@ -104,6 +110,7 @@
     \def\@nprf{\begin{rm}\protect\vspace{6pt}\noindent{\bf Proof:\ }%
     \addtolength{\parskip}{5pt}\setlength{\parindent}{0pt}}
   \makeatother
+\fi
 
 
 % Extra padding for table entries
@@ -148,6 +155,17 @@
 
 \newcommand{\SetFigFont}[5]{} % This is for xfig issue
 \newcommand{\SetFigFontNFSS}[5]{} % This is for xfig issue
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}%
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}%
+\DeclarePairedDelimiter\absv{\lvert}{\rvert}%
+%\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+\DeclarePairedDelimiter\prns{(}{)}%
+\DeclarePairedDelimiter\braces{\{}{\}}%
+\DeclarePairedDelimiter\bracks{[}{]}%
+\DeclarePairedDelimiterX\condprns[2]{(}{)}{\,#1 \;\delimsize\vert\; #2\,}
+\DeclarePairedDelimiterX\condbrks[2]{[}{]}{\,#1 \;\delimsize\vert\; #2\,}
+\DeclarePairedDelimiterX\condbraces[2]{\{}{\}}{\,#1 \;\delimsize\vert\; #2\,}
 
 % ========================================================================
 
@@ -354,11 +372,13 @@
       {\setlength{\unitlength}{.01in}
       \begin{picture}(#1,1) \put(#1,0){\vector(-1,0){#1}} \end{picture}}
 
+
 \newcommand{\getparse}[1]{{\:\stackrel{\raisebox{-0.5em}{{\hspace{0.1em}\mbox{\boldmath$\scriptscriptstyle
             #1$}}}}{\leftarrow}\:}}
 \newcommand{\getu}{{\:\stackrel{\raisebox{-0.5em}{{\hspace{0.1em}\mbox{\boldmath$\scriptscriptstyle \cup$}}}}{\leftarrow}\:}}
 \newcommand{\getdiff}{{\:\stackrel{{\scriptscriptstyle\hspace{0.2em} /}}{\leftarrow}\:}}
 \newcommand{\getsr}{{\:{\leftarrow{\hspace*{-3pt}\raisebox{.75pt}{$\scriptscriptstyle\$$}}}\:}}
+\newcommand{\get}[1]{{\:\leftarrow_{#1}\:}}
 %\newcommand{\getsr}{{\:{\raisebox{3pt}{\veryshortleftarrow{15}}{\raisebox{1pt}{$\scriptscriptstyle\$$}}}\:}}
 %\newcommand{\getsr}{{\:{\xleftarrow{\scriptscriptstyle\$}}\:}}
 %\newcommand{\getsr}{{\:\stackrel{\raisebox{-0.5em}{$\scriptscriptstyle \hspace{0.2em}\$$}}{\leftarrow}\:}}
@@ -482,7 +502,6 @@
 % Definitions for this paper
 \newcommand{\secparam}{\kappa}
 \newcommand{\ctr}{\mathit{ctr}}
-\newcommand{\MA}{\mathsf{MA}}
 \newcommand{\MAC}{\mathsf{MAC}}
 \newcommand{\kwfont}[1]{\textrm{#1}}
 \newcommand{\procfont}[1]{\textbf{#1}}
@@ -737,7 +756,7 @@
  \newcommand{\ExpLOR}[2]{\mathbf{Exp}^{\mathrm{lor}}_{#1}(#2)}
  \newcommand{\ExpLORCCA}[2]{\mathbf{Exp}^{\mathrm{lor\dash cca}}_{#1}(#2)}
  \newcommand{\Enc}{\procfont{Enc}}
- 
+
  \newcommand{\Ectxtspace}{\calC}
  \newcommand{\coinspace}{\calR}
  \newcommand{\ctxtspacebar}{\overline{\calC}}
@@ -847,8 +866,10 @@
 \newcommand{\CTXT}{\textnormal{CTXT}}
 \newcommand{\CTXTce}{\textnormal{CTXT}}
 \newcommand{\PTXT}{\textnormal{PTXT}}
- 
+
+\newcommand{\UFCMA}{\textnormal{UF-CMA}}
 \newcommand{\MUUFCMA}{\textnormal{MU-UF-CMA}}
+\newcommand{\SUFCMA}{\textnormal{SUF-CMA}}
 
  \newcommand{\AdvMUUFCMA}[2]{\Adv^{\mathrm{mu\dash uf\dash cma}}_{#1}(#2)}
  \newcommand{\AdvUFCMA}[2]{\Adv^{\mathrm{uf\dash cma}}_{#1}(#2)}
@@ -939,7 +960,6 @@
 \newcommand{\encsign}{{\cal ES}}
 \newcommand{\sign}{{\sf S}}
 \newcommand{\mac}{{\sf Mac}}
-%\newcommand{\ver}{{\sf Vfy}}
 \newcommand{\verdecc}{{\cal VD}}
 \newcommand{\henc}{{\cal HE}}
 \newcommand{\hkg}{{\cal HK}}
@@ -985,10 +1005,10 @@
 \newcommand{\kd}{\mathsl{k_{d}}}
 \newcommand{\lr}{\mathrm{LR}}
 
-\newcommand{\SE}{{\cal E}}
-\newcommand{\Skg}{{\cal SK}}
-\newcommand{\Senc}{{\sf SE}}
-\newcommand{\Sdec}{{\cal SD}}
+\newcommand{\SE}{{\mathsf{SE}}}
+\newcommand{\Skg}{{\mathsf{kg}}}
+\newcommand{\Senc}{{\mathsf{enc}}}
+\newcommand{\Sdec}{{\mathsf{dec}}}
 
 \newcommand{\KEM}{\Psi}
 \newcommand{\KEMkg}{{\cal KK}}
@@ -1172,7 +1192,7 @@
 	   \begin{minipage}[t]{#1\textwidth}\setstretch{\codestretch} #3 \end{minipage}
 	\end{tabular}
 	}
-	
+
 \newcommand{\hpagess}[4]{
     \begin{tabular}{c@{\hspace*{1.5em}}c}
 	   \begin{minipage}[t]{#1\textwidth}\setstretch{\codestretch} #3 \end{minipage}
@@ -1210,21 +1230,14 @@
 
 \newcounter{mynote}[section]
 \newcommand{\notecolor}{blue}
-\newcommand{\paulnotecolor}{red}
-\newcommand{\ydnotecolor}{purple}
-\newcommand{\joannenotecolor}{green}
-
+\newcommand{\scribenotecolor}{purple}
+\newcommand{\proofreadernotecolor}{green}
 
 \newcommand{\thenote}{\thesection.\arabic{mynote}}
 \newcommand{\tnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\notecolor}{$\ll$TCR~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\pgnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\paulnotecolor}{$\ll$PAG~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\jwnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\joannenotecolor}{$\ll$Joanne~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\ydnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\ydnotecolor}{$\ll$Yevgeniy~\thenote: {\sf #1}$\gg$}}\fi}
-\newcommand{\tsnote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\tsnotecolor}{$\ll$TS~\thenote: {\sf #1}$\gg$}}\fi}
+\newcommand{\scribenote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\scribenotecolor}{$\ll$Scribe~\thenote: {\sf #1}$\gg$}}\fi}
+\newcommand{\pfreadernote}[1]{\ifnum\authnotes=1\refstepcounter{mynote}{\bf \textcolor{\proofreadernotecolor}{$\ll$Proofreader~\thenote: {\sf #1}$\gg$}}\fi}
 \newcommand{\fixme}[1]{\ifnum\authnotes=1\textbf{\textcolor{red}{[FIXME: #1]}}\fi}
-\newcommand{\snote}[1]{\refstepcounter{mynote}{\bf
-\textcolor{\notecolor}{$\ll$SK~\thenote: {\sf #1}$\gg$}}}
-\newcommand{\paulnote}[1]{\pgnote{#1}}
 
 
 
@@ -1344,7 +1357,6 @@
 \newcommand{\Rorac}{\$}
 \newcommand{\XSet}{\calX}
 \newcommand{\flag}{\textsf{flag}}
-\newcommand{\ROR}{\textrm{ROR}}
 \newcommand{\csROR}{\textrm{ROR}}
 
 \newcommand{\ComO}{\textbf{Com}}
@@ -1543,7 +1555,6 @@
 \newcommand{\andthen}{\thinspace : \thinspace}
 \newcommand{\bitsorc}{\$}
 \newcommand{\newmsg}{\mathrm{new\mbox{-}msg}}
-\newcommand{\mtag}{T}
 
 %\newcommand{\botse}{\bot_e}
 %\newcommand{\botma}{\bot_m}
@@ -1579,6 +1590,7 @@
 \newcommand{\meegenctr}{\mathsf{MEE\dash GEN\dash CTR}}
 
 \newcommand{\prfkeyspace}{\calK_{\ma}}
+\newcommand{\prfkey}{K}
 \newcommand{\PaddingScheme}{\textsf{PadS}}
 
 \newcommand{\collevent}{\mathsc{DColl}}
@@ -1611,7 +1623,6 @@
 \newcommand{\padlenmax}{\psi}
 \newcommand{\padblen}{p}
 \newcommand{\tagidx}{t}
-\newcommand{\mactag}{\mtag}
 \newcommand{\numpadblocks}{\gamma}
 \newcommand{\header}{H}
 
@@ -1719,7 +1730,6 @@
 \newcommand{\bktz}[1]{\bracketize{#1}}
 \newcommand{\dbktz}[2]{\bracketize{#1}\bracketize{#2}}
 \newcommand{\sid}{\mathrm{sid}}
-\newcommand{\ver}{\mathrm{ver}}
 \newcommand{\kex}{\mathrm{kex}}
 \newcommand{\kexguess}{\mathrm{kex}^*}
 \newcommand{\hello}{\mathrm{hel}}
@@ -1872,7 +1882,7 @@
 
 
 
-\newcommand{\FBfrank}{\textsf{FB}} 
+\newcommand{\FBfrank}{\textsf{FB}}
 \newcommand{\FBenc}{\textsf{FBEnc}}
 \newcommand{\FBdec}{\textsf{FBDec}}
 \newcommand{\FBver}{\textsf{FBVer}}
@@ -1913,42 +1923,43 @@
 
 \newcommand{\EtE}{\textnormal{EtE}} % nae = nonce-based auth enc
 
-\newcommand{\CtE}{\textnormal{CtE1}} 
-\newcommand{\CtEEnc}{\textnormal{CtE1-Enc}} 
-\newcommand{\CtEDec}{\textnormal{CtE1-Dec}} 
-\newcommand{\CtEVer}{\textnormal{CtE1-Ver}} 
+\newcommand{\CtE}{\textnormal{CtE1}}
+\newcommand{\CtEEnc}{\textnormal{CtE1-Enc}}
+\newcommand{\CtEDec}{\textnormal{CtE1-Dec}}
+\newcommand{\CtEVer}{\textnormal{CtE1-Ver}}
 
-\newcommand{\FCtE}{\textnormal{CtE2}} 
-\newcommand{\FCtEEnc}{\textnormal{CtE2-Enc}} 
-\newcommand{\FCtEDec}{\textnormal{CtE2-Dec}} 
-\newcommand{\FCtEVer}{\textnormal{CtE2-Ver}} 
+\newcommand{\FCtE}{\textnormal{CtE2}}
+\newcommand{\FCtEEnc}{\textnormal{CtE2-Enc}}
+\newcommand{\FCtEDec}{\textnormal{CtE2-Dec}}
+\newcommand{\FCtEVer}{\textnormal{CtE2-Ver}}
 
-\newcommand{\NCE}{\textnormal{nCE}} 
-\newcommand{\NCEKg}{\textnormal{Kg}} 
-\newcommand{\NCEEnc}{\textnormal{Enc}} 
-\newcommand{\NCEDec}{\textnormal{Dec}} 
-\newcommand{\NCEVer}{\textnormal{Ver}} 
+\newcommand{\NCE}{\textnormal{nCE}}
+\newcommand{\NCEKg}{\textnormal{Kg}}
+\newcommand{\NCEEnc}{\textnormal{Enc}}
+\newcommand{\NCEDec}{\textnormal{Dec}}
+\newcommand{\NCEVer}{\textnormal{Ver}}
 
-\newcommand{\FastNCE}{\textnormal{CEP}} 
-\newcommand{\FastKg}{\textnormal{CEP-Kg}} 
-\newcommand{\FastEnc}{\textnormal{CEP-Enc}} 
-\newcommand{\FastDec}{\textnormal{CEP-Dec}} 
-\newcommand{\FastVer}{\textnormal{CEP-Ver}} 
+\newcommand{\FastNCE}{\textnormal{CEP}}
+\newcommand{\FastKg}{\textnormal{CEP-Kg}}
+\newcommand{\FastEnc}{\textnormal{CEP-Enc}}
+\newcommand{\FastDec}{\textnormal{CEP-Dec}}
+\newcommand{\FastVer}{\textnormal{CEP-Ver}}
 \newcommand{\LCP}{\text{LCP}}
-\newcommand{\OCB}{\textnormal{OCB}} 
-\newcommand{\OCBKg}{\textnormal{OCB-Kg}} 
-\newcommand{\OCBEnc}{\textnormal{OCB-Enc}} 
-\newcommand{\OCBDec}{\textnormal{OCB-Dec}} 
-\newcommand{\OCBVer}{\textnormal{OCB-Ver}} 
+\newcommand{\OCB}{\textnormal{OCB}}
+\newcommand{\OCBKg}{\textnormal{OCB-Kg}}
+\newcommand{\OCBEnc}{\textnormal{OCB-Enc}}
+\newcommand{\OCBDec}{\textnormal{OCB-Dec}}
+\newcommand{\OCBVer}{\textnormal{OCB-Ver}}
 \newcommand{\querya}{a}
-\newcommand{\BC}{\textnormal{BC}} 
-\newcommand{\BCKg}{\textnormal{BC-Kg}} 
-\newcommand{\BCEnc}{\textnormal{BC-Enc}} 
-\newcommand{\BCDec}{\textnormal{BC-Dec}} 
-\newcommand{\BCVer}{\textnormal{BC-Ver}} 
+\newcommand{\BC}{\textnormal{BC}}
+\newcommand{\BCKg}{\textnormal{BC-Kg}}
+\newcommand{\BCEnc}{\textnormal{BC-Enc}}
+\newcommand{\BCDec}{\textnormal{BC-Dec}}
+\newcommand{\BCVer}{\textnormal{BC-Ver}}
 
-\newcommand{\TweakE}{\tilde{E}}
-\newcommand{\TweakD}{\tilde{D}}
+\newcommand{\tweakCipher}{\tilde{\calE}}
+\newcommand{\tweakE}{\tilde{E}}
+\newcommand{\tweakD}{\tilde{D}}
 
 \newcommand{\tlk}{\tilde{K}}
 \newcommand{\GSub}{\textnormal{G}}
@@ -2001,7 +2012,7 @@
 \newcommand{\moKG}{\textnormal{\textsf{mo\textnormal{-}\CKg}}}
 \newcommand{\aeadlen}{\textsf{aead.len}}
 \newcommand{\tagT}{T}
-\newcommand{\encrypt}{encryptment }%%%Macros for names of encryptment algorithsm 
+\newcommand{\encrypt}{encryptment }%%%Macros for names of encryptment algorithsm
 \newcommand{\opening}{opening }
 \newcommand{\ctxtAEC}{C_{\EC}}
 \newcommand{\ctxtBEC}{B_{\EC}}
@@ -2031,11 +2042,18 @@
 \newcommand{\keyspace}{\calK}
 \newcommand{\msgspace}{\calM}
 \newcommand{\ctxtspace}{\calC}
+\newcommand{\msg}{M}
+\newcommand{\ct}{C}
+\newcommand{\randfn}{\rho}
+
 
 \newcommand{\TKR}{\textnormal{TKR}} % security game for key recovery
 \newcommand{\Fn}{\textnormal{Fn}}
+\newcommand{\FnInv}{\textnormal{FnInv}}
 \newcommand{\FnSim}{\textnormal{FnSim}}
 \newcommand{\AdvTKR}[2]{\Adv^{\mathrm{tkr}}_{#1}(#2)}
+
+\newcommand{\eks}{\textnormal{eks}}
 
 \newcommand{\KR}{\textnormal{KR}} % security game for key recovery
 \newcommand{\AdvKR}[2]{\Adv^{\mathrm{kr}}_{#1}(#2)}
@@ -2047,16 +2065,67 @@
 \newcommand{\PRP}{\textnormal{PRP}}
 \newcommand{\AdvPRP}[2]{\Adv^{\mathrm{prp}}_{#1}(#2)}
 
+\newcommand{\TPRP}{\textnormal{TPRP}}
+\newcommand{\AdvTPRP}[2]{\Adv^{\mathrm{tprp}}_{#1}(#2)}
+\newcommand{\tweakpi}{\tilde{\pi}}
+
+\newcommand{\STPRP}{\textnormal{STPRP}}
+\newcommand{\AdvSTPRP}[2]{\Adv^{\mathrm{\pm tprp}}_{#1}(#2)}
+
+
+
 \newcommand{\SPRP}{\textnormal{SPRP}}
-\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{sprp}}_{#1}(#2)}
+\newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{\pm prp}}_{#1}(#2)}
 
 \newcommand{\PRF}{\textnormal{PRF}}
 \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
 
 
 \newcommand{\Feistel}{\cipher}
+\newcommand{\Maj}{\textnormal{Maj}}
 
+\newcommand{\MRUMA}{\textnormal{MR-UMA}}
+\newcommand{\MRUMAideal}{\textnormal{MR-UMA-IDEAL}}
+\newcommand{\msgsampler}{\calP}
+\newcommand{\mdist}{p_m}
+\newcommand{\AdvMRUMA}[2]{\Adv^{\mathrm{mr\dash uma}}_{#1}(#2)}
+\newcommand{\hatE}{\hat{E}}
+
+\newcommand{\REAL}{\textnormal{REAL}}
+\newcommand{\RAND}{\textnormal{RAND}}
+\newcommand{\ROR}{\textnormal{ROR}}
+\newcommand{\AdvROR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\RORCCA}{\textnormal{ROR-CCA}}
+\newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
+
+\newcommand{\INDSIM}{\textnormal{INDSIM}}
+\newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
+
+
+\newcommand{\EncOracle}{\textnormal{Enc}}
+\newcommand{\DecOracle}{\textnormal{Dec}}
+\newcommand{\EncSim}{\textnormal{EncSim}}
+\newcommand{\Time}{\textsf{T}}
+
+\newcommand{\tildeC}{\tilde{C}}
+\newcommand{\EM}{\textnormal{EM}}
+\newcommand{\Sbox}{\textnormal{Sbox}}
 \newcommand{\myInd}{\hspace*{1em}}
+
+\newcommand{\MA}{\mathsf{MA}}
+\newcommand{\mtag}{\mathsf{tag}}
+\newcommand{\ver}{\mathsf{ver}}
+
+\newcommand{\msgset}{\textsf{MsgSet}}
+\newcommand{\pairset}{\textsf{PairSet}}
+\newcommand{\TagOracle}{\textnormal{Tag}}
+\newcommand{\VerOracle}{\textnormal{Ver}}
+
+\newcommand{\cAU}{\textnormal{cAU}}
+\newcommand{\AdvcAU}[2]{\Adv^{\mathrm{cau}}_{#1}(#2)}
+
+
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"
