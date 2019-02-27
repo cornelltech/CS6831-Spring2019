@@ -654,6 +654,8 @@
 
 \newcommand{\INDCPA}{\textnormal{IND-CPA}\xspace}
 \newcommand{\INDCCA}{\textnormal{IND-CCA}\xspace}
+\newcommand{\INDRAND}{\textnormal{IND\$}\xspace}
+\newcommand{\INDSIM}{\textnormal{IND-SIM}\xspace}
 
 \newcommand{\INDAdv}{\calI}
 \newcommand{\TrivAdvI}{\calI_\emptystr}
@@ -1834,7 +1836,11 @@
 \newcommand{\ghash}{\mathsf{GHASH}}
 \newcommand{\sshare}{\mathsf{SShare}}
 
-
+% randomized symmetric encryption defs
+\newcommand{\SEenc}{\textsf{Enc}}
+\newcommand{\SEencsim}{\textsf{EncSim}}
+\newcommand{\RORreal}{\textnormal{REAL}}
+\newcommand{\RORrand}{\textnormal{RAND}}
 
 
 %newcommand{\ctxtlen}{\ell}
@@ -2095,10 +2101,11 @@
 \newcommand{\RAND}{\textnormal{RAND}}
 \newcommand{\ROR}{\textnormal{ROR}}
 \newcommand{\AdvROR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\AdvRAND}[2]{\Adv^{\mathrm{\INDRAND}}_{#1}(#2)}
 \newcommand{\RORCCA}{\textnormal{ROR-CCA}}
 \newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
 
-\newcommand{\INDSIM}{\textnormal{INDSIM}}
+% \newcommand{\INDSIM}{\textnormal{INDSIM}}
 \newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
 
 
