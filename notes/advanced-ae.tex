@@ -1,0 +1,149 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Authenticated Encryption Variants}
+\label{sec:authenc}
+
+An authenticated encryption with associated data (AEAD) scheme is a triple of
+algorithms $\AEAD = (\kg,\enc,\dec)$. It is the same as an SE scheme, except
+that encryption and decryption both take an additional input, called the
+associated data. Sometimes the associated data is referred to as the header.
+
+\hfpagess{.15}{.15}{
+\underline{$\RORCCA1^\advA_{\AEAD}$}\\[1pt]
+$K \getsr \kg$\\
+$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(H,M)$}\\
+$C \getsr \enc_K(H,M)$\\
+$\calC \gets \calC \cup \{(H,C)\}$\\
+Ret $C$\medskip
+
+\underline{$\DecOracle(H,C)$}\\
+If $(H,C) \in \calC$ then \\
+\myInd Ret $\bot$\\
+Ret $\dec_K(H,C)$
+}{
+\underline{$\RORCCA0^\advA_{\AEAD}$}\\[1pt]
+$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(H,M)$}\\
+$C \getsr \bits^{\ctxtlen(|M|)}$\\
+Ret $C$\medskip
+
+\underline{$\DecOracle(H,C)$}\\
+Ret $\bot$
+}
+
+
+\bnm
+\AdvRORCCA{\SE}{\advA} = \left|\Prob{\RORCCA1_\SE^\advA\Rightarrow1}
+                                    -\Prob{\RORCCA0_\SE^\advA\Rightarrow1}\right|
+\enm
+
+
+\fpage{.15}{
+\underline{$\CTXT^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$\win \gets \false$\\
+$\advA^{\EncOracle,\DecOracle}$\\
+Ret $\win$\medskip
+
+\underline{$\EncOracle(M)$}\\
+$C \getsr \enc_K(M)$\\
+$\calC \gets \calC \cup \{C\}$\\
+Ret $C$\medskip
+
+\underline{$\DecOracle(C)$}\\
+If $C \in \calC$ then \\
+\myInd Ret $\bot$\\
+$M \gets \dec_K(C)$\\
+If $M \ne \bot$ then \\
+\myInd $\win\gets\true$\\
+Ret $M$
+}
+
+\bnm
+\AdvCTXT{\SE}{\advA} = \Prob{\CTXT_\SE^\advA\Rightarrow\true}\\
+\enm
+
+
+\begin{theorem}
+Let $\SE$ be a symmetric encryption scheme. Let $\advA$ be any
+$\INDCPA_\SE$-adversary making at most $q$ queries. 
+We give an $\ROR_\SE$-adversary $\advB$ such that
+\bnm
+  \AdvINDCPA{\SE}{\advA} \le 2\cdotsm\AdvROR{\SE}{\advB}
+\enm
+Adversary $\advB$ makes at most $q$ 
+queries and runs in time that of $\advA$.
+\end{theorem}
+
+\tnote{We'll possibly introduce the following at some point, but didn't need it
+here yet.}
+We sometimes use $\bigO$ notation to hide small values that can be derived from
+proofs, but don't matter to the interpretation of the theorem. If we were to do
+an asymptotic treatment, this would correspond to hiding constants, hence the
+abuse of notation.  Thus in above theorem we would replace $q+3$ with
+$\bigO(q)$. 
+
+
+\fpage{.20}{
+\underline{$\advB^{\Enc}$}\\[1pt]
+$b \getsr \bits$\\
+$b' \getsr \advA^\EncSim$\\
+If $(b = b')$ then Ret 1\\
+Ret 0\medskip
+
+\underline{$\EncSim(M_0,M_1)$}\\
+Return $\Enc(M_b)$
+}
+
+\begin{align*}
+\AdvROR{\SE}{\advB} 
+    &= \left|\Prob{\ROR1_\SE^\advB\Rightarrow 1} -
+                                \Prob{\ROR0_\SE^\advB\Rightarrow 1}\right|\\
+    &= \left|\Prob{\INDCPA_\SE^\advA\Rightarrow\true} - \frac{1}{2}\right|\\
+    &= \left|\frac{1}{2} +
+    \frac{1}{2}\cdot\AdvINDCPA{\SE}{\advA} - \frac{1}{2}\right|\\
+    &= \frac{1}{2}\cdot\AdvINDCPA{\SE}{\advA}
+\end{align*}
+
+
+
+\tnote{Let's add this strong tweakable block cipher stuff to the chapter on
+tweakable block ciphers. The scribe for Feb 18 can write it up, but we'll merge
+it into previous chapter later.}
+
+
+\hfpages{.15}{
+		\underline{$\STPRP1_{\tweakCipher}^\advA$}\\
+		$K \getsr \keyspace$\\
+		$b' \getsr \advA^{\Fn,\FnInv}$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(T,M)$}\\[1pt]
+		Return $\tweakE_K(T,M)$\medskip
+  
+   \underline{$\FnInv(T,C)$}\\[1pt]
+		Return $\tweakD_K(T,C)$
+
+	}{
+		\underline{$\STPRP0_{\tweakCipher}^\advA$}\\
+		$\tweakpi \getsr \Perm(\tweakspace,\msgspace)$\\
+		$b' \getsr \advA^{\Fn,\FnInv}$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(T,M)$}\\[1pt]
+		Return $\tweakpi(T,M)$\medskip
+  
+   \underline{$\FnInv(T,C)$}\\[1pt]
+		Return $\tweakpi^{-1}_K(T,C)$
+	}
+
+\bnm
+\AdvSTPRP{\tweakCipher}{\advA} = \left|\Prob{\STPRP1^\advA\Rightarrow1} -
+                                    \Prob{\STPRP0^\advA\Rightarrow1} \right|
+\enm
+
+

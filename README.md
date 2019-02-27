@@ -189,7 +189,7 @@ what we're hoping to cover.
 | Feb 18 | Authenticated encryption  | [Slides](slides/activeattacks-lec8-markup.pptx)  | |
 | Feb 20 | Message authentication | [Slides](slides/unforgeability-lec9.pptx)  | |
 | Feb 25 | No Lecture (February break) | |
-| Feb 27 | Password hashing, randomness extractors |  | |
+| Feb 27 | AE in practice and theory | [Slides](slides/advancedAE-lec10.pptx) | |
 | Mar 4  | Public-key encryption RSA PKE |  | |
 | Mar 6  | Discrete log PKE  |  | |
 | Mar 11 | ECC crypto  |  | |
