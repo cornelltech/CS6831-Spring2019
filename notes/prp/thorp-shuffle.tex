@@ -2,3 +2,214 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Connection to card shuffling algorithms.}
 \scribenote{TODO}
+
+\begin{tikzpicture}
+    \node[draw,thick,minimum width=3.5cm] (r0) at ($(0,0)$)  {$R_0$};
+    \node[draw,thick,minimum width=0.5cm] (l0) [left of = r0, node distance=2.5cm] {$L_0$};
+    \node (r0label) [above=0.1cm of r0] {$n-1$ bits};
+    \node (l0label) [above=0.1cm of l0] {$1$ bit};
+    \node[draw,thick,minimum width=0.75cm] (\prf) [below=0.75cm of r0.south east, anchor=north east]  {$\prf_{\prfkey}$};
+    \node (xor) [XOR, below of = \prf, node distance = 0.75cm, scale=1.0] {};
+    \node[minimum width=0.75cm] (junction0) [below=0.25cm of r0.south east, anchor=north east] {};
+    \node (junction1) [below of = l0, node distance = 0.75cm] {};
+    \node (junction2) [below of = l0, node distance = 2.0cm] {};
+    \node (junction3) [left of = xor, node distance = 0.5cm] {};
+    \path[->]
+      (r0.347) edge[thick] node {} (\prf)
+      (\prf) edge[thick] node {} (xor)
+      (junction3.center) edge[thick] node {} (xor);
+    \path[-]
+      (l0.south) edge[thick] node {} (junction1.center)
+      (junction0.center) edge[thick] node {} (junction2.center)
+      (junction1.center) edge[thick] node {} (junction3.center);
+    \node[draw,thick,minimum width=0.5cm] (r1) [below of = xor, node distance=0.75cm] {$R_1$};
+    \node[draw,thick,minimum width=3.5cm] (l1) [left of = r1, node distance=2.5cm] {$L_1$};
+    \path[->]
+      (xor) edge[thick] node {} (r1)
+      (junction2.center) edge[thick] node {} (l1.167);
+\end{tikzpicture}
+
+
+\begin{tikzpicture}
+    \node[draw,thick,minimum width=2.0cm] (r0) at ($(0,0)$)  {$R_0$};
+    \node[draw,thick,minimum width=2.0cm] (l0) [left of = r0, node distance=2.5cm] {$L_0$};
+    \node (r0label) [above=0.1cm of r0] {$n/2$ bits};
+    \node (l0label) [above=0.1cm of l0] {$n/2$ bits};
+    \node[draw,thick,minimum width=0.75cm] (\prf) [below=0.75cm of r0.south east, anchor=north east]  {$\prf_{\prfkey}$};
+    \node (xor) [XOR, below of = \prf, node distance = 0.75cm, scale=1.0] {};
+    \node[minimum width=0.75cm] (junction0) [below=0.25cm of r0.south east, anchor=north east] {};
+    \node (junction1) [below left= 0.3cm and -0.5cm of l0] {};
+    \node (junction2) [below left= 1.75cm and -0.5cm of l0] {};
+    \node (junction3) [left of = xor, node distance = 0.5cm] {};
+    \path[->]
+      (r0.333) edge[thick] node {} (\prf)
+      (\prf) edge[thick] node {} (xor)
+      (junction3.center) edge[thick] node {} (xor);
+    \path[-]
+      (l0.205) edge[thick] node {} (junction1.center)
+      (junction0.center) edge[thick] node {} (junction2.center)
+      (junction1.center) edge[thick] node {} (junction3.center);
+    \node[draw,thick,minimum width=2.0cm] (r1) [below=1.0cm of \prf.south east, anchor=north east] {$R_1$};
+    \node[draw,thick,minimum width=2.0cm] (l1) [left of = r1, node distance=2.5cm] {$L_1$};
+    \path[->]
+      (xor) edge[thick] node {} (r1.27)
+      (junction2.center) edge[thick] node {} (l1.155);
+\end{tikzpicture}
+
+\tikzset{card/.append style={draw,minimum width=0.75cm,minimum height=1.0cm,rounded corners=0.25cm}}
+\newcommand{\thorpcarddist}{0.3cm}
+\newcommand{\thorpcarddisthalf}{0.15cm}
+\newcommand{\thorpcarddisthalfplus}{0.502cm}
+\newcommand{\thorplabeldist}{0.05cm}
+\newcommand{\thorpcarddivtop}{0.75cm}
+\newcommand{\thorpcarddivbot}{0.45cm}
+\newcommand{\thorpshuffledist}{1.4cm}
+\newcommand{\thorpshuffledisthalf}{0.7cm}
+\begin{tikzpicture}[every node/.style={inner sep=0pt}]
+\node[card] (c0) at ($(0,0)$) {A\ding{171}};
+\node[card] (c1) [right=\thorpcarddist of c0] {2\ding{171}};
+\node[card] (c2) [right=\thorpcarddist of c1] {3\ding{171}};
+\node[card] (c3) [right=\thorpcarddist of c2] {4\ding{171}};
+\node[card] (c4) [right=\thorpcarddist of c3] {5\ding{171}};
+\node[card] (c5) [right=\thorpcarddist of c4] {6\ding{171}};
+\node[card] (c6) [right=\thorpcarddist of c5] {7\ding{171}};
+\node[card] (c7) [right=\thorpcarddist of c6] {8\ding{171}};
+\node (i0) [above=\thorplabeldist of c0] {\texttt{000}};
+\node (i1) [above=\thorplabeldist of c1] {\texttt{001}};
+\node (i2) [above=\thorplabeldist of c2] {\texttt{010}};
+\node (i3) [above=\thorplabeldist of c3] {\texttt{011}};
+\node (i4) [above=\thorplabeldist of c4] {\texttt{100}};
+\node (i5) [above=\thorplabeldist of c5] {\texttt{101}};
+\node (i6) [above=\thorplabeldist of c6] {\texttt{110}};
+\node (i7) [above=\thorplabeldist of c7] {\texttt{111}};
+
+\node[card] (s0) [below=\thorpshuffledist of c0] {A\ding{171}};
+\node[card] (s1) [right=\thorpcarddist of s0] {5\ding{171}};
+\node[card] (s2) [right=\thorpcarddist of s1] {6\ding{171}};
+\node[card] (s3) [right=\thorpcarddist of s2] {2\ding{171}};
+\node[card] (s4) [right=\thorpcarddist of s3] {7\ding{171}};
+\node[card] (s5) [right=\thorpcarddist of s4] {3\ding{171}};
+\node[card] (s6) [right=\thorpcarddist of s5] {8\ding{171}};
+\node[card] (s7) [right=\thorpcarddist of s6] {4\ding{171}};
+\node (o0) [below=\thorplabeldist of s0] {\texttt{000}};
+\node (o1) [below=\thorplabeldist of s1] {\texttt{010}};
+\node (o2) [below=\thorplabeldist of s2] {\texttt{101}};
+\node (o3) [below=\thorplabeldist of s3] {\texttt{001}};
+\node (o4) [below=\thorplabeldist of s4] {\texttt{110}};
+\node (o5) [below=\thorplabeldist of s5] {\texttt{010}};
+\node (o6) [below=\thorplabeldist of s6] {\texttt{111}};
+\node (o7) [below=\thorplabeldist of s7] {\texttt{011}};
+
+\foreach \z in {0, 1,...,6} {
+  \node (jcm\z) [right=\thorpcarddisthalf of c\z] {};
+  \node (jct\z) [above=\thorpcarddivtop of jcm\z] {};
+  \node (jcb\z) [below=\thorpcarddivbot of jcm\z] {};
+
+  \node (jsm\z) [right=\thorpcarddisthalf of s\z] {};
+  \node (jst\z) [above=\thorpcarddivbot of jsm\z] {};
+  \node (jsb\z) [below=\thorpcarddivtop of jsm\z] {};
+
+  \node (jm\z) [below=\thorpshuffledisthalf of c\z] {};
+  \node (jmm\z) [right=\thorpcarddisthalfplus of jm\z] {};
+}
+
+\node[draw,fill,circle,minimum width=0.1cm] (shuf1) [right=\thorpcarddisthalfplus of jm0.center] {};
+\node[draw,fill,circle,minimum width=0.1cm] (shuf2) [right=\thorpcarddisthalfplus of jm2.center] {};
+\node[draw,fill,circle,minimum width=0.1cm] (shuf3) [right=\thorpcarddisthalfplus of jm4.center] {};
+\node[draw,fill,circle,minimum width=0.1cm] (shuf4) [right=\thorpcarddisthalfplus of jm6.center] {};
+
+\path[dashed,-]
+  (jct3.center) edge[thick] node {} (jcb3.center)
+  (jst1.center) edge[thick] node {} (jsb1.center)
+  (jst3.center) edge[thick] node {} (jsb3.center)
+  (jst5.center) edge[thick] node {} (jsb5.center);
+\path[-]
+  (c0.south) edge node {} (shuf1.center)
+  (c4.south) edge node {} (shuf1.center)
+  (c1.south) edge node {} (shuf2.center)
+  (c5.south) edge node {} (shuf2.center)
+  (c2.south) edge node {} (shuf3.center)
+  (c6.south) edge node {} (shuf3.center)
+  (c3.south) edge node {} (shuf4.center)
+  (c7.south) edge node {} (shuf4.center);
+\path[->]
+  (shuf1.center) edge node {} (s0)
+  (shuf1.center) edge node {} (s1)
+  (shuf2.center) edge node {} (s2)
+  (shuf2.center) edge node {} (s3)
+  (shuf3.center) edge node {} (s4)
+  (shuf3.center) edge node {} (s5)
+  (shuf4.center) edge node {} (s6)
+  (shuf4.center) edge node {} (s7);
+
+\end{tikzpicture}
+
+\newcommand{\thorpcarddistshort}{0.15cm}
+\begin{tikzpicture}[every node/.style={inner sep=0pt}]
+\node[card] (s1) at ($(0,0)$) {A\ding{171}};
+\node[card] (s2) [right=\thorpcarddistshort of s1] {2\ding{171}};
+\node[card] (s3) [right=\thorpcarddistshort of s2] {3\ding{171}};
+\node[card] (s4) [right=\thorpcarddistshort of s3] {4\ding{171}};
+\node[card] (h1) [right=\thorpcarddist of s4] {A\ding{170}};
+\node[card] (h2) [right=\thorpcarddistshort of h1] {2\ding{170}};
+\node[card] (h3) [right=\thorpcarddistshort of h2] {3\ding{170}};
+\node[card] (h4) [right=\thorpcarddistshort of h3] {4\ding{170}};
+\node[card] (d1) [right=\thorpcarddist of h4] {A\ding{169}};
+\node[card] (d2) [right=\thorpcarddistshort of d1] {2\ding{169}};
+\node[card] (d3) [right=\thorpcarddistshort of d2] {3\ding{169}};
+\node[card] (d4) [right=\thorpcarddistshort of d3] {4\ding{169}};
+\node[card] (c1) [right=\thorpcarddist of d4] {A\ding{168}};
+\node[card] (c2) [right=\thorpcarddistshort of c1] {2\ding{168}};
+\node[card] (c3) [right=\thorpcarddistshort of c2] {3\ding{168}};
+\node[card] (c4) [right=\thorpcarddistshort of c3] {4\ding{168}};
+
+\foreach \z in {s, h, d} {
+  \node (jm\z) [right=\thorpcarddisthalf of \z4] {};
+  \node (jt\z) [above=\thorpcarddivbot of jm\z] {};
+  \node (jb\z) [below=\thorpcarddivbot of jm\z] {};
+}
+\path[dashed,-]
+  (jts.center) edge[thick] node {} (jbs.center)
+  (jth.center) edge[thick] node {} (jbh.center)
+  (jtd.center) edge[thick] node {} (jbd.center);
+
+\node[card] (A1) [below=\thorpshuffledist of s1] {A\ding{171}};
+\node[card] (A2) [right=\thorpcarddistshort of A1] {A\ding{171}};
+\node[card] (A3) [right=\thorpcarddistshort of A2] {A\ding{171}};
+\node[card] (A4) [right=\thorpcarddistshort of A3] {A\ding{171}};
+\node[card] (B1) [right=\thorpcarddist of A4] {2\ding{170}};
+\node[card] (B2) [right=\thorpcarddistshort of B1] {2\ding{170}};
+\node[card] (B3) [right=\thorpcarddistshort of B2] {2\ding{170}};
+\node[card] (B4) [right=\thorpcarddistshort of B3] {2\ding{170}};
+\node[card] (C1) [right=\thorpcarddist of B4] {3\ding{170}};
+\node[card] (C2) [right=\thorpcarddistshort of C1] {3\ding{170}};
+\node[card] (C3) [right=\thorpcarddistshort of C2] {3\ding{170}};
+\node[card] (C4) [right=\thorpcarddistshort of C3] {3\ding{170}};
+\node[card] (D1) [right=\thorpcarddist of C4] {4\ding{170}};
+\node[card] (D2) [right=\thorpcarddistshort of D1] {4\ding{170}};
+\node[card] (D3) [right=\thorpcarddistshort of D2] {4\ding{170}};
+\node[card] (D4) [right=\thorpcarddistshort of D3] {4\ding{170}};
+
+\foreach \z in {A, B, C} {
+  \node (jm\z) [right=\thorpcarddisthalf of \z4] {};
+  \node (jt\z) [above=\thorpcarddivbot of jm\z] {};
+  \node (jb\z) [below=\thorpcarddivbot of jm\z] {};
+}
+\path[dashed,-]
+  (jtA.center) edge[thick] node {} (jbA.center)
+  (jtB.center) edge[thick] node {} (jbB.center)
+  (jtC.center) edge[thick] node {} (jbC.center);
+
+\node[draw,fill,circle,minimum width=0.1cm] (shuf1) [below=0.6cm of s4] {};
+
+\path[-]
+  (s1.south) edge node {} (shuf1.center)
+  (h1.south) edge node {} (shuf1.center)
+  (d1.south) edge node {} (shuf1.center)
+  (c1.south) edge node {} (shuf1.center);
+\path[->]
+  (shuf1.center) edge node {} (A1.60)
+  (shuf1.center) edge node {} (A2.60)
+  (shuf1.center) edge node {} (A3.65)
+  (shuf1.center) edge node {} (A4);
+\end{tikzpicture}
