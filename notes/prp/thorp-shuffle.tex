@@ -1,7 +1,40 @@
 %!TEX root = ../main.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Connection to card shuffling algorithms.}
-\scribenote{TODO}
+It turns out that building PRP block ciphers, perhaps unsurprisingly, is highly related to literature in designing ``good'' card shuffling algorithms.
+Shuffling a deck of cards can be thought of as a permutation in which the position of each card pre-shuffle is mapped to its position post-shuffle.
+A ``good'' shuffle desires that all possible deck permutations are close-to equally likely, similar to the goals of a PRP.
+We will examine the connection of the Thorp shuffle~\cite{Thorp73} to the Feistel construction.
+
+The Thorp shuffle, depicted in~\figref{fig:unbalanced-card-shuffle}, works as follows.
+To shuffle a deck of $N$ cards, first cut the deck into two equal sized piles.
+Drop the bottom card from each of the two piles.
+Flip a coin to determine the order in which to place the two dropped cards in the new shuffled deck.
+Continue for a total of $N/2$ draws in which the card at position $i$ is drawn with the card at position $i+N/2$ and a coin is flipped to determine their position between $2i$ and $2i+1$ in the shuffled deck.
+Together, this is called one pass of the Thorp shuffle.
+
+The connection of the Thorp shuffle to cryptography and block cipher design was first noticed by Naor~\cite{NaorReingold99}.
+Consider the maximally unbalanced Feistel construction given in~\figref{fig:unbalanced-card-shuffle}.
+An unbalanced Feistel construction splits its inputs into unequal sized bit strings and the round function compresses the larger string to the size of the smaller string.
+In this example of a maximally unbalanced construction, the input is split into two strings of length $1$ bit and $n-1$ bits.
+Observe that if the round function of the Feistel construction was a pseudorandom function, it would perform exactly one pass of the Thorp shuffle.
+Consider the positions of the cards as bit strings of length $n = \lg N$.
+With position $i$ in the first half of the deck, the output of the pseudorandom function on the bit representation of $i$ acts as the coin flip for determining card $i$ and card $i + N/2$ placement in position $2i$ or $2i+1$.
+
+This connection can be generalized to the balanced Feistel construction by designing a ``balanced'' Thorp shuffle.
+This shuffle, depicted in~\figref{fig:balanced-card-shuffle}, splits the deck into $\sqrt{N}$ equal piles of size $\sqrt{N}$.
+Similarly, one card from each pile is drawn and together are placed in a random order.
+This corresponds to the balanced Feistel construction splitting the inputs into strings of length $n/2$.
+The output of the round function determines the position of the card when placing the $\sqrt{N}$ draws in random order.
+
+With this connection, we can ask does every card shuffling algorithm correspond to some block cipher construction?
+Unfortunately not.
+Naor~\cite{NaorReingold99} observes that a shuffling algorithm corresponds to a block cipher if and only if it is \emph{oblivious}, meaning that one can trace the route of any given card in the deck without attending to the remaining cards in the deck.
+It is easy to see the Thorp shuffle is oblivious as the next position of a card is only dependent on its current position and a random coin flip.
+The security of the Thorp shuffle as a block cipher was shown by Morris et al.~\cite{MRS09}.
+
+
+
 \tikzset{card/.append style={draw,minimum width=0.75cm,minimum height=1.0cm,rounded corners=0.25cm}}
 \newcommand{\thorpcarddist}{0.3cm}
 \newcommand{\thorpcarddisthalf}{0.15cm}
@@ -229,5 +262,3 @@ The resulting permutation matches that of a balanced Feistel network (right), wh
 }
 \label{fig:balanced-card-shuffle}
 \end{figure}
-
-The resulting permutation matches that of an unbalanced Feistel round, where random placements correspond to the the round function.
