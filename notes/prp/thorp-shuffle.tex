@@ -2,60 +2,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Connection to card shuffling algorithms.}
 \scribenote{TODO}
-
-\begin{tikzpicture}
-    \node[draw,thick,minimum width=3.5cm] (r0) at ($(0,0)$)  {$R_0$};
-    \node[draw,thick,minimum width=0.5cm] (l0) [left of = r0, node distance=2.5cm] {$L_0$};
-    \node (r0label) [above=0.1cm of r0] {$n-1$ bits};
-    \node (l0label) [above=0.1cm of l0] {$1$ bit};
-    \node[draw,thick,minimum width=0.75cm] (\prf) [below=0.75cm of r0.south east, anchor=north east]  {$\prf_{\prfkey}$};
-    \node (xor) [XOR, below of = \prf, node distance = 0.75cm, scale=1.0] {};
-    \node[minimum width=0.75cm] (junction0) [below=0.25cm of r0.south east, anchor=north east] {};
-    \node (junction1) [below of = l0, node distance = 0.75cm] {};
-    \node (junction2) [below of = l0, node distance = 2.0cm] {};
-    \node (junction3) [left of = xor, node distance = 0.5cm] {};
-    \path[->]
-      (r0.347) edge[thick] node {} (\prf)
-      (\prf) edge[thick] node {} (xor)
-      (junction3.center) edge[thick] node {} (xor);
-    \path[-]
-      (l0.south) edge[thick] node {} (junction1.center)
-      (junction0.center) edge[thick] node {} (junction2.center)
-      (junction1.center) edge[thick] node {} (junction3.center);
-    \node[draw,thick,minimum width=0.5cm] (r1) [below of = xor, node distance=0.75cm] {$R_1$};
-    \node[draw,thick,minimum width=3.5cm] (l1) [left of = r1, node distance=2.5cm] {$L_1$};
-    \path[->]
-      (xor) edge[thick] node {} (r1)
-      (junction2.center) edge[thick] node {} (l1.167);
-\end{tikzpicture}
-
-
-\begin{tikzpicture}
-    \node[draw,thick,minimum width=2.0cm] (r0) at ($(0,0)$)  {$R_0$};
-    \node[draw,thick,minimum width=2.0cm] (l0) [left of = r0, node distance=2.5cm] {$L_0$};
-    \node (r0label) [above=0.1cm of r0] {$n/2$ bits};
-    \node (l0label) [above=0.1cm of l0] {$n/2$ bits};
-    \node[draw,thick,minimum width=0.75cm] (\prf) [below=0.75cm of r0.south east, anchor=north east]  {$\prf_{\prfkey}$};
-    \node (xor) [XOR, below of = \prf, node distance = 0.75cm, scale=1.0] {};
-    \node[minimum width=0.75cm] (junction0) [below=0.25cm of r0.south east, anchor=north east] {};
-    \node (junction1) [below left= 0.3cm and -0.5cm of l0] {};
-    \node (junction2) [below left= 1.75cm and -0.5cm of l0] {};
-    \node (junction3) [left of = xor, node distance = 0.5cm] {};
-    \path[->]
-      (r0.333) edge[thick] node {} (\prf)
-      (\prf) edge[thick] node {} (xor)
-      (junction3.center) edge[thick] node {} (xor);
-    \path[-]
-      (l0.205) edge[thick] node {} (junction1.center)
-      (junction0.center) edge[thick] node {} (junction2.center)
-      (junction1.center) edge[thick] node {} (junction3.center);
-    \node[draw,thick,minimum width=2.0cm] (r1) [below=1.0cm of \prf.south east, anchor=north east] {$R_1$};
-    \node[draw,thick,minimum width=2.0cm] (l1) [left of = r1, node distance=2.5cm] {$L_1$};
-    \path[->]
-      (xor) edge[thick] node {} (r1.27)
-      (junction2.center) edge[thick] node {} (l1.155);
-\end{tikzpicture}
-
 \tikzset{card/.append style={draw,minimum width=0.75cm,minimum height=1.0cm,rounded corners=0.25cm}}
 \newcommand{\thorpcarddist}{0.3cm}
 \newcommand{\thorpcarddisthalf}{0.15cm}
@@ -65,6 +11,10 @@
 \newcommand{\thorpcarddivbot}{0.45cm}
 \newcommand{\thorpshuffledist}{1.4cm}
 \newcommand{\thorpshuffledisthalf}{0.7cm}
+\newcommand{\thorpcarddistshort}{0.15cm}
+
+\begin{figure}[t]
+  \centering
 \begin{tikzpicture}[every node/.style={inner sep=0pt}]
 \node[card] (c0) at ($(0,0)$) {A\ding{171}};
 \node[card] (c1) [right=\thorpcarddist of c0] {2\ding{171}};
@@ -141,10 +91,43 @@
   (shuf3.center) edge node {} (s5)
   (shuf4.center) edge node {} (s6)
   (shuf4.center) edge node {} (s7);
-
 \end{tikzpicture}
+\hspace{4em}
+\begin{tikzpicture}
+    \node[draw,thick,minimum width=3.5cm] (r0) at ($(0,0)$)  {$R_0$};
+    \node[draw,thick,minimum width=0.5cm] (l0) [left of = r0, node distance=2.5cm] {$L_0$};
+    \node (r0label) [above=0.1cm of r0] {$n-1$ bits};
+    \node (l0label) [above=0.1cm of l0] {$1$ bit};
+    \node[draw,thick,minimum width=0.75cm] (\prf) [below=0.75cm of r0.south east, anchor=north east]  {$\prf_{\prfkey}$};
+    \node (xor) [XOR, below of = \prf, node distance = 0.75cm, scale=1.0] {};
+    \node[minimum width=0.75cm] (junction0) [below=0.25cm of r0.south east, anchor=north east] {};
+    \node (junction1) [below of = l0, node distance = 0.75cm] {};
+    \node (junction2) [below of = l0, node distance = 2.0cm] {};
+    \node (junction3) [left of = xor, node distance = 0.5cm] {};
+    \path[->]
+      (r0.347) edge[thick] node {} (\prf)
+      (\prf) edge[thick] node {} (xor)
+      (junction3.center) edge[thick] node {} (xor);
+    \path[-]
+      (l0.south) edge[thick] node {} (junction1.center)
+      (junction0.center) edge[thick] node {} (junction2.center)
+      (junction1.center) edge[thick] node {} (junction3.center);
+    \node[draw,thick,minimum width=0.5cm] (r1) [below of = xor, node distance=0.75cm] {$R_1$};
+    \node[draw,thick,minimum width=3.5cm] (l1) [left of = r1, node distance=2.5cm] {$L_1$};
+    \path[->]
+      (xor) edge[thick] node {} (r1)
+      (junction2.center) edge[thick] node {} (l1.167);
+\end{tikzpicture}
+\caption{Thorp shuffle (left).
+The deck is split in half. In turn, two cards, one from each half deck, are drawn and randomly placed.
+The resulting permutation matches that of a maximally unbalanced Feistel network (right), where the randomness of the card placements corresponds to a possible Feistel round function.
+}
+\label{fig:unbalanced-card-shuffle}
+\end{figure}
 
-\newcommand{\thorpcarddistshort}{0.15cm}
+\begin{figure}
+  \centering
+\makebox[\textwidth][c]{\resizebox{\textwidth}{!}{
 \begin{tikzpicture}[every node/.style={inner sep=0pt}]
 \node[card] (s1) at ($(0,0)$) {A\ding{171}};
 \node[card] (s2) [right=\thorpcarddistshort of s1] {2\ding{171}};
@@ -213,3 +196,38 @@
   (shuf1.center) edge node {} (A3.65)
   (shuf1.center) edge node {} (A4);
 \end{tikzpicture}
+\hspace{4em}
+\begin{tikzpicture}
+    \node[draw,thick,minimum width=2.0cm] (r0) at ($(0,0)$)  {$R_0$};
+    \node[draw,thick,minimum width=2.0cm] (l0) [left of = r0, node distance=2.5cm] {$L_0$};
+    \node (r0label) [above=0.1cm of r0] {$n/2$ bits};
+    \node (l0label) [above=0.1cm of l0] {$n/2$ bits};
+    \node[draw,thick,minimum width=0.75cm] (\prf) [below=0.75cm of r0.south east, anchor=north east]  {$\prf_{\prfkey}$};
+    \node (xor) [XOR, below of = \prf, node distance = 0.75cm, scale=1.0] {};
+    \node[minimum width=0.75cm] (junction0) [below=0.25cm of r0.south east, anchor=north east] {};
+    \node (junction1) [below left= 0.3cm and -0.5cm of l0] {};
+    \node (junction2) [below left= 1.75cm and -0.5cm of l0] {};
+    \node (junction3) [left of = xor, node distance = 0.5cm] {};
+    \path[->]
+      (r0.333) edge[thick] node {} (\prf)
+      (\prf) edge[thick] node {} (xor)
+      (junction3.center) edge[thick] node {} (xor);
+    \path[-]
+      (l0.205) edge[thick] node {} (junction1.center)
+      (junction0.center) edge[thick] node {} (junction2.center)
+      (junction1.center) edge[thick] node {} (junction3.center);
+    \node[draw,thick,minimum width=2.0cm] (r1) [below=1.0cm of \prf.south east, anchor=north east] {$R_1$};
+    \node[draw,thick,minimum width=2.0cm] (l1) [left of = r1, node distance=2.5cm] {$L_1$};
+    \path[->]
+      (xor) edge[thick] node {} (r1.27)
+      (junction2.center) edge[thick] node {} (l1.155);
+\end{tikzpicture}
+}}
+\caption{Balanced Thorp shuffle (left).
+The deck is split into equal sized piles. In turn, one card from each pile is drawn and together are randomly placed.
+The resulting permutation matches that of a balanced Feistel network (right), where the randomness of the card placements corresponds to a possible Feistel round function.
+}
+\label{fig:balanced-card-shuffle}
+\end{figure}
+
+The resulting permutation matches that of an unbalanced Feistel round, where random placements correspond to the the round function.
