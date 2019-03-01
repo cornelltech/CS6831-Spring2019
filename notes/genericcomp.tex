@@ -1,0 +1,98 @@
+\section{Authenticated Encryption from SE and MACs}
+\label{sec:genericcomp}
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=(\MA.\kg,\mtag,\ver)$ be a message authentication scheme. In this section, we combine these two primitives in different ways to construct an authenticated encryption scheme $\SE'=(\kg,\enc,\dec)$, and we describe the security guarantees of each construction. 
+\begin{figure}[h]
+	\centering
+	\fpage{.12}{
+		\underline{$\kg$}\\[1pt]
+		$K_1\getsr \SE.\kg$\\
+		$K_2\getsr \MA.\kg$\\
+		Ret $(K_1,K_2)$
+	}
+	\fpage{.16}{
+		\underline{$\enc(K,M)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$C\gets \SE.\enc(K_1,M)$\\
+		$T\gets \mtag(K_2,M)$\\
+		Ret $(C,T)$
+	}
+	\fpage{.18}{
+		\underline{$\dec(K,(C,T))$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$M\gets \SE.\dec(K_1,C)$\\
+		$T'\gets \mtag(K_2,M)$\\
+		If $T'\neq T$ then Ret $\bot$\\
+		Ret $M$
+	}
+	\caption{The Encrypt-and-Mac composition. The ciphertext and tag are both computed on the original message.}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\fpage{.12}{
+		\underline{$\kg$}\\[1pt]
+		$K_1\getsr \SE.\kg$\\
+		$K_2\getsr \MA.\kg$\\
+		Ret $(K_1,K_2)$
+	}
+	\fpage{.2}{
+		\underline{$\enc(K,M)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$T\gets \mtag(K_2,M)$\\
+		$C\gets \SE.\enc(K_1,M\concat T)$\\
+		Ret $C$
+	}
+	\fpage{.22}{
+		\underline{$\dec(K,C)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$M\concat T\gets \SE.\dec(K_1,C)$\\
+		\scribenote{fix the concat notation}\\
+		$T'\gets \mtag(K_2,M)$\\
+		If $T'\neq T$ then Ret $\bot$\\
+		Ret $M$
+	}
+	\caption{The Mac-then-Encrypt composition. The tag is computed on the original message, then the message and the tag are encrypted together.}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\fpage{.12}{
+		\underline{$\kg$}\\[1pt]
+		$K_1\getsr \SE.\kg$\\
+		$K_2\getsr \MA.\kg$\\
+		Ret $(K_1,K_2)$
+	}
+	\fpage{.16}{
+		\underline{$\enc(K,M)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$C\gets \SE.\enc(K_1,M)$\\
+		$T\gets \mtag(K_2,C)$\\
+		Ret $(C,T)$
+	}
+	\fpage{.18}{
+		\underline{$\dec(K,(C,T))$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$M\gets \SE.\dec(K_1,C)$\\
+		$T'\gets \mtag(K_2,C)$\\
+		If $T'\neq T$ then Ret $\bot$\\
+		Ret $M$
+	}
+	\caption{The Encrypt-then-Mac composition. The ciphertext is computed on the original message, then the tag is computed on the ciphertext.}
+\end{figure}
+
+If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{Give counter examples for EaM and MtE?}
+
+\begin{theorem}
+Let $\SE$ be an SE scheme and $\MA$ be a MAC and $\EtM$ be the Encrypt-then-Mac
+scheme built from them.  Let $\advA$ be an $\RORCCA_\EtM$-adversary making at most
+$q$ queries. Then we give a $\ROR_\SE$-adversary $\advB_{\textrm{se}}$ 
+and a $\UFCMA_\MA$-adversary  $\advB_\textrm{mac}$ 
+such that
+\bnm
+  \AdvRORCCA{\EtM}{\advA} \le \AdvROR{\SE}{\advB_\textrm{se}} + 2\cdotsm\AdvUFCMA{\MA}{\advB_{\textrm{mac}}} \;.
+\enm
+Adversaries $\advB_\textrm{se}$ and $\advB_{\textrm{mac}}$ each run in time that of 
+$\advA$ plus small overhead and each make at most $q$ queries.
+\label{thm:rorcca-etm}
+\end{theorem}
+\begin{proof}
+	\scribenote{TODO}
+\end{proof}
