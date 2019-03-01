@@ -1,0 +1,41 @@
+%!TEX root = ../main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Exercises}
+
+\begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
+  \item Show the 2-round Feistel construction (with round counters) is not a PRP by providing a PRP-adversary that gets a large advantage.
+  \item Show the PRP security of an alternate 3-round Feistel construction $\Feistel:\bits^{3k}\times\bits^{2n}\rightarrow\bits^{2n}$ with round function $\prf:\bits^k \times\bits^n\rightarrow\bits^n$ where each round is keyed by an independent key.
+  How does the advantage bound for an adversary against this scheme compare to the bound showed for the round counter scheme?
+  \item Consider the following \emph{strong PRP} security games which give the adversary access to both a forward oracle and inverse oracle.
+  Advantage is defined in the same way as regular PRF and PRP security as the distinguishing ability of the adversary between interacting with the cipher and interacting with a random permutation.
+
+	\begin{center}
+	\hfpages{.13}{
+		\underline{$\SPRP1_{\cipher}^\advA$}\\
+		$K \getsr \keyspace$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+
+		\underline{$\Fn(\msg)$}\\
+		Return $\cipherE_K(\msg)$\medskip
+
+		\underline{$\FnInv(\ct)$}\\
+		Return $\cipherE_K^{-1}(\ct)$
+	}{
+		\underline{$\SPRP0_{\cipher}^\advA$}\\
+		$\pi \getsr \Perm(n)$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+
+		\underline{$\Fn(\msg)$}\\
+		Return $\pi(\msg)$\medskip
+
+		\underline{$\FnInv(\ct)$}\\
+		Return $\pi^{-1}(\ct)$
+	}
+\end{center}
+
+  Show the 3-round Feistel construction (with round counters) is not a strong PRP by providing a \SPRP-adversary.
+  \item Show the 4-round Feistel construction (with round counters) is a strong PRP.
+\end{enumerate}
