@@ -18,7 +18,7 @@
 \usepackage{setspace}
 \usepackage{booktabs}
 \usepackage{outlines}
-% \usepackage{enumitem}
+\usepackage{enumitem}
 \usepackage{epsfig}
 \usepackage{wrapfig}
 \usepackage{textcomp}
@@ -28,6 +28,7 @@
 \usetikzlibrary{calc,arrows,arrows.meta,shapes,positioning,matrix,decorations.pathreplacing}
 \usepackage{amsthm}
 \usepackage{amssymb}
+\usepackage{pifont}
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -42,7 +43,7 @@
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{url}
-\usepackage{enumerate}
+%\usepackage{enumerate}
 \usepackage{adjustbox}
 \usepackage{multirow}
 \usepackage[font=small]{caption}
@@ -270,6 +271,7 @@
 \newcommand{\indsm}{\hspace*{.75em}}
 \newcommand{\indeqn}{\;\;\;\;\;\;\;}
 \newcommand{\bits}{\{0,1\}}
+\newcommand{\zon}[1]{\bits^{#1}}
 \newcommand{\emptystring}{\varepsilon}
 \newcommand{\xor}{{\:\oplus\:}}
 %\newcommand{\concat}{\,,\,}
@@ -431,6 +433,8 @@
 
 \newcommand{\badSet}{\calS}
 \newcommand{\bad}{\ensuremath{\mathsf{bad}}}
+\newcommand{\cbad}{\bad}
+\newcommand{\ctrue}{\true}
 \newcommand{\notbad}{\overline{\bad}}
 \newcommand{\win}{\ensuremath{\mathsf{win}}}
 \newcommand{\outputs}{\:{\Rightarrow}\:}
@@ -654,6 +658,8 @@
 
 \newcommand{\INDCPA}{\textnormal{IND-CPA}\xspace}
 \newcommand{\INDCCA}{\textnormal{IND-CCA}\xspace}
+\newcommand{\INDRAND}{\textnormal{IND\$}\xspace}
+\newcommand{\INDSIM}{\textnormal{IND-SIM}\xspace}
 
 \newcommand{\INDAdv}{\calI}
 \newcommand{\TrivAdvI}{\calI_\emptystr}
@@ -833,7 +839,7 @@
 \newcommand{\LRKAPRPIdeal}{\text{RKA-PRP1}}
 \newcommand{\AdvLRKAPRP}[2]{\Adv^{\mathrm{\oplus \dash prp}}_{#1}(#2)}
 
-\newcommand{\AEAD}{\textnormal{\textsf{AEAD}}}
+\newcommand{\AEAD}{\textnormal{\textsf{AE}}}
 %% \newcommand{\AEADone}{\textnormal{LHAE1}}
 %% \newcommand{\AEADzero}{\textnormal{LHAE0}}
 %% \newcommand{\AEADstate}{\textnormal{sLHAE}}
@@ -1834,7 +1840,11 @@
 \newcommand{\ghash}{\mathsf{GHASH}}
 \newcommand{\sshare}{\mathsf{SShare}}
 
-
+% randomized symmetric encryption defs
+\newcommand{\SEenc}{\textsf{Enc}}
+\newcommand{\SEencsim}{\textsf{EncSim}}
+\newcommand{\RORreal}{\textnormal{REAL}}
+\newcommand{\RORrand}{\textnormal{RAND}}
 
 
 %newcommand{\ctxtlen}{\ell}
@@ -2077,6 +2087,50 @@
 \newcommand{\SPRP}{\textnormal{SPRP}}
 \newcommand{\AdvSPRP}[2]{\Adv^{\mathrm{\pm prp}}_{#1}(#2)}
 
+
+
+% \newcommand{\inv}{^{-1}}
+% \newcommand{\Adv}{\mathbf{Adv}}
+% \newcommand{\keyspace}{\calK}
+\newcommand{\PRFReal}{\text{PRF-Real}}
+\newcommand{\PRFIdeal}{\text{PRF-Ideal}}
+\newcommand{\RFRange}{\calR}
+\newcommand{\RFun}{\mathbf{R}}
+\newcommand{\Fun}{\mathsf{Fn}}
+\newcommand{\SPRPIdeal}{\text{SPRP-Ideal}}
+\newcommand{\SPRPReal}{\text{SPRP-Real}}
+\newcommand{\PRPIdeal}{\text{PRP-Ideal}}
+\newcommand{\PRPReal}{\text{PRP-Real}}
+\newcommand{\TSPRPIdeal}{\text{TSPRP-Ideal}}
+\newcommand{\TSPRPReal}{\text{TSPRP-Real}}
+\newcommand{\TPRPIdeal}{\text{TPRP-Ideal}}
+\newcommand{\TPRPReal}{\text{TPRP-Real}}
+\newcommand{\AdvTSPRP}[2]{\AdvSTPRP{#1}{#2}}
+%\newcommand{\AdvTPRP}[2]{\Adv^{\mathrm{tprp}}_{#1}(#2)}
+\newcommand{\RPerm}{\Pi}
+\newcommand{\RPermInv}{\Pi\inv}
+%\newcommand{\tbce}{\widetilde{E}}
+%\newcommand{\tbcd}{\widetilde{D}}
+%\newcommand{\tbc}{\text{TBC}}
+%\newcommand{\tweakspace}{\calT}
+\newcommand{\noncespace}{\calN}
+%\newcommand{\ctxtspace}{\calC}
+\newcommand{\gf}[1]{\text{GF}(#1)}
+%\newcommand{\SE}{\mathsf{SE}}
+\newcommand{\xe}{\mathsf{XE}}
+\newcommand{\lrw}{\mathsf{LRW}}
+\newcommand{\xeenc}{\xe.\enc}
+\newcommand{\xedec}{\xe.\dec}
+\newcommand{\Perms}{\text{Perms}}
+\newcommand{\Funs}{\text{Funs}}
+\newcommand{\ocbcore}{\mathsf{OCB\dash Core}}
+\newcommand{\ocbcoreenc}{\mathsf{OCB\dash Core}.\enc}
+\newcommand{\ocbcoredec}{\mathsf{OCB\dash Core}.\dec}
+\newcommand{\clen}{\ctxtlen}
+\newcommand{\rorcpareal}{\text{RoR-CPA-Real}}
+\newcommand{\rorcpaideal}{\text{RoR-CPA-Ideal}}
+\newcommand{\integers}{\mathbb{Z}}
+
 \newcommand{\PRF}{\textnormal{PRF}}
 \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
 
@@ -2095,10 +2149,11 @@
 \newcommand{\RAND}{\textnormal{RAND}}
 \newcommand{\ROR}{\textnormal{ROR}}
 \newcommand{\AdvROR}[2]{\Adv^{\mathrm{ror}}_{#1}(#2)}
+\newcommand{\AdvRAND}[2]{\Adv^{\mathrm{\INDRAND}}_{#1}(#2)}
 \newcommand{\RORCCA}{\textnormal{ROR-CCA}}
 \newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
 
-\newcommand{\INDSIM}{\textnormal{INDSIM}}
+% \newcommand{\INDSIM}{\textnormal{INDSIM}}
 \newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
 
 
