@@ -365,3 +365,34 @@ The overall technique we will implement here (and generally in game-playing argu
 	 &\le \frac{q^2}{2^n} \\
 	 \end{align*} 
 \end{proof}
+
+
+\section*{Exercises}
+
+\begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
+	\item Let $\cipherE : \bits^k \times \bits^n \to \bits^n$ be a secure block cipher and define $F : \bits^{2k} \times \bits^{2n} \to \bits^{2n}$ by
+	\begin{center}
+		\begin{minipage}{0.5\linewidth}
+			\underline{\textbf{Algorithm} $F_{K_1 \| K_2}(x_1 \| x_2)$} \\
+			$y_1 \gets \cipherE(K_1, x_1 \oplus x_2) \ ; \ y_2 \gets \cipherE(K_2, \overline{x_2})$ \\
+			Return $y_1 \| y_2$
+		\end{minipage}
+	\end{center}
+	for all $k$-bit strings $K_1$ and $K_2$ and all $n$-bit strings $x_1$ and $x_2$, where $\overline{x}$ denotes the bitwise complement of $x$. Let $T_\cipherE$ denote the time for one computation of $\cipherE$ or $\cipherE^{-1}$. 
+	\begin{enumerate}
+		\item Prove that $F$ is a block cipher.
+		\item What is the running time of a 4-query exhaustive key search attack on $F$? The running time should be worst case and should be a function of $T_\cipherE$. 
+		\item Provide a 4-query key-recovery attack in the form of an adversary $\advA$ specified in pseudocode, achieving $\AdvKR{F}{\advA}=1$ and having running time $\calO(2^n \cdot T_\cipherE)$. 
+	\end{enumerate}
+	(Taken from \cite{BellareBCNotes}, pages 60-61)
+	
+	\item Let $\cipherE : \bits^k \times \bits^n \to \bits^n$ be a secure PRP. Consider the family of permutations $\cipherE' : \bits^k \times \bits^{2n} \to \bits^{2n}$ defined for all $x,x' \in \bits^n$ by 
+	\begin{equation*}
+	\cipherE'_K(x \|x') = \cipherE_K(x) \| \cipherE_K(x \oplus x').
+	\end{equation*}
+	Show that $\cipherE'$ is not a secure PRP. 
+	(Taken from \cite{BellareRogawayBook}, page 87)
+	
+	\item Give Shannon's definition of perfect secrecy. Let $\cipher=(\cipherE, \cipherD)$ be a perfectly secret cipher defined over $(\keyspace,\msgspace,\ctxtspace)$ where $\keyspace=\msgspace$. Let $\cipher' = (\cipherE',\cipherD')$ be a cipher where encryption is defined as $\cipherE'((k_1,k_2), m) = (\cipherE(k_1,k_2), \cipherE(k_2,m)$. Show that $\cipher'$ is perfectly secret. \\  
+	(Taken from \cite{BonehShoupBook}, page 38)
+\end{enumerate}
