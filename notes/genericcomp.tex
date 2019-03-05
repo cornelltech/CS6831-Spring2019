@@ -81,7 +81,7 @@ Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=
 If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{Give counter examples for EaM and MtE?}
 
 \begin{theorem}
-Let $\SE$ be an SE scheme and $\MA$ be a MAC and $\EtM$ be the Encrypt-then-Mac
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be an SE scheme and $\MA=(\MA.\kg,\MA.\mtag,\MA.\ver)$ be a MAC and $\EtM=(\EtM.\kg,\EtM.\enc,\EtM.\dec)$ be the Encrypt-then-Mac
 scheme built from them.  Let $\advA$ be an $\RORCCA_\EtM$-adversary making at most
 $q$ queries. Then we give a $\ROR_\SE$-adversary $\advB_{\textrm{se}}$ 
 and a $\UFCMA_\MA$-adversary  $\advB_\textrm{mac}$ 
@@ -93,6 +93,41 @@ Adversaries $\advB_\textrm{se}$ and $\advB_{\textrm{mac}}$ each run in time that
 $\advA$ plus small overhead and each make at most $q$ queries.
 \label{thm:rorcca-etm}
 \end{theorem}
+
+\begin{figure}[t]
+\hfpagess{.23}{.15}{
+	\underline{$\G0$}\\[1pt]
+	$K_1 \getsr \SE.\kg$\\
+	$K_2 \getsr \MA.\kg$\\
+	$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+	Ret $b'$\medskip
+	
+	\underline{$\EncOracle(M)$}\\
+	$C \getsr \SE.\enc(K_1,M)$\\
+	$T \gets \MA.\mtag(K_2,C)$\\
+	$\calC \gets \calC \cup \{(C,T)\}$\\
+	Ret $(C,T)$\medskip
+	
+	\underline{$\DecOracle((C,T))$}\\
+	If $(C,T) \in \calC$ then \\
+	\myInd Ret $\bot$\\
+	$M\gets \SE.\dec(K_1,C)$\\
+	If $\MA.\ver(K_2,C,T)=1$ then \\
+	\myInd Ret $M$\\
+	Ret $\bot$
+}{
+	\underline{$\G1$}\\[1pt]
+	$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+	Ret $b'$\medskip
+	
+	\underline{$\EncOracle(M)$}\\
+	$C \getsr \bits^{\ctxtlen(|M|)}$\\
+	Ret $C$\medskip
+	
+	\underline{$\DecOracle(C)$}\\
+	Ret $\bot$
+}	
+\end{figure}
 \begin{proof}
 	\scribenote{TODO}
 \end{proof}
