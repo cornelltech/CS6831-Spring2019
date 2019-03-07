@@ -81,13 +81,13 @@ Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=
 If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{Give counter examples for EaM and MtE?}
 
 \begin{theorem}
-Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be an SE scheme and $\MA=(\MA.\kg,\MA.\mtag,\MA.\ver)$ be a MAC and $\EtM=(\EtM.\kg,\EtM.\enc,\EtM.\dec)$ be the Encrypt-then-Mac
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be an SE scheme and $\MA=(\MA.\kg,\MA.\mtag,\MA.\ver)$ be a MAC with $\MA.\mtag$ output length $n$ and $\EtM=(\EtM.\kg,\EtM.\enc,\EtM.\dec)$ be the Encrypt-then-Mac
 scheme built from them.  Let $\advA$ be an $\RORCCA_\EtM$-adversary making at most
 $q$ queries. Then we give a $\ROR_\SE$-adversary $\advB_{\textrm{se}}$ 
 and a $\UFCMA_\MA$-adversary  $\advB_\textrm{mac}$ 
 such that
 \bnm
-  \AdvRORCCA{\EtM}{\advA} \le \AdvROR{\SE}{\advB_\textrm{se}} + 2\cdotsm\AdvUFCMA{\MA}{\advB_{\textrm{mac}}} \;.
+  \AdvRORCCA{\EtM}{\advA} \le \AdvROR{\SE}{\advB_\textrm{se}} + \AdvPRF{\MA}{\advB_{\textrm{mac}}} + \frac{1}{2^n} \;.
 \enm
 Adversaries $\advB_\textrm{se}$ and $\advB_{\textrm{mac}}$ each run in time that of 
 $\advA$ plus small overhead and each make at most $q$ queries.
@@ -95,39 +95,69 @@ $\advA$ plus small overhead and each make at most $q$ queries.
 \end{theorem}
 
 \begin{figure}[t]
-\hfpagess{.23}{.15}{
-	\underline{$\G0$}\\[1pt]
-	$K_1 \getsr \SE.\kg$\\
+	\centering
+\hfpagesss{.23}{.2}{.2}{
+	\underline{$\advB_{\textrm{se}}^\EncOracle$}\\[1pt]
 	$K_2 \getsr \MA.\kg$\\
-	$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+	$b' \getsr \advA^{\EncSim}$\\
 	Ret $b'$\medskip
 	
-	\underline{$\EncOracle(M)$}\\
-	$C \getsr \SE.\enc(K_1,M)$\\
+	\underline{$\EncSim(M)$}\\
+	$C \gets \EncOracle(M)$\\
 	$T \gets \MA.\mtag(K_2,C)$\\
-	$\calC \gets \calC \cup \{(C,T)\}$\\
+	Ret $(C,T)$\medskip
+}{
+	\underline{$\advB_{\textrm{mac}}^{\Fn}$}\\[1pt]
+	$K \getsr \SE.\kg$\\
+	$b'\gets 0$\\
+	$\advC^{\EncSim,\DecSim}$\\
+	Ret $b'$\medskip
+}{
+	\underline{$\EncSim(M)$}\\
+	$C \getsr \SE.\enc(K,M)$\\
+	$T \gets \Fn(C)$\\
+	$\mathcal{S} \gets \mathcal{S}\union \{(C,T)\}$\\
 	Ret $(C,T)$\medskip
 	
-	\underline{$\DecOracle((C,T))$}\\
-	If $(C,T) \in \calC$ then \\
+	\underline{$\DecSim(C,T)$}\\
+	If $(C,T)\in\mathcal{S}$ then\\
 	\myInd Ret $\bot$\\
-	$M\gets \SE.\dec(K_1,C)$\\
-	If $\MA.\ver(K_2,C,T)=1$ then \\
+	$M \gets\SE.\dec(K,C)$\\
+	If $\Fn(C)=T$ then\\
+	\myInd $b'\gets 1$\\
 	\myInd Ret $M$\\
-	Ret $\bot$
-}{
-	\underline{$\G1$}\\[1pt]
-	$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
-	Ret $b'$\medskip
-	
-	\underline{$\EncOracle(M)$}\\
-	$C \getsr \bits^{\ctxtlen(|M|)}$\\
-	Ret $C$\medskip
-	
-	\underline{$\DecOracle(C)$}\\
-	Ret $\bot$
+	Else Ret $\bot$
 }	
+\caption{Adversaries used for proof of Theorem~\ref{thm:rorcca-etm}.}
+\label{fig:proof-etm-rorcca}
 \end{figure}
 \begin{proof}
-	\scribenote{TODO}
+	As we saw in Theorem \scribenote{Cite from previous section once it's done},
+	\bnm
+	\AdvRORCCA{\EtM}{\advA}\leq \AdvROR{\EtM}{\advB} + \AdvCTXT{\EtM}{\advC}
+	\enm
+	First, we know that 
+	\bnm
+	\AdvROR{\EtM}{\advB} \leq \AdvROR{\SE}{\advB_\textrm{se}}\;.
+	\enm
+	Given a $\ROR$ distinguisher for $\advB$ for $\EtM$, we can build a $\ROR$ adversary $\advB_\textrm{se}$ for $\SE$. 
+	
+	Also,
+	\bnm
+	\AdvCTXT{\EtM}{\advC} \leq \AdvPRF{\MA}{\advB_{\textrm{mac}}}+\frac{1}{2^n}\;.
+	\enm
+	
+	If the output of the $\Fn$ oracle is real, then $\advB_{\textrm{mac}}$ returns 1 if and only if adversary $\advC$ is able to forge a valid ciphertext, so
+	\bnm
+	\Prob{\PRF1_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}=\Prob{\CTXT_{\EtM}^{\advC}}\;.
+	\enm
+	If the output of the $\Fn$ oracle is random, then the probability that $\advC$ forges the tag successfully is $1/2^n$, if $n$ is the length of the tag. 
+	\bnm
+	\Prob{\PRF0_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}\leq \frac{1}{2^n}\;.
+	\enm
+	Combining these, we have
+	\begin{align*}
+	\AdvPRF{\MA}{\advB_{\textrm{mac}}}&=\left|\Prob{\PRF1_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}-\Prob{\PRF0_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}\right|\\
+	&\geq \AdvCTXT{\EtM}{\advC}-\frac{1}{2^n}\;.
+	\end{align*}
 \end{proof}
