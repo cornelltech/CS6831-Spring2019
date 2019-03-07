@@ -16,7 +16,7 @@ full : $(FULL)
 	pdflatex $(MAIN)
 
 clean : 
-	rm -f main.bbl main.aux main.pdf
+	rm -f main.bbl main.aux main.log main.out main.run.xml main-blx.bib main.pdf
 
 
 zip : $(FULL) $(PROJ).pdf Makefile
