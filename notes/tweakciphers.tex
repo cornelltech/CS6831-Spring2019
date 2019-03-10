@@ -141,12 +141,21 @@ We say a tweakable block cipher is \emph{correct} if $\forall (K, T, M)\in\keysp
 
 \paragraph{Security for tweakable block ciphers.}
 
-Tweakable block cipher security is defined using notions similar to those used for regular block ciphers, namely PRP and SPRP security. A good TBC should be indistinguishable from a family of random permutations where each tweak has an independent random permutation See Figure~\ref{fig:tprp}
+Tweakable block cipher security is defined using notions similar to those used for regular block ciphers, namely PRP and SPRP security. A good TBC should be indistinguishable from a family of random permutations where each tweak has an independent random permutation. We define the advantages of adversaries playing the games in Figure~\ref{fig:tprp} as 
+\bnm
+\AdvSTPRP{\tweakCipher}{\advA} = \left|\Prob{\TPRPReal_{\tweakCipher}^{\advA}\Rightarrow1} -
+\Prob{\TPRPIdeal^\advA\Rightarrow1} \right|
+\enm
+and
+\bnm
+\AdvTSPRP{\tweakCipher}{\advA} = \left|\Prob{\TSPRPReal_{\tweakCipher}^\advA\Rightarrow1} -
+\Prob{\TSPRPIdeal^{\advA}\Rightarrow1} \right|\;.
+\enm
 
-\begin{figure}[h]
+\begin{figure}[t]
 \centering
 \hfpagessss{.22}{.22}{.22}{.22}{
-\procedurev{$\TPRPReal_{\advA,\tbc}$}\\
+\procedurev{$\TPRPReal_{\tbc}^{\advA}$}\\
 $K\getsr\calK$\\
 $b\getsr\advA^{\Fun}$\\
 Return $b$\medskip
@@ -154,7 +163,7 @@ Return $b$\medskip
 \procedurev{$\Fun(T, M)$}\\
 Return $\tbce^{T}_{K}(M)$
 }{
-\procedurev{$\TPRPIdeal_{\advA}$}\\
+\procedurev{$\TPRPIdeal^{\advA}$}\\
 $\pi\gets [\;]$\\
 $b\getsr\advA^{\RFun}$\\
 Return $b$\medskip
@@ -164,7 +173,7 @@ If $\pi[T]=\bot$ then\\
 \ind $\pi[T]\getsr\Perms(\msgspace)$\\
 Return $\pi[T](M)$
 }{
-\procedurev{$\TSPRPReal_{\advA,\tbc}$}\\
+\procedurev{$\TSPRPReal_{\tbc}^{\advA}$}\\
 $K\getsr\calK$\\
 $b\getsr\advA^{\Fun}$\\
 Return $b$\medskip
@@ -175,7 +184,7 @@ Return $\tbce^{T}_{K}(M)$\medskip
 \procedurev{$\Fun\inv(T, C)$}\\
 Return $\tbcd^{T}_{K}(C)$
 }{
-\procedurev{$\TSPRPIdeal_{\advA}$}\\
+\procedurev{$\TSPRPIdeal^{\advA}$}\\
 $\pi\gets [\;]$\\
 $b\getsr\advA^{\RPerm}$\\
 Return $b$\medskip
@@ -383,6 +392,8 @@ Return $C' = C^*$
   \xeenc(K, (0, 0), M_0 \oplus M_1) &= E_K(E_K(0) \oplus M_0 \oplus M_1) = E_K(E_K(0) \oplus E_K(0) \oplus E_K(1)) = E_K(E_K(1))
 \end{align*}
 \fi
+
+\paragraph{A TSPRP secure tweakable block cipher.} The XEX construction described by Rogaway in \cite{rogaway2004efficient} is a variation of the XE construction that is TSPRP secure. 
 
 \paragraph{Randomized symmetric encryption} A symmetric encryption scheme $\SE = (\kg, \enc, \dec)$ 
 is a tuple of algorithms. Associated to a symmetric encryption scheme is a key space $\keyspace$, message space $\msgspace$, nonce space $\noncespace$, and ciphertext space $\ctxtspace$.
