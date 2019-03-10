@@ -108,40 +108,7 @@ Return $\Enc(M_b)$
 
 
 
-\tnote{Let's add this strong tweakable block cipher stuff to the chapter on
-tweakable block ciphers. The scribe for Feb 18 can write it up, but we'll merge
-it into previous chapter later.}
 
-
-\hfpages{.15}{
-		\underline{$\STPRP1_{\tweakCipher}^\advA$}\\
-		$K \getsr \keyspace$\\
-		$b' \getsr \advA^{\Fn,\FnInv}$\\
-		Return $b'$\medskip
-		
-		\underline{$\Fn(T,M)$}\\[1pt]
-		Return $\tweakE_K(T,M)$\medskip
-  
-   \underline{$\FnInv(T,C)$}\\[1pt]
-		Return $\tweakD_K(T,C)$
-
-	}{
-		\underline{$\STPRP0_{\tweakCipher}^\advA$}\\
-		$\tweakpi \getsr \Perm(\tweakspace,\msgspace)$\\
-		$b' \getsr \advA^{\Fn,\FnInv}$\\
-		Return $b'$\medskip
-		
-		\underline{$\Fn(T,M)$}\\[1pt]
-		Return $\tweakpi(T,M)$\medskip
-  
-   \underline{$\FnInv(T,C)$}\\[1pt]
-		Return $\tweakpi^{-1}_K(T,C)$
-	}
-
-\bnm
-\AdvSTPRP{\tweakCipher}{\advA} = \left|\Prob{\STPRP1^\advA\Rightarrow1} -
-                                    \Prob{\STPRP0^\advA\Rightarrow1} \right|
-\enm
 
 \subsection{Active attacks on unauthenticated encryption schemes.}
 We left off in the previous chapter understanding how to build chosen plaintext attack (CPA) secure schemes. In particular, we saw the real or random (ROR) CCA games in \thref{theorem:ror-cpa}; this is one of many ways to define CPA encryption.

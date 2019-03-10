@@ -180,9 +180,9 @@ The worst-case running time for this attack is $|\keyspace|$, while the expected
 
 We have shown previously that TKR is not a good security notion, but we now ask whether KR is an improved definition. In particular, the identity cipher has been shown to be secure under TKR security, yet it is insecure under KR security, which is clearly an improvement. However, KR does not imply message confidentiality: it is a necessary but not sufficient goal. We now move on to a very different notion of security.
 
-\paragraph{PRP and PRF security.} A standard goal for cipher security is security in the sense of pseudorandom permutations and/or pseudorandom functions. For simplicity, we will focus on \textbf{block ciphers}, which for keyspace $\keyspace=\{0,1\}^k$ and message space $\msgspace=\{0,1\}^n$ are defined by $\cipherE : \{0,1\}^k \times \{0,1\}^n \to \{0,1\}^n$. Let $Perm(n)$ be the set of all permutations on $n$ bits. Notice that since $|\{0,1\}^n| = 2^n$, then $|Perm(n)| = 2^n!$. Let $Func(n,n)$ be the set of all functions from $\{0,1\}^n \to \{0,1\}^n$. We again note that $|Func(n,n)| = (2^n)^{2^n}$.
+\paragraph{PRP and PRF security.} A standard goal for cipher security is security in the sense of pseudorandom permutations and/or pseudorandom functions. For simplicity, we will focus on \textbf{block ciphers}, which for keyspace $\keyspace=\{0,1\}^k$ and message space $\msgspace=\{0,1\}^n$ are defined by $\cipherE : \{0,1\}^k \times \{0,1\}^n \to \{0,1\}^n$. Let $Perm(n)$ be the set of all permutations on $n$ bits. Notice that since $|\{0,1\}^n| = 2^n$, then $|Perm(n)| = 2^n!$. %Let $Func(n,n)$ be the set of all functions from $\{0,1\}^n \to \{0,1\}^n$. We again note that $|Func(n,n)| = (2^n)^{2^n}$.
 
-We now define a \textbf{pseudorandom function} (PRF) as a function that is indistinguishable from a random function (RF). At a high level this means that the input-output behavior of some block cipher $\cipherE_K$ ``looks like'' the input-output behavior of a random function. The games for PRF security are provided in \figref{fig:prf}. There are two games defined for PRF security: PRF1 and PRF0. In PRF1, the adversary has access to the $\Fn$ oracle that returns the output from the block cipher $\cipherE_K$. However, in PRF0 the adversary instead receives the output from a random function $\rho$ when it queries the $\Fn$ oracle. The adversary $\advA$ does not know in which game it is playing and must query the $\Fn$ oracle to distinguish between $\cipherE_K$ and $\rho$. $\advA$ returns a bit signifying which game it believes it is in. The PRF advantage for $\advA$ is defined as 
+We now define a \textbf{pseudorandom function} (PRF) as a function that is indistinguishable from a random function (RF). At a high level this means that the input-output behavior of some block cipher $\cipherE_K$ ``looks like'' the input-output behavior of a random function. The games for PRF security are provided in \figref{fig:prf}. There are two games defined for PRF security: PRF1 and PRF0. In PRF1, the adversary has access to the $\Fn$ oracle that returns the output from the block cipher $\cipherE_K$. However, in PRF0 the adversary instead receives a random output for each unique message queried to the $\Fn$ oracle. The adversary $\advA$ does not know in which game it is playing and must query the $\Fn$ oracle to distinguish between $\cipherE_K$ and $\rho$. $\advA$ returns a bit signifying which game it believes it is in. The PRF advantage for $\advA$ is defined as 
 \begin{equation*}
 \AdvPRF{\cipher}{\advA} = \left| \Prob{\PRF1_\cipher^\advA\Rightarrow 1} 
 - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|.
@@ -192,7 +192,7 @@ The adversary $\advA$ wins if the probability that $\advA$ outputs 1 in game $\P
 
 \begin{figure}
 	\centering
-	\hfpages{.25}{
+	\hfpages{.16}{
 		\underline{$\PRF1_{\cipher}^\advA$}\\
 		$K \getsr \keyspace$\\
 		$b' \getsr \advA^\Fn$\\
@@ -202,12 +202,13 @@ The adversary $\advA$ wins if the probability that $\advA$ outputs 1 in game $\P
 		Return $\cipherE_K(M)$\\
 	}{
 		\underline{$\PRF0_{\cipher}^\advA$}\\
-		$\rho \getsr \Func(n,n)$\\
 		$b' \getsr \advA^\Fn$\\
 		Return $b'$\medskip
 		
 		\underline{$\Fn(M)$}\\
-		Return $\rho(M)$\\
+		If $T[M]=\bot$ then \\
+		\myInd $T[M]\getsr \bits^n$\\
+		Return $T[M]$
 	}	
 \caption{The PRF security games.}
 \label{fig:prf}
