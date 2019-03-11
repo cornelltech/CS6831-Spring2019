@@ -190,8 +190,8 @@ what we're hoping to cover.
 | Feb 20 | Message authentication | [Slides](slides/unforgeability-lec9.pptx)  | |
 | Feb 25 | No Lecture (February break) | |
 | Feb 27 | AE in practice and theory | [Slides](slides/advancedAE-lec10.pptx) | |
-| Mar 4  | Public-key encryption RSA PKE |  | |
-| Mar 6  | Discrete log PKE  |  | |
+| Mar 4  | Class cancelled |  | |
+| Mar 6  | Hash functions  |[Slides](slides/hashfunctions-lec11.pptx)  | |
 | Mar 11 | ECC crypto  |  | |
 | Mar 13 | Digital signatures | | |
 | Mar 18 | Blind signatures and OPRFs  | | |
