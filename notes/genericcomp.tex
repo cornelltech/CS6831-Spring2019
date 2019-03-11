@@ -1,6 +1,6 @@
 \section{Authenticated Encryption from SE and MACs}
 \label{sec:genericcomp}
-Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=(\MA.\kg,\mtag,\ver)$ be a message authentication scheme. In this section, we combine these two primitives in different ways to construct an authenticated encryption scheme $\SE'=(\kg,\enc,\dec)$, and we describe the security guarantees of each construction. 
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=(\MA.\kg,\mtag,\ver)$ be a message authentication code (recall that a $\MAC$ has a deterministic tag). In this section, we combine these two primitives in different ways to construct an authenticated encryption scheme $\SE'=(\kg,\enc,\dec)$, and we describe the security guarantees of each construction. 
 \begin{figure}[h]
 	\centering
 	\fpage{.12}{
@@ -45,7 +45,6 @@ Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=
 		\underline{$\dec(K,C)$}\\[1pt]
 		$(K_1,K_2)\gets K$\\
 		$M\concat T\gets \SE.\dec(K_1,C)$\\
-		\scribenote{fix the concat notation}\\
 		$T'\gets \mtag(K_2,M)$\\
 		If $T'\neq T$ then Ret $\bot$\\
 		Ret $M$

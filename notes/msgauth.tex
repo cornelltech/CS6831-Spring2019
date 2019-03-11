@@ -4,7 +4,7 @@
 
 A message authentication scheme $\MA = (\kg,\mtag,\ver)$ is a triple of
 algorithms. Key generation is randomized and outputs a key. Message
-authentication $\mac$ takes as input a key and message an outputs a tag.
+authentication $\mtag$ takes as input a key and message and outputs a tag.
 Verification takes as input a key, a message, and a tag, and outputs a bit. 
 
 A message authentication scheme is correct if for all keys $K$ from $\kg$ and messages $M\in \msgset$, 
@@ -14,8 +14,9 @@ A message authentication scheme is correct if for all keys $K$ from $\kg$ and me
 
 One specific variant of message authentication schemes is a $\MACscheme$, a Message Authentication Code. For a $\MAC$, the $\mtag$ function is deterministic, so 
 \bnm
-\ver(K,M,T)=(\mtag(K,M)=T)\;.
+\ver(K,M,T)=(\mtag(K,M)=T)\;,
 \enm
+where the probability is over any random coins in $\mtag$.
 \begin{figure}[t]
 	\centering
 	\hfpagesss{.2}{.25}{.25}{
@@ -54,7 +55,7 @@ One specific variant of message authentication schemes is a $\MACscheme$, a Mess
 	\label{fig:game-ufcma}
 \end{figure}
 
-For security of a message authentication scheme, we ask that no computationally efficient adversary is able to forge a tag for a message, even given a chosen message attack. This notion is formalized in the $\UFCMA_\MA$ (Unforgeability under Chosen Message Attack) game in Figure~\ref{fig:game-ufcma}. An adversary $\advA$ has access to a $\TagOracle$ oracle, and its goal is to return a pair $(M^*,T^*)$ such that it never received the tag of $M^*$ through the $\TagOracle$ oracle, and $T^*$ is a valid tag of $M^*$. 
+For security of a message authentication scheme, we ask that no computationally efficient adversary is able to forge a tag for a message, even in a chosen message attack. This notion is formalized in the $\UFCMA_\MA$ (Unforgeability under Chosen Message Attack) game in Figure~\ref{fig:game-ufcma}. An adversary $\advA$ has access to a $\TagOracle$ oracle, and its goal is to return a pair $(M^*,T^*)$ such that it never received the tag of $M^*$ through the $\TagOracle$ oracle, and $T^*$ is a valid tag of $M^*$. 
 
 We say that the advantage of the $\UFCMA_\MA$ adversary $\advA$ is 
 \bnm
@@ -66,22 +67,22 @@ We can also ask for a stronger notion of unforgeability, where the adversary is 
   \AdvSUFCMA{\MA}{\advA} = \Prob{\SUFCMA_\MA^\advA\Rightarrow 1} 
 \enm
 
-If a message authentication scheme $\MA$ is $\SUFCMA_\MA$ secure, then it is also $\UFCMA_\MA$ secure, as we show in Theorem~\ref{thm:sufcma-ufcma}. \scribenote{Consider making this an exercise.} 
+If a message authentication scheme $\MA$ is $\SUFCMA_\MA$ secure, then it is also $\UFCMA_\MA$ secure, as stated in Theorem~\ref{thm:sufcma-ufcma}. The proof of Theorem~\ref{thm:sufcma-ufcma} is left to the reader in~\ref{exercise:sufcma-ufcma}.
 \begin{theorem}
 	\label{thm:sufcma-ufcma}
-Let $\MA = (\kg,\mtag,\ver)$ be a message authentication scheme. Then for any $\UFCMA_\MA$-adversary $\advA$ making $q$ queries, we give a $\SUFCMA_\MA$ adversary $\advB$ such that
+Let $\MA = (\kg,\mtag,\ver)$ be a message authentication scheme. Then for any $\UFCMA_\MA$-adversary $\advA$ making $q$ queries, we give a $\SUFCMA_\MA$ adversary $\advB$ making $q$ queries such that
 \bnm
 	\AdvUFCMA{\MA}{\advA} \le \AdvSUFCMA{\MA}{\advB} \;.
 \enm
 \end{theorem}
 
-In general, it is not true that $\UFCMA_\MA$ security of a scheme $\MA$ implies $\SUFCMA_\MA$ security. However, if $\MA$ is a $\MAC$, then $\UFCMA_\MA$ security is equivalent to $\SUFCMA_\MA$. \scribenote{Consider leaving an exercise.}
+In general, it is not true that $\UFCMA_\MA$ security of a message authentication scheme $\MA$ implies $\SUFCMA_\MA$ security. However, if $\MA$ is a $\MAC$, then $\UFCMA_\MA$ security is equivalent to $\SUFCMA_\MA$. This proof is left to~\ref{exercise:mac-sufcma-ufcma}.
 
 We can construct a $\UFCMA_\MA$ secure MAC using a good PRF. The associated MAC for a PRF $F$ is
 \bnm
 \mtag(K,M)=F(K,M)\myInd\myInd \ver(K,M,T)=(F(K,M)=T)
 \enm
-\scribenote{Change game for PRF to use lazy oracle sampling}
+
 \begin{theorem}
 Let $F\Colon\bits^k\times\msgspace\rightarrow\bits^n$. Then for any
 $\UFCMA_F$-adversary $\advA$ making $q$ queries, we give a $\PRF_F$-adversary $\advB$ such that
@@ -111,13 +112,13 @@ Adversary $\advB$ runs in time that of $\advA$ and makes $q+1$ queries.
 	$(M^*,T^*) \getsr \advA^{\TagOracle}$\\
 	If $M^* \in \msgset$ then\\
 	\myInd Ret $\false$\\
-	Ret $H(M^*)=T^*$\medskip
+	Ret $\Horacle(M^*)=T^*$\medskip
 	
 	\underline{$\TagOracle(M)$}\\
 	$\msgset \gets \msgset \cup \{M\}$\\
-	Ret $H(M)$\medskip
+	Ret $\Horacle(M)$\medskip
 	
-	\underline{$H(M)$}\\[1pt]
+	\underline{$\Horacle(M)$}\\[1pt]
 	If $T[M] = \bot$ then \\
 	\myInd $T[M]\getsr \bits^n$\\
 	Ret $T[M]$
@@ -190,7 +191,7 @@ an $\epsilon$-almost universal (AU) hash function  if for all $M,M'\in\msgspace$
 \bnm
   \Prob{H_K(M) = H_K(M')} \le \epsilon
 \enm
-where the probability is over choice of $K$.
+where the probability is over random choice of $K$.
 
 A computational almost universal (\cAU) hash function is a function for which all polynomial-time bounded $\cAU_H$ adversaries $\advA$ have small $\cAU_H$ advantage.
 \begin{figure}[h]
@@ -244,12 +245,12 @@ queries.
 	If $M = M'$ then Ret $\false$\\
 	$T \gets 0^n\semi T'\gets 0^n$ \\
 	For $i=1$ to $m$ do \\
-	\myInd $T\gets H(T\xor M[i])$\\
+	\myInd $T\gets \Horacle(T\xor M[i])$\\
 	For $j=1$ to $m'$ do \\
-	\myInd $T'\gets H(T'\xor M'[j])$\\
+	\myInd $T'\gets \Horacle(T'\xor M'[j])$\\
 	Ret $T=T'$\medskip
 	
-	\underline{$H(M)$}\\[1pt]
+	\underline{$\Horacle(M)$}\\[1pt]
 	If $T[M] = \bot$ then \\
 	\myInd $T[M]\getsr \bits^n$\\
 	Ret $T[M]$
@@ -271,13 +272,13 @@ queries.
 \end{figure}
 
 \begin{proof}
-	We refer to the games and adversary in Figure~\ref{fig:games-cau-cbcmac}. Let $m$ and $m'$ respectively be the number of blocks of messages $M$ and $M'$ outputted by the $\cAU$ adversary $\advA$. 
+	We refer to the games and adversary in Figure~\ref{fig:games-cau-cbcmac}. Let $m$ and $m'$ respectively be the number of blocks in messages $M$ and $M'$ outputted by the $\cAU$ adversary $\advA$. 
 	
-	The games just explicitly describe the CBC-MAC construction within the $\cAU$ game, so 
+	The games just explicitly describes the CBC-MAC construction within the $\cAU$ game, so 
 	\bnm
 	\AdvcAU{H}{\advA}=\Prob{\G0}\;.
 	\enm
-	Adversary $\advA$ wins in $\G1$ if there is a collision in either the inputs or the outputs of the random oracle that results in the $T$ being equal to $T'$. A detailed analysis of this can be found in~\cite{black2000cbc}, and it turns out we can bound this probability by 
+	Adversary $\advA$ wins in $\G1$ if there is a collision in either the inputs or the outputs of the random oracle that results in $T$ being equal to $T'$. A detailed analysis of this can be found in~\cite{black2000cbc}, and it turns out that we can bound this probability by 
 	\bnm
 	\Prob{\G1}\leq \frac{\sigma^2}{2^n}\;.
 	\enm
@@ -296,3 +297,8 @@ queries.
 	\end{align*}
 \end{proof}
 
+\section*{Exercises}
+\begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
+	\item Prove Theorem~\ref{thm:sufcma-ufcma}. \label{exercise:sufcma-ufcma}
+	\item Show that if a message authentication scheme $\MA$ is a $\MAC$, then $\UFCMA_\MA$ security is equivalent to $\SUFCMA_\MA$ security. \label{exercise:mac-sufcma-ufcma}
+\end{enumerate}
