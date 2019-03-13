@@ -36,7 +36,6 @@ where the probability is over any random coins in $\mtag$.
 	$K \getsr \kg$\\
 	$\win\gets\false$\\
 	$(M^*,T^*) \getsr \advA^{\TagOracle,\VerOracle}$\\
-	\scribenote{does $\advA$ need to return anything?}\\
 	Ret $\win$\medskip
 	}{
 	\underline{$\TagOracle(M)$}\\
@@ -209,7 +208,22 @@ We define the advantage of a $\cAU_H$ adversary $\advA$ as
 \bnm
   \AdvcAU{H}{\advA} = \Prob{\cAU^\advA_H\Rightarrow\true}\;.
 \enm
-\scribenote{Prove that if $H$ is cAU, then universal hash then PRF is a good construction for a variable length PRF, or make this an exercise.}
+
+\begin{figure}[h]
+	\centering
+	\fpage{.20}{
+		\underline{$V(K,M)$}\\[1pt]
+		$K_1,K_2\gets K$\\
+		Ret $F(K_1, H(K_2,M))$\\
+	}
+\end{figure}
+\begin{theorem} \label{thm:cau-vil-prf}
+Let $F\Colon\bits^{k_1}\times \bits^n\rightarrow \bits^n$ be a fixed input length PRF, and let $H\Colon \bits^{k_2}\times \msgspace\rightarrow \bits^n$ be a $\cAU$ hash function. Let $V\Colon \bits^{k_1+k_2}\times \msgspace \rightarrow \bits^n$ be the variable input length PRF constructed using $F$ and $H$ as described above. Then, for any $\PRF_V$ adversary $\advA$ making $q$ queries, we can construct a $\cAU_H$ adversary $\advB$ and $\PRF_F$ adversary $\advC$ such that 
+\bnm
+	\AdvPRF{V}{\advA} \le \AdvcAU{H}{\advB} + \AdvPRF{F}{\advC}\;.
+\enm
+\scribenote{Above is a tentative theorem statement. Will fix once I write a proof.}
+\end{theorem}
 
 We show that if $E$ is a good PRF, then the CBC-MAC construction is computational almost universal.
 \begin{theorem}
@@ -301,4 +315,5 @@ queries.
 \begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
 	\item Prove Theorem~\ref{thm:sufcma-ufcma}. \label{exercise:sufcma-ufcma}
 	\item Show that if a message authentication scheme $\MA$ is a $\MAC$, then $\UFCMA_\MA$ security is equivalent to $\SUFCMA_\MA$ security. \label{exercise:mac-sufcma-ufcma}
+	\item Prove Theorem~\ref{thm:cau-vil-prf}.
 \end{enumerate}

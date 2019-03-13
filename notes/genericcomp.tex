@@ -77,7 +77,7 @@ Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=
 	\caption{The Encrypt-then-Mac composition. The ciphertext is computed on the original message, then the tag is computed on the ciphertext.}
 \end{figure}
 
-If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{Give counter examples for EaM and MtE?}
+If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{We should merge this section with the next scribe's discussion of these composition constructions.}
 
 \begin{theorem}
 Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be an SE scheme and $\MA=(\MA.\kg,\MA.\mtag,\MA.\ver)$ be a MAC with $\MA.\mtag$ output length $n$ and $\EtM=(\EtM.\kg,\EtM.\enc,\EtM.\dec)$ be the Encrypt-then-Mac
