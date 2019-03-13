@@ -192,20 +192,20 @@ what we're hoping to cover.
 | Feb 27 | AE in practice and theory | [Slides](slides/advancedAE-lec10.pptx) | |
 | Mar 4  | Class cancelled |  | |
 | Mar 6  | Hash functions  |[Slides](slides/hashfunctions-lec11.pptx)  | |
-| Mar 11 | ECC crypto  |  | |
-| Mar 13 | Digital signatures | | |
-| Mar 18 | Blind signatures and OPRFs  | | |
-| Mar 20 | Identification protocols and Fiat-Shamir |   | |
-| Mar 27 | Zero-knowledge proofs  |  | |
+| Mar 11 | Hash functions 2 | [Slides](slides/hashfunctions-lec12.pptx) | |
+| Mar 13 | Hash functions 3 | [Slides](slides/hashfunctions-lec13.pptx) | |
+| Mar 18 | Computational number theory basics, RSA | | |
+| Mar 20 | Public-key encryption  |   | |
+| Mar 27 | Diffie-Hellman  |  | |
 | Apr 1  | No lecture (Spring Break) |  | |
 | Apr 3  | No lecture (Spring Break) |  | |
-| Apr 8  | Key exchange | | |
+| Apr 8  | Digital signatures | | |
 | Apr 10 | TLS 1.3  | | |
 | Apr 15 | Signal   | | |
 | Apr 17 | Group messaging | | |
-| Apr 22 | Encrypted databases | | |
-| Apr 24 | TBA | | |
-| Apr 29 | TBA | | |
+| Apr 22 | Identification protocols and Fiat-Shamir | | |
+| Apr 24 | Zero-knowledge proofs | | |
+| Apr 29 |  TBA | | |
 | May 1  | TBA | | |
 | May 6  | TBA |  | |
 
