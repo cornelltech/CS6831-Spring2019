@@ -2,6 +2,9 @@
 \section{Randomized and Nonce-Respecting Symmetric Encryption}
 \label{sec:symenc}
 
+Given some symmetric encryption scheme, in what sense is it secure?  To answer
+this question in a formal manner, we give several security conditions below.
+
 \subsection{Security Conditions}
 
 \paragraph{Real-or-Random Indistinguishability (\INDRAND or \ROR)}
@@ -24,12 +27,12 @@
   return $C$
 }
 
-Intuitively, this condition captures the notion that ciphertext ``look'' like
+Intuitively, this condition captures the notion that ciphertexts ``look'' like
 random bits under chosen-plaintext attacks. In the figure above, two
 games are defined: in $\RORreal$, the oracle for the adversary actually
 encrypts the adversary's chosen plaintexts, while in $\RORrand$ the oracle
 just generates a random bitstring. The advantage for the adversary $\advA$ given
-symmetric encryption scheme $\SEscheme$ is
+a symmetric encryption scheme $\SEscheme$ is
 
 \bnm
 \AdvROR{\SE}{\advA} =
@@ -37,8 +40,8 @@ symmetric encryption scheme $\SEscheme$ is
       \Prob{\RORrand_{\SE}^{\advA} \Rightarrow 1}}
 \enm
 
-Thus the adversary has high advantage when it can guess correctly whether it is
-in the ``real world'' or the ``random world''.
+Thus the adversary has high advantage when it can reliably distinguish the real
+or random worlds.
 
 \paragraph{Indistinguishability under Chosen-Plaintext Attack (\INDCPA)}
 
@@ -48,7 +51,7 @@ in the ``real world'' or the ``random world''.
 $K \getsr \kg$\\
 $b \getsr \bits$\\
 $b' \getsr \advA^{\EncOracle}$\\
-Ret $b'$\medskip
+Ret $b = b'$\medskip
 
 \underline{$\EncOracle(M_0,M_1)$}\\
 If $|M_0| \ne |M_1|$ then\\
@@ -57,15 +60,15 @@ $C \getsr \enc_K(M_b)$\\
 Ret $C$
 }
 
-This condition captures the notion that, given two plaintexts, we can't infer
-which of two plaintexts were encrypted. This means that ciphertexts don't leak
-information about their messages. In the figure above, a challenge bit is
-drawn randomly, and the adversary's oracle uses it to determine which one
-of two plaintexts chosen by the adversary is encrypted and returned.
-Because the adversary can correctly guess the challenge bit with probability
-$1/2$ just by randomly drawing from $\{0,1\}$, 
-the advantage for adversary $\advA$ given symmetric encryption scheme
-$\SEscheme$  is scaled as follows:
+This condition captures the notion that, given a ciphertex, an adversary can't
+infer which of two chosen generated the ciphertext under encryption with a
+randomly sampled key. This means that ciphertexts don't leak information about
+their messages. In the figure above, a secret challenge bit is drawn randomly,
+and the adversary's oracle uses it to determine which one of two plaintexts
+chosen by the adversary is encrypted and returned.  Because the adversary can
+correctly guess the challenge bit with probability $1/2$ just by randomly
+drawing from $\{0,1\}$, the advantage for adversary $\advA$ given symmetric
+encryption scheme $\SEscheme$  is scaled as follows:
 
 \bnm
 \AdvINDCPA{\SE}{\advA} = 2\cdotsm\Prob{\INDCPA_\SE^\advA\Rightarrow\true} - 1
@@ -105,15 +108,14 @@ $C \getsr \simu(|M|)$\\
 Ret $C$
 }
 
-Finally, this condition captures the notion that
-''having ciphertext is as good as not having ciphertext'' --- more specifically,
-ciphertexts are indistinguishable from the output of a simulator that only
-knows about the length of the plaintext.
-In the figure above, two games are defined: in $\INDSIM1$, the oracle for the
-adversary actually encrypts the adversary's chosen plaintexts, while in
-$\INDSIM0$ the oracle returns the output of simulator $\simu$.
-The advantage for the adversary $\advA$ given symmetric
-encryption scheme $\SEscheme$ is
+Finally, this condition captures the notion that ``having ciphertext is as good
+as not having ciphertext'' --- more specifically, ciphertexts of chosen
+plaintexts of random keys are indistinguishable from the output of a simulator
+that only knows about the length of the plaintext. In the figure above, two
+games are defined: in $\INDSIM1$, the oracle for the adversary actually
+encrypts the adversary's chosen plaintexts, while in $\INDSIM0$ the oracle
+returns the output of simulator $\simu$. The advantage for the adversary
+$\advA$ given symmetric encryption scheme $\SEscheme$ is
 
 \bnm
 \AdvINDSIM{\SE,\simu}{\advA} = 
@@ -144,20 +146,22 @@ Adversary $\advB$ makes at most $q$
 queries and runs in time that of $\advA$.
 \end{theorem}
 
-\tnote{We'll possibly introduce the following at some point, but didn't need it
-here yet.}
-We sometimes use $\bigO$ notation to hide small values that can be derived from
-proofs, but don't matter to the interpretation of the theorem. If we were to do
-an asymptotic treatment, this would correspond to hiding constants, hence the
-abuse of notation.  Thus in above theorem we would replace $q+3$ with
-$\bigO(q)$. 
+% commenting this out in case tom wants to put it back in
+%
+% \tnote{We'll possibly introduce the following at some point, but didn't need it
+% here yet.}
+% We sometimes use $\bigO$ notation to hide small values that can be derived from
+% proofs, but don't matter to the interpretation of the theorem. If we were to do
+% an asymptotic treatment, this would correspond to hiding constants, hence the
+% abuse of notation.  Thus in above theorem we would replace $q+3$ with
+% $\bigO(q)$. 
 
 \paragraph{Proof.}
 
 Construct $\advB$ as follows: take $\advA$ and provide it an $\SEencsim$
 oracle with the same signature as $\advA$'s $\SEenc$ oracle (i.e., it takes two
-messages $M_0, M_1$ as input and returns some ciphertext) that encrypts one
-of two messages according to some challenge bit $b$.
+messages $M_0, M_1$ as input and returns some ciphertext) that sends to
+$\advB$'s oracle one of two messages according to some challenge bit $b$.
 
 \fpage{.20}{
 \underline{$\advB^{\Enc}$}\\[1pt]
@@ -180,8 +184,10 @@ $\advA$ playing the $\INDCPA$ game, such that
 
 Also notice that for $\advB$ playing the $\RORrand$ game, its oracle returns
 random bitstrings instead of actual ciphertext such that $\advA$, used by
-$\advB$, gets no information about the scheme whatsoever.  Thus
-$\Prob{\RORrand_{\SEscheme}^{\advB} \Rightarrow 1} = 1/2$.
+$\advB$, gets no information about the scheme whatsoever --- the bitstrings
+are generated independently of the value of $b$. This implies that $\advA$
+is making a random guess (``flipping a coin'') regarding the value of $b$,
+thus $\Prob{\RORrand_{\SEscheme}^{\advB} \Rightarrow 1} = 1/2$.
 
 With these two facts and some elementary algebra, we get
 
@@ -353,13 +359,71 @@ $\INDCPA \not\Rightarrow \INDRAND$.
 
 \subsubsection*{$\INDCPA \Rightarrow \INDSIM$}
 
-TODO: show for any symmetric encryption scheme $\SEscheme$, there is
+Let $\SEscheme$ be a symmetric encryption scheme. There is
 a simulator $\simu$ such that for all $\INDSIM$-adversaries $\advA$ there is
 a $\INDCPA$-adversary $\advB$ such that 
 
 \bnm
 \AdvINDSIM{\SEscheme}{\advA} \leq \AdvINDCPA{\SEscheme}{\advB}
 \enm
+
+\paragraph{Proof.}
+
+We construct $\advB$ and $\simu$ as shown below.
+
+\fpage{.25}{
+  \underline{$\advB^{\Enc}$}\\[1pt]
+  $a \gets \advA^{\EncSim}$\\
+  return $a$\\
+  \\
+  \underline{$\EncSim(M)$}\\[1pt]
+  $r \getsr \{0,1\}^{\absv{M}}$\\
+  return $\Enc(r, M)$
+}
+\fpage{.25}{
+  \underline{$\simu(\ell)$}\\[1pt]
+  $r \getsr \{0,1\}^{\absv{M}}$\\
+  return $r$
+}
+
+
+The intuition is that $\Enc$ chooses to encrypt either the plaintext chosen
+by $\advA$ or a random bitstring. The former corresponds to the $\INDSIM1$
+game while the latter corresponds to the $\INDSIM0$ game. The correspondence
+for the former follows immediately because it is just encrypting the chosen
+plaintext. The correspondence for the latter follows because the ciphertext
+for a random bitstring can be treated as a random bitstring itself;
+it has no information about the plaintext chosen by $\advA$ since it is
+randomly and independently generated from the chosen plaintext.
+
+To arrive at the advantage of $\advB$, we first calculate the probability
+that it will win the $\INDCPA$ game, where $b$ is the secret challenge bit:
+
+\begin{align*}
+  \Prob{\INDCPA^{\advB}_{\SEscheme} \Rightarrow \ctrue}
+  &= \Prob{b = 0 \wedge a = 0} + \Prob{b = 1 \wedge a = 1} \\
+  &= \Prob{b = 0}\Prob{a = 0 \mid b = 0} + \Prob{b = 1}\Prob{a = 1 \mid b = 1} \\
+  &= 1/2(1 - \Prob{\INDSIM0^{\advA}_{\SEscheme} \Rightarrow 1})
+     + 1/2(\Prob{\INDSIM1^{\advA}_{\SEscheme} \Rightarrow 1}) \\
+  &= 1/2(1 - \Prob{\INDSIM0^{\advA}_{\SEscheme} \Rightarrow 1}
+          + \Prob{\INDSIM1^{\advA}_{\SEscheme} \Rightarrow 1})
+\end{align*}
+
+Thus
+
+\begin{align*}
+  \AdvINDCPA{\SEscheme}{\advB} &=
+    2 \Prob{\INDCPA^{\advB}_{\SEscheme} \Rightarrow \ctrue} - 1 \\
+  &= 2(1/2(1 - \Prob{\INDSIM0^{\advA}_{\SEscheme} \Rightarrow 1}
+          + \Prob{\INDSIM1^{\advA}_{\SEscheme} \Rightarrow 1})) -1 \\
+  &= \Prob{\INDSIM1^{\advA}_{\SEscheme} \Rightarrow 1})) -
+     \Prob{\INDSIM0^{\advA}_{\SEscheme} \Rightarrow 1} \\
+  &= \AdvINDSIM{\SEscheme}{\advA} \\
+  &\geq \AdvINDSIM{\SEscheme}{\advA} \\
+\end{align*}
+
+as needed. $\blacksquare$
+
 
 \subsubsection*{$\INDSIM \Rightarrow \INDCPA$}
 
@@ -374,7 +438,7 @@ $\advA$, we construct a $\INDSIM$-adversary $\advB$ such that
 
 \fpage{.25}{
   \underline{$\simu(\ell)$}\\[1pt]
-  $C \gets \{0,1\}^\ctxtlen(\ell)$ \\
+  $C \gets \{0,1\}^{\ctxtlen(\ell)}$ \\
   return $C$
 }
 \fpage{.25}{
@@ -520,15 +584,20 @@ security, and thus
 \enm
 
 Next, notice that $G0$ corresponds to $\textup{PRF1}$ and $G1$ corresponds to
-$\textup{PRF0}$. So
+$\textup{PRF0}$, in the sense that in $G0$ the message block is XORed with the
+encryption of the IV and the block index, while in $G1$ the message block is
+XORed with the output of a random function with the IV and block index as input.
+It is then trivial to construct a $\PRF$-adversary $\advB$ whose advantage 
+is
 
 \begin{align*}
-  \absv{\Prob{G0 \Rightarrow 1} - \Prob{G1 \Rightarrow 1}} = \adv^{\textup{prf}}_{\varepsilon}(\advB) \\
-  \Prob{G0 \Rightarrow 1} \leq \Prob{G1 \Rightarrow 1} + \adv^{\textup{prf}}_{\varepsilon}(\advB) \\
+  \absv{\Prob{G0 \Rightarrow 1} - \Prob{G1 \Rightarrow 1}} = \AdvPRF{\varepsilon}{\advB} \\
+  \Prob{G0 \Rightarrow 1} \leq \Prob{G1 \Rightarrow 1} + \AdvPRF{\varepsilon}{\advB}
 \end{align*}
 
-Next, since in $G2$ the value in $\TabT$ is re-used in the event of a collision,
-it essentially acts a random function, which implies
+Next, since in $G2$ the value in $\TabT$ is re-used in the event of a collision
+and is randomly selected at each sampled point, it essentially acts a random
+function, which implies
 $\Prob{G1 \Rightarrow 1} = \Prob{G2 \Rightarrow 1}$.
 
 Since $G2$ and $G3$ are identical-until-bad, by the fundamental lemma of
@@ -539,9 +608,11 @@ game playing we have
 \enm
 
 The only difference between $G3$ and $G4$ is that $G3$ derives ciphertext
-using one-time pads and $G4$ derives ciphertext from random strings. But being
-a $\INDCPA$-adversary, $\advA$ should not be able to distinguish one from the
-other. So $\Prob{G3 \Rightarrow 1} = \Prob{G4 \Rightarrow 1}$.
+using one-time pads and $G4$ derives ciphertext from random strings.
+The distribution of ciphertexts for one-time pads is uniform, thus making
+it equal to the distribution of random strings. This implies that the adversary
+should not be able to distinguish between the two, so
+$\Prob{G3 \Rightarrow 1} = \Prob{G4 \Rightarrow 1}$.
 Furthermore, notice that $\bad$ is set in the same conditions as $G3$ and $G4$,
 so $\Prob{\bad_3} = \Prob{\bad_4}$. Then
 
@@ -567,12 +638,12 @@ asking whether there are any collisions among
     &\IV_q , \IV_q \oplus \langle 1\rangle, \ldots , \IV_q \oplus \langle m_q\rangle \\
 \end{align*}
 If $m_i < 2^n-1$ for all queries then we can ignore wraparound effects, and so
-no collisions on each row. Now consider any two pairs of rows $1 < i < j$. We
-can consider $\IV_i$ to be fixed, and so a collision across rows occurs if
-$\IV_j \in \{\IV_i + \alpha \;:\; -\sigma +1 \le \alpha \le \sigma-1\}$. This
-occurs with probability $(2\sigma-1) / 2^n$. Since there are at most $q^2$ such
-pairs, we have that the total probability of a collision is at most 
-$2q^2\sigma / 2^n$. See Lemma 5.18 of Bellare-Rogaway for more details.
+no collisions can occur on each row. Now consider any two pairs of rows $1 < i
+< j$. We can consider $\IV_i$ to be fixed, and so a collision across rows
+occurs if $\IV_j \in \{\IV_i + \alpha \;:\; -\sigma +1 \le \alpha \le
+\sigma-1\}$. This occurs with probability $(2\sigma-1) / 2^n$. Since there are
+at most $q^2$ such pairs, we have that the total probability of a collision is
+at most $2q^2\sigma / 2^n$. See Lemma 5.18 of Bellare-Rogaway for more details.
 
 Putting all of these together, we arrive at
 
