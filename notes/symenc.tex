@@ -382,7 +382,7 @@ We construct $\advB$ and $\simu$ as shown below.
 }
 \fpage{.25}{
   \underline{$\simu(\ell)$}\\[1pt]
-  $r \getsr \{0,1\}^{\absv{M}}$\\
+  $r \getsr \{0,1\}^{\clen(M)}$\\
   return $r$
 }
 
@@ -431,7 +431,7 @@ Let $\SEscheme$ be a symmetric encryption scheme. For any $\INDCPA$-adversary
 $\advA$, we construct a $\INDSIM$-adversary $\advB$ such that
 
 \bnm
-\AdvINDCPA{\SEscheme}{\advA} \leq \AdvINDSIM{\SEscheme}{\advB}
+\AdvINDCPA{\SEscheme}{\advA} \leq 2 \AdvINDSIM{\SEscheme}{\advB}
 \enm
 
 \paragraph{Proof.}
