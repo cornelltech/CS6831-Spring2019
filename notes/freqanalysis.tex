@@ -196,7 +196,7 @@ on domain $X$ . We want a block cipher $(E', D')$ that operates on a smaller dom
 
 $D'(k, y)$ is defined analogously, applying $D(k, ·)$ until the result falls in $X'$. Clearly $(E', D')$ are defined on domain $X'$.
 
-\begin{enumerate}[(a)]
+\begin{enumerate}
     \item With $t := |X|/|X'|$, how many evaluations of $E$ are needed in expectation to evaluate $E'(k, x)$ as a function of $t$? You answer shows that when $t$ is small (e.g., $t \leq 2$) evaluating $E'(k, x)$ can be done efficiently.
     
     \item Show that if $(E,D)$ is a secure block cipher with domain $X$ then $(E, D')$ is a secure block cipher with domain $X'$. Try proving security by induction on $|X |-|X'|$.
