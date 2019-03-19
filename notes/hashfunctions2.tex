@@ -1,0 +1,192 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Further Security Properties for Hash Functions}
+\label{sec:hashfunctions}
+
+\fpage{.25}{
+\underline{$\OWF^\advA_{H}$}\\[1pt]
+$M \getsr \msgspace$\\
+$Y \gets H(M)$\\
+$M' \getsr \advA(Y)$\\
+Ret $(H(M') = Y)$
+}
+
+
+\bnm
+\AdvOWF{H}{\advA} = \Prob{\OWF^\advA_H\Rightarrow\true}
+\enm
+
+
+
+\fpage{.25}{
+\underline{$\SPR^\advA_{H}$}\\[1pt]
+$M \getsr \msgspace$\\
+$Y \gets H(M)$\\
+$M' \getsr \advA(M)$\\
+Ret $(H(M') = H(M)) \land (M \ne M')$
+}
+
+
+\bnm
+\AdvSPR{H}{\advA} = \Prob{\SPR^\advA_H\Rightarrow\true}
+\enm
+
+
+\fpage{.25}{
+\underline{$\PWR^\advA_{H,p}$}\\[2pt]
+$\pw \get{p} \msgspace$\\
+$\salt \getsr \bits^n$\\
+$Y \gets H(\salt \concat M)$\\
+$\pw' \getsr \advA(\salt,Y)$\\
+Ret $(\pw' = \pw)$
+}
+
+\fpage{.25}{
+\underline{$\PWR^\advA_{\Horacle,p}$}\\[2pt]
+$\pw \get{p} \msgspace$\\
+$\salt \getsr \bits^n$\\
+$Y \gets \Horacle(\salt \concat M)$\\
+$\pw' \getsr \advA^\Horacle(\salt,Y)$\\
+Ret $(\pw' = \pw)$\medskip
+
+\underline{$\Horacle(M)$}\\
+If $\TabH[M] = \bot$ then\\
+\myInd $\TabH[M] \getsr \bits^n$\\
+Ret $\TabH[M]$
+}
+
+\begin{theorem*}
+Let $H\Colon\msgspace\rightarrow\bits^n$ and $\advA$ be a $\SPR_H$-adversary.
+Then we give a $\CR_H$-adversary $\advB$ such that
+\bnm 
+  \AdvSPR{H}{\advA} \le \AdvCR{H}{\advB}
+\enm
+Adversary~$\advB$ runs in time that of $\advA$. 
+\end{theorem*}
+
+
+\paragraph{Application: password recovery.}
+The min-entropy of a distribution $p$ is the probability that one can guess a
+value chosen according to $p$ in a single guess. Mathematically:
+
+\bnm
+  \Hinfty(p) = -\max_{x} \log \frac{1}{p(x)}
+\enm
+Not to be confused with Shannon entropy:
+
+\bnm
+  \Hshan(p) =  \sum_x p(x) \log \frac{1}{p(x)}
+\enm
+
+\begin{theorem}
+Let $\Horacle\Colon\msgspace\rightarrow\bits^n$ be modeled as a random oracle
+and $p$ be a distribution over $\msgspace$.
+Then for any $\PWR_{\Horacle,p}$-adversary $\advA$ making at most $q$ queries 
+it holds that
+\bnm
+  \AdvPWR{\Horacle,p}{\advA} \le \frac{q}{2^{\mu(p)}} \;.
+\enm
+\end{theorem}
+
+
+
+\hfpages{.25}{
+\underline{$\PRF1_{F,\Horacle}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $F^\Horacle_K(M)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+
+}{
+\underline{$\PRF0_{F,\Horacle}^\advA$}\\
+$\rho \getsr \Func(\msgspace,n)$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\rho(M)$\\
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}
+
+
+\begin{theorem}
+Let  $\Horacle\Colon\msgspace\rightarrow\bits^n$ be modeled as a random oracle
+and let $F^\Horacle\Colon\keyspace\times\msgspace\rightarrow\bits^n$ be the
+hash-based PRF defined as $F^\Horacle(K,M) = \Horacle(K \concat M)$. 
+Then for any $\PRF_{F,\Horacle}$-adversary $\advA$ making at most $q$ queries 
+to $\Horacle$ it holds that
+\bnm
+  \AdvPRF{F,\Horacle}{\advA} \le \frac{q}{|\keyspace|} \;.
+\enm
+\end{theorem}
+
+
+
+\hfpages{.25}{
+\underline{$\INDIFF1_{H,\foracle}^\advD$}\\
+$b' \getsr \advD^{\Fn,\foracle}$\\
+Ret $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Ret $H^\foracle(M)$\medskip
+
+\underline{$\foracle(X)$}\\
+If $\Tabf[X] = \bot$ then\\
+\myInd $\Tabf[X] \getsr \bits^n$\\
+Ret $\Tabf[X]$
+}{
+\underline{$\INDIFF0_{\Horacle,\simu}^\advD$}\\
+$b' \getsr \advD^{\Fn,\simoracle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+If $\TabH[M] = \bot$ then\\
+\myInd $\TabH[M] \getsr \bits^n$\\
+Ret $\TabH[M]$\medskip
+
+\underline{$\simoracle(X)$}\\
+Ret $\simu^\Fn(X)$
+}
+
+
+\bnm
+  \AdvINDIFF{H,\foracle,\simu}{\advA} =
+    \left|\Prob{\INDIFF1_{H,\foracle}^\advD\Rightarrow1} -
+            \Prob{\INDIFF0_{\Horacle,\simu}^\advD\Rightarrow1}\right|
+\enm
+
+
+\hfpages{.20}{
+\underline{$\RKAPRF1_{F,\Phi}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^{\Fn}$\\
+Ret $b'$\medskip
+
+\underline{$\Fn(\phi,X)$}\\
+If $\phi \notin \Phi$ then\\
+\myInd Ret $\bot$\\
+Ret $F(\phi(K),X)$
+}{
+\underline{$\RKAPRF0_{F,\Phi}^\advA$}\\
+$K \getsr \keyspace$\\
+$\rho \getsr \Func(\keyspace\times\msgspace,n)$\\
+$b' \getsr \advA^{\Fn}$\\
+Ret $b'$\medskip
+
+\underline{$\Fn(\phi,X)$}\\
+If $\phi \notin \Phi$ then\\
+\myInd Ret $\bot$\\
+Ret $\rho(\phi(K),X)$
+}
+
+
