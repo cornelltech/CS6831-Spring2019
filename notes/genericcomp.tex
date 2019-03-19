@@ -1,6 +1,6 @@
 \section{Authenticated Encryption from SE and MACs}
 \label{sec:genericcomp}
-Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=(\MA.\kg,\mtag,\ver)$ be a message authentication scheme. In this section, we combine these two primitives in different ways to construct an authenticated encryption scheme $\SE'=(\kg,\enc,\dec)$, and we describe the security guarantees of each construction. 
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=(\MA.\kg,\mtag,\ver)$ be a message authentication code (recall that a $\MAC$ has a deterministic tag). In this section, we combine these two primitives in different ways to construct an authenticated encryption scheme $\SE'=(\kg,\enc,\dec)$, and we describe the security guarantees of each construction. 
 \begin{figure}[h]
 	\centering
 	\fpage{.12}{
@@ -45,7 +45,6 @@ Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=
 		\underline{$\dec(K,C)$}\\[1pt]
 		$(K_1,K_2)\gets K$\\
 		$M\concat T\gets \SE.\dec(K_1,C)$\\
-		\scribenote{fix the concat notation}\\
 		$T'\gets \mtag(K_2,M)$\\
 		If $T'\neq T$ then Ret $\bot$\\
 		Ret $M$
@@ -78,7 +77,7 @@ Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=
 	\caption{The Encrypt-then-Mac composition. The ciphertext is computed on the original message, then the tag is computed on the ciphertext.}
 \end{figure}
 
-If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{Give counter examples for EaM and MtE?}
+If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{We should merge this section with the next scribe's discussion of these composition constructions.}
 
 \begin{theorem}
 Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be an SE scheme and $\MA=(\MA.\kg,\MA.\mtag,\MA.\ver)$ be a MAC with $\MA.\mtag$ output length $n$ and $\EtM=(\EtM.\kg,\EtM.\enc,\EtM.\dec)$ be the Encrypt-then-Mac
