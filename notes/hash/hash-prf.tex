@@ -1,0 +1,89 @@
+%!TEX root = ../main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Hash-based PRF and the Random Oracle Model}
+
+\begin{tikzpicture}[scale=0.4]
+	\node[draw,trapezium,trapezium left angle=70,trapezium right angle=70,minimum height=1.0cm,thick,shift={(1.15,0)},rotate=-90] (hfxn)
+	{\begin{sideways}\Large $\hash$ \end{sideways}};
+	\draw[->,thick] (0,0) node[left] {$\prfkey \concat \msg$} -- (hfxn);
+	\draw[->,thick] (hfxn) -- ++(3,0) node[right] {$Y$};
+\end{tikzpicture}
+
+\hfpages{.25}{
+\underline{$\PRF1_{F,\Horacle}^\advA$}\\
+$K \getsr \keyspace$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $F^\Horacle_K(M)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+
+}{
+\underline{$\PRF0_{F,\Horacle}^\advA$}\\
+$\rho \getsr \Func(\msgspace,n)$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\rho(M)$\\
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}
+
+
+\begin{theorem}
+Let  $\Horacle\Colon\msgspace\rightarrow\bits^n$ be modeled as a random oracle
+and let $F^\Horacle\Colon\keyspace\times\msgspace\rightarrow\bits^n$ be the
+hash-based PRF defined as $F^\Horacle(K,M) = \Horacle(K \concat M)$.
+Then for any $\PRF_{F,\Horacle}$-adversary $\advA$ making at most $q$ queries
+to $\Horacle$ it holds that
+\bnm
+  \AdvPRF{F,\Horacle}{\advA} \le \frac{q}{|\keyspace|} \;.
+\enm
+\end{theorem}
+
+\begin{tikzpicture}[scale=0.4]
+
+	\begin{scope}[]
+		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.15,0.3)},rotate=-90]
+		{\begin{sideways}\Large$f$\end{sideways}};
+		\draw[->,thick] ++(0.5,+4) node[above] {$\prfkey$} -- ++(0,-1.5) -- ++(1.4,0);
+		\draw[->,thick] ++(0,0.5) node[left] {$\IV$} -- ++(1.9,0);
+	\end{scope}
+
+	\begin{scope}[shift={(3.8,0)}]
+		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.35,0.3)},rotate=-90]
+		{\begin{sideways}\Large$f$\end{sideways}};
+		\draw[->,thick] ++(0.9,+4) node[above] {$\msg_1$} -- ++(0,-1.5) -- ++(1.4,0);
+		\draw[->,thick] ++(0,0.5) -- ++(2.4,0);
+	\end{scope}
+
+	\begin{scope}[shift={(8.2,0)}]
+		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.35,0.3)},rotate=-90]
+		{\begin{sideways}\Large$f$\end{sideways}};
+		\draw[->,thick] ++(0.9,+4) node[above] {$\qquad\msg_2 \concat 10^r \concat \bm{\langle} \left| \msg \right| \bm{\rangle}$} -- ++(0,-1.5) -- ++(1.4,0);
+		\draw[->,thick] ++(0,0.5) -- ++(2.4,0);
+		\draw[->,thick] ++(4.4,0.5) -- ++(2,0) node[right] {$Y$};
+	\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[scale=0.4]
+
+	\begin{scope}[]
+		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.15,0.3)},rotate=-90]
+		{\begin{sideways}\Large$f$\end{sideways}};
+		\draw[->,thick] ++(0.5,+4) node[above] {$\qquad\msg^* \concat 10^{r'} \concat \bm{\langle} \left| \msg' \right| \bm{\rangle}$} -- ++(0,-1.5) -- ++(1.4,0);
+		\draw[->,thick] ++(0,0.5) node[left] {$Y$} -- ++(1.9,0);
+		\draw[->,thick] ++(4.4,0.5) -- ++(2,0) node[right] {$Y'$};
+	\end{scope}
+
+\end{tikzpicture}

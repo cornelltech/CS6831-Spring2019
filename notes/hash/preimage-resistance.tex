@@ -1,0 +1,33 @@
+%!TEX root = ../main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Further Security Properties for Hash Functions}
+
+\subsection{Preimage and Second Preimage Resistance}
+
+\fpage{.25}{
+\underline{$\OWF^\advA_{\hash}$}\\[1pt]
+$M \getsr \msgspace$\\
+$Y \gets \hash(M)$\\
+$M' \getsr \advA(Y)$\\
+Ret $(\hash(M') = Y)$
+}
+
+
+\bnm
+\AdvOWF{\hash}{\advA} = \Prob{\OWF^\advA_{\hash}\Rightarrow\true}
+\enm
+
+
+
+\fpage{.25}{
+\underline{$\SPR^\advA_{\hash}$}\\[1pt]
+$M \getsr \msgspace$\\
+$Y \gets \hash(M)$\\
+$M' \getsr \advA(M)$\\
+Ret $(\hash(M') = \hash(M)) \land (M \ne M')$
+}
+
+
+\bnm
+\AdvSPR{\hash}{\advA} = \Prob{\SPR^\advA_{\hash}\Rightarrow\true}
+\enm
