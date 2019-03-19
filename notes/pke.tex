@@ -1,0 +1,223 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Public Key Encryption}
+\label{sec:pke}
+
+A PKE scheme $\AEnc = (\kg,\enc,\dec)$ is a triple of
+algorithms. Key generation is randomized and outputs a key pair $(\pk,\sk)$.
+Encryption
+takes as input a public key $\pk$ and message $M$ and outputs a ciphertext.
+Decryption takes as input a secret key $\sk$ and ciphertext $C$ and outputs a
+message or a distinguished error symbol $\bot$. 
+
+
+
+\fpage{.20}{
+		\underline{$\INDCPA_\AEnc^\advA$}\\
+    $(\pk,\sk) \getsr \kg$\\
+    $b \getsr \bits$\\
+    $b' \getsr \advA^\EncOracle(\pk)$\\
+		Ret $b'$\medskip
+
+    \underline{$\EncOracle(M_0,M_1)$}\\
+    If $|M_0| \ne |M_1|$ then\\
+    \myInd Ret $\bot$\\
+    $C \getsr \enc(\pk,M_b)$\\
+    Ret $C$
+	}
+
+
+\begin{theorem*}
+Let $\AEnc$ be a PKE scheme. Let $\advA$ be an $\INDCPA_\AEnc$-adversary making at
+most $q$ queries. We give an $\INDCPA_\AEnc$-adversary $\advB$ making one query
+such that
+\bnm
+  \AdvINDCPA{\AEnc}{\advA} \le q\cdotsm\AdvINDCPA{\AEnc}{\advB}
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus the time to perform $(q-1)$
+encryptions under $\AEnc$.
+\end{theorem*}
+
+
+\fpage{.20}{
+		\underline{$\G_{i^*}$}\\
+    $b \getsr \bits$\\
+    $(\pk,\sk) \getsr \kg$\\
+    $i \gets 1$\\
+    $b' \getsr \advA^\EncOracle(\pk)$\\
+		Ret $b'$\medskip
+
+    \underline{$\EncSim(M_0,M_1)$}\\
+    If $|M_0| \ne |M_1|$ then\\
+    \myInd Ret $\bot$\\
+    If $i > i^*$ then\\ 
+    \myInd $C \getsr \enc(\pk,M_0)$\\
+    Else\\
+    \myInd $C \getsr \enc(\pk,M_1)$\\
+    $i \gets i + 1$\\
+    Ret $C$
+	}
+
+
+
+\fpage{.20}{
+		\underline{$\advB^\EncOracle(\pk)$}\\
+    $i \gets 1$\\
+    $b' \getsr \advA^\EncSim(\pk)$\\
+		Ret $b'$\medskip
+
+    \underline{$\EncSim(M_0,M_1)$}\\
+    If $|M_0| \ne |M_1|$ then\\
+    \myInd Ret $\bot$\\
+    If $i > i^*$ then\\ 
+    \myInd $C \getsr \enc(\pk,M_1)$\\
+    Else if $i = i^*$ then\\
+    \myInd $C \gets \EncOracle(M_0,M_1)$\\
+    Else\\
+    \myInd $C \getsr \enc(\pk,M_0)$\\
+    $i \gets i + 1$\\
+    Ret $C$
+	}
+
+
+\begin{align*}
+\AdvINDCPA{\AEnc}{\advA} 
+  &= \left|\Prob{\G_0\Rightarrow1} - \Prob{\G_1\Rightarrow1}\right|\\
+  &= \left|\sum_{i=1}^q \Prob{\G_{i-1}\Rightarrow1} - \Prob{\G_i\Rightarrow1}\right| \\
+  &= \left|\sum_{i=1}^q 
+      \Prob{\INDCPA1^{\advB_i}_\AEnc\Rightarrow 1}
+      - \Prob{\INDCPA0^{\advB_i}_\AEnc\Rightarrow 1}\right|
+\end{align*}
+
+\begin{align*}
+  \AdvINDCPA{\AEnc}{\advB}
+    &= \left| \Prob{\INDCPA1^\advB\Rightarrow1} - \Prob{\INDCPA0^\advB\Rightarrow1} \right|\\
+    &= \frac{1}{q} \left|
+    \sum_{i^*=1}^q\CondProb{\INDCPA1^\advB\Rightarrow1}{j= i^*} -
+    \CondProb{\INDCPA0^\advB\Rightarrow1}{j=i^*} \right|\\
+    &= \frac{1}{q} \left|
+    \sum_{i^*=1}^q\Prob{\INDCPA1^{\advB_{i^*}}\Rightarrow1} - \Prob{\INDCPA0^{\advB_{i^*}}\Rightarrow1} \right|
+\end{align*}
+  
+
+\begin{align*}
+\AdvINDCPA{\AEnc}{\advB} 
+  &= \left|\Prob{\INDCPA0_\AEnc^\advB\Rightarrow1} -
+                      \Prob{\INDCPA1_\AEnc^\advB\Rightarrow1}\right|\\
+  &= \frac{1}{q}\sum_{i=0}^{q-1} \left|\Prob{\G_i\Rightarrow1} - \Prob{\G_{i+1}\Rightarrow1}\right|\\
+  &= \frac{1}{q}\left|\Prob{\G_0\Rightarrow1} - \Prob{\G_q\Rightarrow1}\right|
+\end{align*}
+
+
+\fpage{.20}{
+		\underline{$\OWF_{\RSAk}$}\\
+    $((N,e),(N,d))\getsr \kg(k)$\\
+    $X \getsr \Z_N^*$\\
+    $Y \gets X^e \bmod N$\\
+    $X' \getsr \advA(Y)$\\
+		Ret $(X' = X)$
+	}
+
+\bnm
+  \AdvOWFRSA{\RSAk}{\advA} = \Prob{\OWF_{\RSAk}^\advA\Rightarrow\true}
+\enm
+
+
+\begin{theorem*}
+Let $\RSAk$ be the RSA-based scheme using
+security parameter $k$, hash function
+$\Horacle\Colon\msgspace\rightarrow\bits^n$ modeled as a random oracle, and
+symmetric encryption scheme $\SEscheme$. Let $\advA$ be
+an $\INDCPA_{\RSAk}$-adversary making at most $q$ queries to
+$\Horacle$. Then we give an
+$\OWF_{\RSAk}$-adversary $\advB$ and $\INDCPA_\SEscheme$-adversary
+$\advC$ such that
+\bnm
+  \AdvINDCPA{\RSAk,\Horacle}{\advA} \le
+      2\cdotsm\AdvOWF{\RSAk}{\advB} +  
+        2\cdotsm\AdvROR{\SEscheme}{\advC}  \;.
+\enm
+Adversaries $\advB,\advC$ run in time that of $\advA$ plus 
+the time to simulate $q$ RO queries. Adversary $\advC$ makes a single encryption query.
+\end{theorem*}
+
+
+\hfpagesss{.20}{.20}{.20}{
+\underline{$\G_0$}\\
+$b \getsr \bits$\\
+$((N,e),(N,d)) \getsr \kg(k)$\\
+$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+$R \getsr \Z^*_N$\\
+$C_1 \gets R^e \bmod N$\\
+$K \gets \Horacle(R)$\\
+$C_2 \getsr \encSym(K,M)$\\
+Ret $(C_1,C_2)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$  then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}{
+\underline{\fbox{$\G_1$}\;\;\; $\G_2$}\\
+$((N,e),(N,d)) \getsr \kg(k)$\\
+$R \getsr \Z^*_N$\\
+$C_1 \gets R^e \bmod N$\\
+$K \getsr \bits^n$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+$C_2 \getsr \encSym(K,M)$\\
+Ret $(C_1,C_2)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $X = R$ then\\
+\myInd $\badtrue$\\
+\myInd \fbox{$\TabH[X] \gets K$}\\
+If $\TabH[X] = \bot$  then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}{
+\underline{$\G_3$}\\
+$((N,e),(N,d)) \getsr \kg(k)$\\
+$R \getsr \Z^*_N$\\
+$C_1 \gets R^e \bmod N$\\
+$K \getsr \bits^n$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+%$C_2 \getsr \encSym(K,M)$\\
+$C_2 \getsr \bits^{\ctxtlen(M_0)}$\\
+Ret $(C_1,C_2)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$  then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}
+
+
+
+
+\hfpages{.2}{
+		\underline{$\enc((N,e),M)$:}\\
+    $R \getsr \Z^*_N$\\
+    $C_1 \gets R^e \bmod N$\\
+    $K \gets H(R)$\\
+    $C_2 \getsr \encSym(K,M)$\\
+		Ret $(C_1,C_2)$
+  }{
+	  \underline{$\dec((N,d),(C_1,C_2))$:}\\
+    $R \gets C_1^d \bmod N$\\
+    $K \gets H(R)$\\
+    $M \gets \decSym(K,C_2)$\\
+		Ret $M$
+	}
+
+$\SEscheme = (\kgSym,\encSym,\decSym)$
+

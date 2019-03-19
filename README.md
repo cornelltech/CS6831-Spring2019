@@ -194,9 +194,10 @@ what we're hoping to cover.
 | Mar 6  | Hash functions  |[Slides](slides/hashfunctions-lec11.pptx)  | |
 | Mar 11 | Hash functions 2 | [Slides](slides/hashfunctions-lec12.pptx) | |
 | Mar 13 | Hash functions 3 | [Slides](slides/hashfunctions-lec13.pptx) | |
-| Mar 18 | Computational number theory basics, RSA | | |
-| Mar 20 | Public-key encryption  |   | |
-| Mar 27 | Diffie-Hellman  |  | |
+| Mar 18 | Public key encryption / RSA | [Slides](slides/pke.pptx)| |
+| Mar 20 | Public-key encryption / El Gamal  |   | |
+| Mar 25 | Chosen-ciphertext attacks |   | |
+| Mar 27 | Anonymous key exchange  |  | |
 | Apr 1  | No lecture (Spring Break) |  | |
 | Apr 3  | No lecture (Spring Break) |  | |
 | Apr 8  | Digital signatures | | |
