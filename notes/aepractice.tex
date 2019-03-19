@@ -1,0 +1,308 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Authenticated Encryption in Practice and Theory}
+\label{sec:authencpractice}
+
+So, now that we have seen and analyzed authenticated encryption schemes, we turn to the practical deployment of AE schemes and the trade-offs that 
+arise therein.  We have seen that CPA-only encryption proves insufficient due to the active attacks we've explored, including padding oracle attacks 
+and attacks that violate integrity, and that authenticated encryption provides much stronger properties concerning the validity of ciphertexts that 
+addresses this gap.  We've also seen the OCB construction for achieving authenticated encryption.
+
+We now focus on more generic constructions that attempt to achieve the same goals of ROR+CTXT or ROR-CCA security.  A natural strategy for achieving 
+authenicated encryption is to combine symmetric message authentication and encryption primitives (for integrity and confidentiality, respectively).  
+For example, it is possible to combine a CPA-secure encryption scheme with a UF-CMA MAC to achieve what appears to be authenticated encryption.  
+Several initial proposals for doing this are sumarized in Figure~\ref{fig:cpamac}, and were originally explored by Bellare in~\cite{Bellare2000}.
+
+
+\subsection{``Stackoverflow Errrors"}
+
+Figure~\ref{fig:reusescheme} shows the Wikipedia diagram of a generic composition achieving ``authenticated encryption" (what we will call the 
+AE-WIKI) on the left.  Unfortunately, AE-WIKI does not imply any of our previous security notions, even when appropriate primitives are chosen.  For 
+one, AE-WIKI makes reference to a ``hash function", which is shown to have a key as input.  The specifics of this composition are not clear: hash 
+functions generally are not a keyed primitive, and the exact security requirements for a hash function to result in a secure construction remain 
+unclear.
+
+Worse still, the key is shown as being reused in this diagram.  This could lead to serious security issues in many constructions; a notion we explore 
+next.
+
+\subsection{Against Key Reuse}
+
+\begin{figure}[h]
+\centering
+\fpage{.35}{\scalebox{0.5}{\includegraphics{aeinpractice/aewiki}}}
+\fpage{.5}{
+\scalebox{0.6}{\input{aeinpractice/keyreuse}}}
+  \caption{One encryption scheme that reuses keys across MAC and encryption primitives (right), as suggested in this diagram from Wikipedia (left)}
+\label{fig:reusescheme}
+\end{figure}
+
+Consider the right side of Figure~\ref{fig:reusescheme}.  This shows one example construction, composing CBC-Mode+CBC-MAC using an encrypt-then-MAC 
+paradigm where the ciphertexts are MACd, as suggested by AE-WIKI.  We concretely instantiate the scheme with messages consisting of two blocks, but 
+consider the generalization to $n$ blocks by the obvious changes to the above structure.
+
+While CBC mode provides the security we require, an adversary can easily violate ROR+CTXT for this scheme.  Remember the definition of the CTXT game 
+in the previous chapter; an adversary must forge a ciphertext not returned by the encryption oracle, that decrypts without throwing an error.
+
+To do so, consider a CTXT adversary $A$, whose operation is illustrated in Figure~\ref{fig:reuseadversary}.  First, the adversary queries the 
+encryption of $0^n$, as shown on the left, so $C_0C_1T \leftarrow Enc(0^n)$.  The adversarially controlled inputs are shown with a red box surrounding 
+them.
+
+Next, the adversary calls $R \leftarrow Dec(0^nTT)$.  We will now show that $R \neq \bot$ with probability $1-\frac{1}{2^n}$, and therefore $A$ wins 
+the CTXT game with this probability.
+
+
+\begin{figure}
+\centering
+\scalebox{0.6}{\input{aeinpractice/keyreuse_attack}}
+  \caption{The intuition behind the key reuse adversary for CTXT $A$}
+\label{fig:reuseadversary}
+\end{figure}
+
+The intuition for the proof is shown in Figure~\ref{fig:reuseadversary}.  On the left side, this figure shows an adversary querying an encryption of 
+$0^n$ with a random IV.  On the left side, this figure shows a valid encryption of the string $0^n$ under the IV $0^n$ yielding a desired ciphertext 
+of $0^nTT$, which forms the adversarial input to the decryption procedure that wins the CTXT game.
+
+To prove this, note that $C_1 = E_K(M_1 \oplus C_0) = E_K(0^n \oplus C_0) = E_K(C_0)$.
+
+Also, $T=E_K(C_1 \oplus E_K(C_0))=E_K(C_1 \oplus C_1) = E_K(0^n)$ (by the above).  So, as indicated in the figure, $T=E_K(0^n)$.
+
+Note that the above equalities, $C_1=E_K(C_0)$ and $T=E_K(0^n)$ hold in general when $M=0^n$.  The right side of the figure now sets $C_0=0^n$, which 
+implies that $C_1=E_K(0^n)=T$.  So, the valid ciphertext for an encryption of $0^n$ under IV (input as $C_0$) $0^n$ is $0^nTT$, forming a valid 
+ciphertext that will not return $\bot$ under decryption.
+
+Thus, $A$ wins the CTXT game as long as this ciphertext was not previously returned by the encryption oracle.  Note that the only ciphertext returned 
+by the encryption oracle for $A$ is $C_0C_1T$.  For this to be equal to the adverary's decryption query of $0^nTT$, $C_0$ must equal $T$.  But, $C_0$ 
+is the IV that is uniformly chosen in the adversary's first call to the decryption oracle.  The probability that this random IV is equal to $0^n$ and 
+therefore the decryption oracle outputs $\bot$ is $\frac{1}{2^n}$.
+
+So, $A$ wins the CTXT game with probability $1-\frac{1}{2^n}$ in two oracle queries, proving a potential lack of security in key reuse and 
+illustrating that extreme care is required when proving the security of composed constructions.
+
+\subsection{Towards Proper Constructions}
+
+These constructions show three natural possible such combinations, labeled $Enc$ and $Mac$.  We now explore the tradeoffs associated with each.  Note 
+that the constructions we claim are \emph{insecure} specifically means that there exists some secure encryption and MAC algorithm which does not 
+result in a secure composition; for more information and an extension of this result to weakly unforgeable MACs, see~\cite{Bellare2000}.  
+Independently chosen $K_1$ and $K_2$ are naturally assumed for security.
+
+
+\begin{figure}
+\hspace{-10mm}\scalebox{0.6}{\input{aeinpractice/generic_compositions}}
+  \caption{Possible modes for generic compositions achieving AE}
+\label{fig:cpamac}
+\end{figure}
+
+\textbf{Encrypt-then-MAC:} The first of our generic compositions, this composition is the most secure.  The MAC on the ciphertext $T$ prevents changes 
+in $T$ from verifying as valid ciphertexts, ensuring reliability of the plaintext regardless of whether invalid ciphertexts can still decrypt 
+correctly under $Enc$ and preventing chosen ciphertext attacks on $Enc$.  The correct decryption property combined with this provides integrity of the 
+original message.  No additional information is leaked by $Mac$, which has as input only the output of $Enc$ and cannot allow for distinguishing of 
+messages by CPA security.  When implemented correctly, this achieves ROR-CCA security.
+
+\textbf{MAC-then-Encrypt:} This scheme has one small barrier to achieving our desired security notions.  Namely, since no integrity is provided to the 
+ciphertext (as we have seen, some CPA-secure encryption schemes will fail to realize CTXT security), it could conceivably possible to craft a 
+ciphertext which will decrypt to have a valid MAC, and the composition will not realize ROR+CTXT security.  This is generally not devastating in 
+practice, as a secure MAC should make actually finding such a ciphertext unlikely for a given key.  TLS until version 1.2, for example, used this 
+paradigm.
+
+\textbf{MAC-and-Encrypt:} The least secure of our constructions, this scheme obviously provides plaintext integrity because of the direct MAC on the 
+original message.  Unfortunately, message equality is leaked, as MACs are deterministic.  This obviously breaks ROR security.  Similar to 
+MAC-then-Encrypt, this mode also does not MAC the ciphertext, which does not provide ciphertext integrity and could be of concern.
+
+
+\subsection{In Practice}
+
+
+\begin{figure}[h]
+\centering
+\scalebox{0.6}{\input{aeinpractice/tls}}
+  \caption{TLS1.2 MAC-Encode-Encrypt}
+\label{fig:tls12mee}
+\end{figure}
+
+In practice, however, protocols are often more complex than simple encryption and MAC phases, lending themselves to various errors.  
+Figure~\ref{fig:tls12mee} shows an example of TLS 1.2, which implemented MAC-Encode-Encrypt mode with associated data (shown in the figure as ``AD").
+
+Notice that the padding is not passed to the MAC, meaning that mangling ciphertexts could potentially propagate errors to the padding that lead to 
+similar padding oracle attacks as we've seen previously.  Concretely, an adversary can obtain $C = C_0,C_1,C_2,C_3$ for some header $H$; let $R$ be 
+arbitrary $n$ bits.  The adversary then queries $H, R, C_0 \oplus i, C_1$ for increasing values of $i$.  Most of the time, the padding will be 
+invalid, and a padding error will be returned.  Eventually, the adversary will guess a ciphertext block with valid padding, and will receive a MAC 
+error.  Similar to the padding attacks we have seen previously, this leaks information about bits at the end of the original ciphertext block, now 
+treated as padidng by the decryption algorithm.  Complicating this attack in practice is the implementation detail that all errors will end TLS 
+sessions, requiring an adversary to open multiple sessions that reuse $H, R, C_1$; this is in fact not possible in the implemented protocol, so a 
+multi-session attack that attempts the attacks on several different sessions would be required.
+
+Interestingly, this exact construction spawned debate within the academic community on whether TLS 1.2 was secure.  An analysis by Krawczyk 
+in~\cite{Krawczyk2001} concluded that this MAC-Encode-Encrypt mode as used in SSL was safe as used in practice, though not perhaps theoretically safe 
+in general. Surprisingly, two years later, Canvel et. al showed a password recovery attack in the above protocol using a classic padding oracle 
+attack, described in~\cite{Canvel2003}.
+
+
+\begin{figure}[h]
+\centering
+\hfpagesss{.2}{.2}{.3}{
+\underline{$\RORCCA1^\advA_{\AEAD}$}\\[1pt]
+$K \getsr \kg$\\
+$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(H,M)$}\\
+$C \getsr \enc_K(H,M)$\\
+$\calC \gets \calC \cup \{(H,C)\}$\\
+Ret $C$\medskip
+
+\underline{$\DecOracle(H,C)$}\\
+If $(H,C) \in \calC$ then \\
+\myInd Ret $\bot$\\
+Ret \color{blue}$\dec_K(H,C)$\color{black}
+}{
+\underline{$\RORCCA0^\advA_{\AEAD}$}\\[1pt]
+$b' \getsr \advA^{\EncOracle,\DecOracle}$\\
+Ret $b'$\medskip
+
+\underline{$\EncOracle(H,M)$}\\
+$C \getsr \bits^{\ctxtlen(|M|)}$\\
+Ret $C$\medskip
+
+\underline{$\DecOracle(H,C)$}\\
+Ret \color{red}$\bot$\color{black}
+}{
+\underline{\color{blue}$Dec(K_1,K_2,H,C):$\color{black}}\\[1pt]
+$M \gets$ CBC-Dec($K,C$)\\
+$P \gets$  RemoveLastByte($M$)\\
+while $i <$ int($P$):\\
+\myInd $P’$ <- RemoveLastByte($M$)\\
+\myInd If $P’ \neq P$ then \\
+\myInd \myInd Return \color{red}PAD\_ERROR\color{black}\\
+\myInd $i$++\\
+$T$  <- RemoveLast20Bytes($M$)\\
+If HMAC($K_1,H,M$) $\neq T$ then\\
+\myInd Return \color{red}MAC\_ERROR\color{black}\\
+Return $M$\\
+}
+%\scalebox{0.6}{\input{aeinpractice/tls}}
+  \caption{Differences between ROR-CCA Model and Implementation Leakage}
+\label{fig:modeldifferences}
+\end{figure}
+
+
+This disparity in two different analyses of the same protocol came down to a small difference in the model used to prove security, shown in 
+Figure~\ref{fig:modeldifferences}.  Note that in the implementation of the model (rightmost box), two different errors are returned for a padding or 
+MAC error, allowing for padding oracle attacks.  In the more abstract theoretical model (left two boxes), however, only one kind of error, $\bot$, 
+could be returned by the decryption $\DecOracle(H,C)$ (and therefore by the subroutine $\dec_K(H,C)$ in cases of failure).  This means that, 
+implicitly, any security analysis at the level of abstraction of the model implicitly assumed no adversary could distinguish these kinds of errors in 
+decryption, a crucial ability an adversary would requires for a padding attack.  The implementation, unlike the model, provided adversaries this 
+ability.
+
+The failure of a security proof of TLS1.2 to consider this potential flaw due to restrictions in the model shows that not even formally proved and 
+correctly implemented cryptography is a silver bullet: models always come with limitations, and it is critical to introspect on whether they 
+accurately reflect the systems that implement them.
+
+
+\begin{figure}[h]
+\centering
+\scalebox{.7}{\includegraphics{aeinpractice/timing_tls}}
+  \caption{Clear timing differences across error types in TLS provide a side-channel}
+\label{fig:timing}
+\end{figure}
+
+The particular attack highighted in~\cite{Canvel2003} was fixed by RFC 5246, which required all padding errors to emit a MAC error to bring them in 
+line with the secure theoretical model.  Despite this, channels for leaking information outside the scope of the model persist, including timing 
+errors highlighted by the same work.  A clear separation in the timing of various error sources in TLS 1.2 was described by~\cite{Canvel2003}, and is 
+shown in Figure~\ref{fig:timing}.  So, even returning the same error message may not suffice, and indeed RFC 5246 attempted to address this issue by 
+requiring that ``implementations MUST ensure that record processing time is essentially the same whether or not the padding is correct."  The RFC 
+noted that the MAC's performance differences under different data sizes still left a timing channel in place, but this was not believed to be 
+exploitable.  In 2013, this was shown to be false, and another timing attack was shown in RFC 5246-compliant implementations~\cite{Fardan2013}.
+
+TLS is not unique; SSH protocols underwent a similar series of attacks and ad-hoc countermeasures.  Bellare et al showed an attack as a case study of 
+their original work on secure authenticated encryption in~\cite{Bellare2004}.  Specifically, the SSH binary packet protocol leaks the initialization 
+vector of the next message to be encrypted to an adversary.  If the adversary can also control the full first block of input, the adversary 
+essentially chooses the full input to the underlying deterministic block cipher, which can leak input about whether a queried message block was 
+encrypted before, leaking plaintext information. The same work proposed a series of modifications to the protocol fixing the attack, claiming the new 
+notion satisfied the most rigorous definition of provable security.
+
+Similarly to the TLS case, an attack was later found in the ``fixed" scheme by Albrecht et al. in~\cite{Albrecht2009}, whereby a lack of ciphertext 
+integrity in the scheme allowed an adversary to control the length field of the protocol's encoding, which had to be decoded before the message used 
+to calculate the MAC was computed.  The value of this length field would then affect timings of SSH packets, which could be measured to infer its 
+value.  This attack was missed by the original analysis of Bellare et al. that claimed the SSH protocol was secure, as there was no model for timing 
+side channels in their adversary, and all decryption failure errors were treated as indistinguishable failures (sound familiar?).  These gaps were 
+finally bridged by a formal analysis in~\cite{Paterson2010}.
+
+By feeding random blocks of ciphertext in as the first block of a new session, and letting the protocol interpret them as a potential length field 
+before throwing a MAC error, leakage about the plaintext data that originally formed these ciphertext blocks could be recovered.  Like the TLS case, 
+this shows the danger of data encodings interacting with cryptographic primitives that do not provide appropriate authentication guarantees; as a 
+practitioner implementing protocols based on cryptography, it is critical to rigorously evaluate the concrete security provided by any primitives used 
+in the context of other interacting components, parsers, etc.
+
+\subsection{Authenticated Encryption Extensions}
+
+Because of the obvious popularity of authenticated encryption in securing communications, and its importance to deployed protocols, a number of 
+variants of authenticated encryption and their associated security models have been studied in the literature.  We briefly mention a few, as well as 
+provide intuition for key trade-offs in their design.
+
+\textbf{Stateful encryption} All the constructions and games described in this chapter have assumed a random initialization vector used to provide 
+security to e.g. repeated plaintext blocks.  The stateful variants of such schemes instead assume a recipient maintains some state, and do not 
+transmit the initialization vector as the first block of ciphertext, instead using this state.  Security models for such schemes are complicated, as 
+they need to handle e.g. reordering of messages from the sender to the receiver, ensuring no data is leaked.
+
+\textbf{Nonce-Based AE(AD)} One natural question is whether AD schemes can be made deterministic, removing the need for randomness.  Currently, our 
+e.g. ROR definitions require a random initialization vector to hide correlations in repeated message values.  An alternative construction first 
+explored by Rogaway et. al in 2004~\cite{Rogaway2004} is the use of \emph{nonces}, or values used only once, in the place of initialization vectors. 
+In these schemes, extended security definitions make the additional assumption that no nonce is used twice across encryptions.  In the event that a 
+nonce is used twice, no security is provided whatsoever, regardless of whether the same or different messages are encrypted.  Additionally, such 
+constructions have the benefit that good randomness is not required during encryption, removing many PRNG-based attacks which have led to IV reuse in 
+practice.
+
+\textbf{Misuse-resistant nonce-based AE(AD)} A natural extension of nonce-based AE is to extend the security definitions to cases where the nonce 
+\emph{is} reused, minimizing the potential for damage in the event of misuse (or equivalently, in the case of IV reuse in a randomized setting).  Any 
+nonce that is reused with the same message in a deterministic scheme will obviously leak plaintext equality, so leaking only this is both a natural 
+and optimal security definition for such schemes.  To achieve this, we modify the security definitions shown to allow the adversary to make any number 
+of encryption and decryption queries that may repeat IVs, and require encryption oracle responses to appear random except in the case of a repetition 
+in all of $(header, IV, message)$.  Such schemes were first explored in depth in~\cite{Rogaway2006}.
+
+
+\textbf{Trade-offs in Misuse-resistant nonce-based AE(AD)} Interestingly, the AE constructions we have explored showcase fundamental security 
+trade-offs, as briefly explored in~\cite{Rogaway2006}.  In an encryption scheme used e.g. in an online communication protocol, it may be desireable 
+for an encryption algorithm to return partial ciphertext results as plaintext blocks are encrypted, without waiting for the full message.  Such 
+constructions are especially useful for resource constrained contexts, where maintaining state may be costly.  In such constructions, the ciphertext 
+of the first block $C_1$ cannot be affected by subsequent message $M_n, n>1$ or ciphertext blocks $C_n, n>1$, as the algorithm outputs $C_1$ before 
+receiving any such information; we refer to such schemes as \emph{online} schemes, or \emph{feed forward} schemes.  Obviously, this characteristic of 
+an online deterministic encryption scheme means that plaintext prefix equality can be leaked when nonces are misused.  The intuition for this is 
+clear; consider two messages that differ only in the last block, and note that if a nonce is reused in any deterministic feed forward construction 
+over these messages, the first output block cannot depend on the last by nature of feed forward.  Indeed, online output will inherently be identical 
+up to the first difference in the message input, leaking exactly equality of prefixes.
+
+Offline constructions feed ciphertexts output by the first pass backwards, to ensure that each block of the message depends on every other block; in 
+the above example, the last message block now affects every block of ciphertext.  While such constructions are inherently less efficient, as the first 
+pass must complete before the second pass which depends on its full output, they are also inherently more secure, achieving the maximum possible 
+security for deterministic encryption.  Nothing is leaked except in the case of re-used $(header, IV, message)$, which causes plaintext equality to 
+leak.  Such leaks are unavoidable in any deterministic construction where all input is re-used.
+
+\subsection{Choices for Practitioners}
+
+\begin{table}[h]
+\scalebox{.8}{
+\begin{tabular}{llllll}
+\textbf{Mode}     & \textbf{Inventors} & \textbf{Notes}                                                   & \textbf{Nonce-based} & \textbf{Misuse-resistant} & \textbf{Robust} \\
+OCB               & Rogaway            & One-pass                                                         & \color{green}Yes\color{black}                  & No                        & No              \\
+\specialcell{AES-CTR\\-then-HMAC} &                    &                                                                  & No                   & No                        & \color{green}Yes\color{black}*            \\
+GCM               & McGrew, Viega      & \specialcell{CTR mode with Universal\\Hash Function-based MAC}        & \color{green}Yes\color{black}                  & No                        & No              \\
+SIV               & Rogaway, Shrimpton & Not online, two full passes                                      & \color{green}Yes\color{black}                  & \color{green}Yes\color{black}                       & No              \\
+AES-GCM-SIV       & Gueron, Lindell    & \specialcell{SIV using AES-GCM\\with special tweaks} & \color{green}Yes\color{black}                  & \color{green}Yes\color{black}                       & No              \\
+ASCON             & Dobraunig et al.   & Based on lightweight cipher                                      & \color{green}Yes\color{black}                  & \color{orange}Except prefix\color{black}             & \color{green}Yes\color{black}             \\
+AEGIS             & Wu, Preneel        & Uses AES round function                                          & \color{green}Yes\color{black}?                 & No                        & ???             \\
+COLM              & Andreeva et al.    & Parallelizable cipher      & \color{green}Yes\color{black}                  & \color{orange}Except prefix\color{black}             & No?            
+\end{tabular}
+}
+  \caption{Clear timing differences across error types in TLS provide a side-channel}
+\label{table:practicalae}
+\end{table}
+
+
+Table~\ref{table:practicalae} summarizes several modes that have been cryptographically analyzed for security, as well as their inventors and notes on 
+algorithm characteristics.
+
+\subsection{Questions [Proofreaders; any suggestions?]}
+
+\begin{itemize}
+\item Consider the American Standards Committee ANSX9.102 document available at \url{https://eprint.iacr.org/2004/340.pdf}, which formalizes keywrap protocols using Misuse-resistant nonce-based AE(AD) as described above.  Categorize AKW1 and AKW2 as online or offline algorithms, and state precisely what is leaked by each in the event of both correct operation and misuse.
+\item Consider the key reuse adversary described by Figure~\ref{fig:reuseadversary}, and the scheme described by Figure~\ref{fig:reusescheme}.  Extend the provided attack to a version of the scheme which only allows for messages with two message blocks (of length $2n$) by providing and justifying an adversary that wins the CTXT game.
+\end{itemize}

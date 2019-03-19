@@ -141,12 +141,22 @@ We say a tweakable block cipher is \emph{correct} if $\forall (K, T, M)\in\keysp
 
 \paragraph{Security for tweakable block ciphers.}
 
-Tweakable block cipher security is defined using notions similar to those used for regular block ciphers, namely PRP and SPRP security. A good TBC should be indistinguishable from a family of random permutations where each tweak has an independent random permutation See Figure~\ref{fig:tprp}
 
-\begin{figure}[h]
+Tweakable block cipher security is defined using notions similar to those used for regular block ciphers, namely PRP and SPRP security. A good TBC should be indistinguishable from a family of random permutations where each tweak has an independent random permutation. We define the advantages of adversaries playing the games in Figure~\ref{fig:tprp} as 
+\bnm
+\AdvSTPRP{\tweakCipher}{\advA} = \left|\Prob{\TPRPReal_{\tweakCipher}^{\advA}\Rightarrow1} -
+\Prob{\TPRPIdeal^\advA\Rightarrow1} \right|
+\enm
+and
+\bnm
+\AdvTSPRP{\tweakCipher}{\advA} = \left|\Prob{\TSPRPReal_{\tweakCipher}^\advA\Rightarrow1} -
+\Prob{\TSPRPIdeal^{\advA}\Rightarrow1} \right|\;.
+\enm
+
+\begin{figure}[t]
 \centering
 \hfpagessss{.22}{.22}{.22}{.22}{
-\procedurev{$\TPRPReal_{\advA,\tbc}$}\\
+\procedurev{$\TPRPReal_{\tbc}^{\advA}$}\\
 $K\getsr\calK$\\
 $b\getsr\advA^{\Fun}$\\
 Return $b$\medskip
@@ -154,7 +164,7 @@ Return $b$\medskip
 \procedurev{$\Fun(T, M)$}\\
 Return $\tbce^{T}_{K}(M)$
 }{
-\procedurev{$\TPRPIdeal_{\advA}$}\\
+\procedurev{$\TPRPIdeal^{\advA}$}\\
 $\pi\gets [\;]$\\
 $b\getsr\advA^{\RFun}$\\
 Return $b$\medskip
@@ -164,7 +174,7 @@ If $\pi[T]=\bot$ then\\
 \ind $\pi[T]\getsr\Perms(\msgspace)$\\
 Return $\pi[T](M)$
 }{
-\procedurev{$\TSPRPReal_{\advA,\tbc}$}\\
+\procedurev{$\TSPRPReal_{\tbc}^{\advA}$}\\
 $K\getsr\calK$\\
 $b\getsr\advA^{\Fun}$\\
 Return $b$\medskip
@@ -175,7 +185,7 @@ Return $\tbce^{T}_{K}(M)$\medskip
 \procedurev{$\Fun\inv(T, C)$}\\
 Return $\tbcd^{T}_{K}(C)$
 }{
-\procedurev{$\TSPRPIdeal_{\advA}$}\\
+\procedurev{$\TSPRPIdeal^{\advA}$}\\
 $\pi\gets [\;]$\\
 $b\getsr\advA^{\RPerm}$\\
 Return $b$\medskip
@@ -194,15 +204,15 @@ Return $\pi_T\inv(C)$
 
 }
 
-\caption{Real and ideal games for tweakable pseudorandom permutation and strong tweakable pseudorandom permutation security of a tweakable block cipher $\tbc = (\tbce,\tbcd)$}
+    \caption{Real and ideal games for tweakable pseudorandom permutation (TPRP) and tweakable strong pseudorandom permutation (TSPRP) security of a tweakable block cipher $\tbc = (\tbce,\tbcd)$}
 \label{fig:tprp}
 \end{figure}
 
 \subsection*{Building Tweakable Block Ciphers} How do we build tweakable block ciphers? One way is to let $\tbce^{T}_{K} = E_{E_K(T)}(M)$. In practice this will be slow because key scheduling can be expensive, and you need to change key every time. For AES this construction has about a factor of 2 overhead.
 
-The Luby-Rackoff construction can be turned into a TBC easily: if the round function is a variable-length PRF, just add the tweak to the input of each round function. This is not ideal because need several PRF calls per TBC invocation.
+The Luby-Rackoff construction can be turned into a TBC easily: if the round function is a variable-length PRF, just add the tweak to the input of each round function. Such a construction is not ideal because it needs several PRF calls per TBC invocation.
 
-\paragraph{The CMT construction.} For a block cipher $E$, the CMT construction of LRW builds a tweakable block cipher as $\tbce^T_K(M) = E_K(T\oplus E_K(M))$ and $\tbcd^T_K(C) = D_K(T\oplus D_K(C))$.
+\paragraph{The CMT construction.}\pfreadernote{Did we define CMT before? Can't seem to find it} For a block cipher $E$, the CMT construction of LRW\pfreadernote{Same for LRW} builds a tweakable block cipher as $\tbce^T_K(M) = E_K(T\oplus E_K(M))$ and $\tbcd^T_K(C) = D_K(T\oplus D_K(C))$.
 An observation about this construction: it's the same as CBC-MAC on the message space $\msgspace\times\msgspace$ (where $\msgspace$ is the message space of $E$).
 
 \begin{theorem}
@@ -214,7 +224,7 @@ An observation about this construction: it's the same as CBC-MAC on the message 
 \end{theorem}
 \begin{proof}
   %This proof is taken basically verbatim from the LRW paper
-  Define the game $G_0$ to be $\TPRPReal_{\lrw[E]}$. Next, define the game $G_1$ to be $\TPRPReal$, except the adversary's oracle $\Fun$ is replaced by a function $R\Colon\msgspace\times\msgspace\rightarrow\msgspace$ sampled uniformly at random from the set of all such functions. Using the observation that $\lrw[E]$ is exactly CBC-MAC, we can apply the proof of security of CBC-MAC to get an adversary $\advB$ so that
+    Define the game $G_0$ to be $\TPRPReal_{\lrw[E]}$. Next, define the game $G_1$ to be $\TPRPReal$, except the adversary's oracle $\Fun$ is replaced by a function $R\Colon\msgspace\times\msgspace\rightarrow\msgspace$ sampled uniformly at random from the set of all such functions. Using the observation that $\lrw[E]$ is exactly CBC-MAC, we can apply the proof of security of CBC-MAC\pfreadernote{Is that proof somewhere in the notes?} to get an adversary $\advB$ so that
   \bnm
   \left\lvert\Prob{G_0\Rightarrow 1}-\Prob{G_1\Rightarrow 1}\right\rvert \leq \AdvPRP{E}{\advB} + \frac{16q^2}{2^{n+1}}\; .
   \enm
@@ -227,22 +237,25 @@ An observation about this construction: it's the same as CBC-MAC on the message 
   Applying the triangle inequality yields the bound.\hfill\qedsym
 \end{proof}
 
-LRW construction requires 2 block cipher calls per msg block... can we do better? Yes, but first we must briefly introduce finite fields.
+LRW construction requires two block cipher calls per msg block... Can we do better? Yes, but first we must briefly introduce finite fields.
 % Assume msg space is $\msgspace = \zon{n}$ and $\tweakspace = \zon{n} \times [0, \ldots, 2^n-2]$.
 % Take $\tbce^T_K(M) = E_K(E_K(T)\oplus i \oplus M)$. Does not work b/c can choose $i,M$ to cause collision
 
-\paragraph{Essentials on finite fields} $\gftwo{n}$ is a finite (Galois) field over $n$-bit strings. Represent point $a$ equivalently as:
+\paragraph{Essentials on finite fields} $\gftwo{n}$ is a finite (Galois) field over $n$-bit strings. A point $a \in \gftwo{n}$ can be equivalently represented as:
 \begin{itemize}
 \item polynomial $a(x) = a_{n-1}x^{n-1} + \cdots + a_1 x + a_0$
 \item integer $a = \sum\limits_{i=0}^{n-1} a_i 2^i$
 \item bit string $a= a_{n-1}\cdots a_0$
 \end{itemize}
 
-To do \textbf{addition} of $a$ and $b$ in $\gf{2^n}$, simply take the bitwise XOR. To do \textbf{multiplication} of $a$ and $b$, first fix primitive polynomial, e.g. $x^{128} + x^{7} + x^2 + x + 1$. Multiply points by treating as polynomials: multiply formal polynomials representing $a$ and $b$ s and take remainder modulo the primitive polynomial. One interesting fact about $\gftwo{n}$ is that the element $2=(0^{126}10)$ is a primitive root of unity: taking powers generates all of $\gftwo{n}$ (save 0). Multiplication by 2 in hardware is fast: it can be implemented with only a few shift and XOR operations on bits.
+To do \textbf{addition} (or subtraction) of $a$ and $b$ in $\gf{2^n}$, one performs element-wise addition modulo $2$. In hardware this can be implemented efficiently using XOR.
 
+Similarly, for \textbf{multiplication} of $a$ and $b$, we first find a primitive polynomial, e.g. $x^{128} + x^{7} + x^2 + x + 1$.
+We can then multiply points $a$ and $b$ by treating them as polynomial and take remainder modulo the primitive polynomial.
 
+One interesting fact about $\gftwo{n}$ is that the element $2=(0^{126}10)$ is a primitive root of unity: taking powers generates all of $\gftwo{n}$ (save 0). Multiplication by 2 in hardware is fast: it can be implemented with only a few shift and XOR operations on bits. \pfreadernote{I am not sure if I understand this paragraph. Could you add a reference maybe?}
 
-\paragraph{Fast TPRPs: XE construction} The XE construction (described in Figure~\ref{fig:xe}) of Rogaway is a very fast TBC. It uses a two-part tweak space $\tweakspace = \zon{n}\times [0, \ldots, 2^{n}-2]$ with the property that the right-hand part of the tweak is very cheap to change, requiring only one multiplication by 2 in $\gftwo{n}$.
+\paragraph{Fast TPRPs: XE construction.} The XE construction (described in Figure~\ref{fig:xe}) of Rogaway is a very fast TBC. It uses a two-part tweak space $\tweakspace = \zon{n}\times [0, \ldots, 2^{n}-2]$ with the property that the right-hand part of the tweak is very cheap to change, requiring only one multiplication by 2 in $\gftwo{n}$.
 
 \begin{figure}[h]
   \centering
@@ -271,7 +284,7 @@ To do \textbf{addition} of $a$ and $b$ in $\gf{2^n}$, simply take the bitwise XO
 \end{theorem}
 \begin{proof}
   % This proof is taken basically verbatim from http://web.cs.ucdavis.edu/~rogaway/papers/offsets.pdf
-  We begin with game $G_0$ of Figure~\ref{fig:xe-tprp-games}. This is identical to game $\TPRPReal^\advA_{\xe[E]}$. Next we transition to game $G_1$, which replaces $E$ with a random permutation. We can construct a reduction $\advB$ to the PRP security of $E$ (which simulates $\advA$'s queries in the obvious way) to get that
+  We begin with game $G_0$ of Figure~\ref{fig:xe-tprp-games}, which is identical to $\TPRPReal^\advA_{\xe[E]}$. Next we transition to game $G_1$, which replaces $E$ with a random permutation. We can construct a reduction $\advB$ to the PRP security of $E$ (which simulates $\advA$'s queries in the obvious way) to get that
   \bnm
   \left\lvert\Prob{G_0\Rightarrow 1} - \Prob{G_1\Rightarrow 1}\right\rvert \leq \AdvPRP{E}{\advB}\; .
   \enm
@@ -384,6 +397,8 @@ Return $C' = C^*$
 \end{align*}
 \fi
 
+\paragraph{A TSPRP secure tweakable block cipher.} The XEX construction described by Rogaway in \cite{rogaway2004efficient} is a variation of the XE construction that is TSPRP secure. 
+
 \paragraph{Randomized symmetric encryption} A symmetric encryption scheme $\SE = (\kg, \enc, \dec)$ 
 is a tuple of algorithms. Associated to a symmetric encryption scheme is a key space $\keyspace$, message space $\msgspace$, nonce space $\noncespace$, and ciphertext space $\ctxtspace$.
 Key generation $\kg$ takes no input and outputs an element of $\keyspace$ sampled uniformly at random. Encryption $C\getsr\enc(K, M)$ is a randomized algorithm that takes a key $K\in\keyspace$ and message $M\in\msgspace$ and outputs a ciphertext $C\in\ctxtspace$. Decryption $M\gets\dec(K, C)$ is a deterministic algorithm that takes a key $K\in\keyspace$ and ciphertext $C\in\ctxtspace$ and outputs a message $M\in\msgspace$. Symmetric encryption schemes must be correct in the following sense: $\forall K\in\keyspace,M\in\msgspace$,
@@ -418,7 +433,7 @@ Return $b$\medskip
 $C\getsr\zon{\clen(|M|)}$\\
 Return $C$
 }
-\caption{Games defining real-or-random security under chosen-plaintext attack of a symmetric encryption scheme $\SE$.}
+    \caption{Games defining real-or-random (RoR) security under chosen-plaintext attack of a symmetric encryption scheme $\SE$. Note that RoR-CPA-Ideal reveals nothing about the encrypted message but its length.}
 \label{fig:rorcpa}
 \end{figure}
 
@@ -452,6 +467,9 @@ Let $\ocbcore[\tbc]$ be the encryption algorithm described in Figure~\ref{fig:oc
 \end{theorem}
 \begin{proof}
 %Change every TPRP call with indep random perm after identical-til-bad for tweak collisions, then you're done
+
+    \pfreadernote{These games are different from the ones from before (\label{fig:xe-tprp-games}), right? Can we list them here?}
+  
 We start with the game $G_0$, which is identical to $\rorcpareal^\advA_{\ocbcore[\tbc]}$. We next move to a game $G_1$ where a flag $\cbad$ is set to $\ctrue$ if a repeat tweak is sampled in encryption. Nothing else is different from $G_0$, so $\Prob{G_0\Rightarrow 1} = \Prob{G_1\Rightarrow 1}$. Next we define $G_2$ which is the same as $G_1$ except if the $\cbad$ flag is set, a new tweak (distinct from all previous ones) is sampled. By the fundamental lemma of code-based games, 
 \bnm
 \left\lvert\Prob{G_1\Rightarrow 1} - \Prob{G_2\Rightarrow 1}\right\rvert \leq \frac{q^2}{2^{n+1}}\; .

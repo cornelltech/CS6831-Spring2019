@@ -1,0 +1,162 @@
+\section{Authenticated Encryption from SE and MACs}
+\label{sec:genericcomp}
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be a symmetric encryption scheme and $\MA=(\MA.\kg,\mtag,\ver)$ be a message authentication code (recall that a $\MAC$ has a deterministic tag). In this section, we combine these two primitives in different ways to construct an authenticated encryption scheme $\SE'=(\kg,\enc,\dec)$, and we describe the security guarantees of each construction. 
+\begin{figure}[h]
+	\centering
+	\fpage{.12}{
+		\underline{$\kg$}\\[1pt]
+		$K_1\getsr \SE.\kg$\\
+		$K_2\getsr \MA.\kg$\\
+		Ret $(K_1,K_2)$
+	}
+	\fpage{.16}{
+		\underline{$\enc(K,M)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$C\gets \SE.\enc(K_1,M)$\\
+		$T\gets \mtag(K_2,M)$\\
+		Ret $(C,T)$
+	}
+	\fpage{.18}{
+		\underline{$\dec(K,(C,T))$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$M\gets \SE.\dec(K_1,C)$\\
+		$T'\gets \mtag(K_2,M)$\\
+		If $T'\neq T$ then Ret $\bot$\\
+		Ret $M$
+	}
+	\caption{The Encrypt-and-Mac composition. The ciphertext and tag are both computed on the original message.}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\fpage{.12}{
+		\underline{$\kg$}\\[1pt]
+		$K_1\getsr \SE.\kg$\\
+		$K_2\getsr \MA.\kg$\\
+		Ret $(K_1,K_2)$
+	}
+	\fpage{.2}{
+		\underline{$\enc(K,M)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$T\gets \mtag(K_2,M)$\\
+		$C\gets \SE.\enc(K_1,M\concat T)$\\
+		Ret $C$
+	}
+	\fpage{.22}{
+		\underline{$\dec(K,C)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$M\concat T\gets \SE.\dec(K_1,C)$\\
+		$T'\gets \mtag(K_2,M)$\\
+		If $T'\neq T$ then Ret $\bot$\\
+		Ret $M$
+	}
+	\caption{The Mac-then-Encrypt composition. The tag is computed on the original message, then the message and the tag are encrypted together.}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\fpage{.12}{
+		\underline{$\kg$}\\[1pt]
+		$K_1\getsr \SE.\kg$\\
+		$K_2\getsr \MA.\kg$\\
+		Ret $(K_1,K_2)$
+	}
+	\fpage{.16}{
+		\underline{$\enc(K,M)$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$C\gets \SE.\enc(K_1,M)$\\
+		$T\gets \mtag(K_2,C)$\\
+		Ret $(C,T)$
+	}
+	\fpage{.18}{
+		\underline{$\dec(K,(C,T))$}\\[1pt]
+		$(K_1,K_2)\gets K$\\
+		$M\gets \SE.\dec(K_1,C)$\\
+		$T'\gets \mtag(K_2,C)$\\
+		If $T'\neq T$ then Ret $\bot$\\
+		Ret $M$
+	}
+	\caption{The Encrypt-then-Mac composition. The ciphertext is computed on the original message, then the tag is computed on the ciphertext.}
+\end{figure}
+
+If we assume that $\SE$ is $\ROR$ secure and $\MA$ is $\UFCMA$ secure, then we can say that the Encrypt-then-Mac composition of them is $\RORCCA$ secure, which we prove in Theorem~\ref{thm:rorcca-etm}. However, we cannot say the same for the Encrypt-and-Mac or Mac-then-Encrypt compositions in general. \scribenote{We should merge this section with the next scribe's discussion of these composition constructions.}
+
+\begin{theorem}
+Let $\SE=(\SE.\kg,\SE.\enc,\SE.\dec)$ be an SE scheme and $\MA=(\MA.\kg,\MA.\mtag,\MA.\ver)$ be a MAC with $\MA.\mtag$ output length $n$ and $\EtM=(\EtM.\kg,\EtM.\enc,\EtM.\dec)$ be the Encrypt-then-Mac
+scheme built from them.  Let $\advA$ be an $\RORCCA_\EtM$-adversary making at most
+$q$ queries. Then we give a $\ROR_\SE$-adversary $\advB_{\textrm{se}}$ 
+and a $\UFCMA_\MA$-adversary  $\advB_\textrm{mac}$ 
+such that
+\bnm
+  \AdvRORCCA{\EtM}{\advA} \le \AdvROR{\SE}{\advB_\textrm{se}} + \AdvPRF{\MA}{\advB_{\textrm{mac}}} + \frac{1}{2^n} \;.
+\enm
+Adversaries $\advB_\textrm{se}$ and $\advB_{\textrm{mac}}$ each run in time that of 
+$\advA$ plus small overhead and each make at most $q$ queries.
+\label{thm:rorcca-etm}
+\end{theorem}
+
+\begin{figure}[t]
+	\centering
+\hfpagesss{.23}{.2}{.2}{
+	\underline{$\advB_{\textrm{se}}^\EncOracle$}\\[1pt]
+	$K_2 \getsr \MA.\kg$\\
+	$b' \getsr \advA^{\EncSim}$\\
+	Ret $b'$\medskip
+	
+	\underline{$\EncSim(M)$}\\
+	$C \gets \EncOracle(M)$\\
+	$T \gets \MA.\mtag(K_2,C)$\\
+	Ret $(C,T)$\medskip
+}{
+	\underline{$\advB_{\textrm{mac}}^{\Fn}$}\\[1pt]
+	$K \getsr \SE.\kg$\\
+	$b'\gets 0$\\
+	$\advC^{\EncSim,\DecSim}$\\
+	Ret $b'$\medskip
+}{
+	\underline{$\EncSim(M)$}\\
+	$C \getsr \SE.\enc(K,M)$\\
+	$T \gets \Fn(C)$\\
+	$\mathcal{S} \gets \mathcal{S}\union \{(C,T)\}$\\
+	Ret $(C,T)$\medskip
+	
+	\underline{$\DecSim(C,T)$}\\
+	If $(C,T)\in\mathcal{S}$ then\\
+	\myInd Ret $\bot$\\
+	$M \gets\SE.\dec(K,C)$\\
+	If $\Fn(C)=T$ then\\
+	\myInd $b'\gets 1$\\
+	\myInd Ret $M$\\
+	Else Ret $\bot$
+}	
+\caption{Adversaries used for proof of Theorem~\ref{thm:rorcca-etm}.}
+\label{fig:proof-etm-rorcca}
+\end{figure}
+\begin{proof}
+	As we saw in Theorem \scribenote{Cite from previous section once it's done},
+	\bnm
+	\AdvRORCCA{\EtM}{\advA}\leq \AdvROR{\EtM}{\advB} + \AdvCTXT{\EtM}{\advC}
+	\enm
+	First, we know that 
+	\bnm
+	\AdvROR{\EtM}{\advB} \leq \AdvROR{\SE}{\advB_\textrm{se}}\;.
+	\enm
+	Given a $\ROR$ distinguisher for $\advB$ for $\EtM$, we can build a $\ROR$ adversary $\advB_\textrm{se}$ for $\SE$. 
+	
+	Also,
+	\bnm
+	\AdvCTXT{\EtM}{\advC} \leq \AdvPRF{\MA}{\advB_{\textrm{mac}}}+\frac{1}{2^n}\;.
+	\enm
+	
+	If the output of the $\Fn$ oracle is real, then $\advB_{\textrm{mac}}$ returns 1 if and only if adversary $\advC$ is able to forge a valid ciphertext, so
+	\bnm
+	\Prob{\PRF1_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}=\Prob{\CTXT_{\EtM}^{\advC}}\;.
+	\enm
+	If the output of the $\Fn$ oracle is random, then the probability that $\advC$ forges the tag successfully is $1/2^n$, if $n$ is the length of the tag. 
+	\bnm
+	\Prob{\PRF0_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}\leq \frac{1}{2^n}\;.
+	\enm
+	Combining these, we have
+	\begin{align*}
+	\AdvPRF{\MA}{\advB_{\textrm{mac}}}&=\left|\Prob{\PRF1_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}-\Prob{\PRF0_\MA^{\advB_{\textrm{mac}}}\Rightarrow 1}\right|\\
+	&\geq \AdvCTXT{\EtM}{\advC}-\frac{1}{2^n}\;.
+	\end{align*}
+\end{proof}

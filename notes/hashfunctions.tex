@@ -1,0 +1,109 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Cryptographic Hash Functions}
+\label{sec:hashfunctions}
+
+A cryptographic hash function is a map $H\Colon\msgspace\rightarrow\bits^n$ for
+some set $\msgspace$ and number $n > 0$. Typical values of $n$ are these days
+256, 512, etc., and most hash functions support an essentially unlimited messgae
+space $\msgspace$, such as all strings of length up to $2^{64}-1$.
+
+\fpage{.25}{
+\underline{$\CR^\advA_{H}$}\\[1pt]
+$(M,M') \getsr \advA$\\
+If $M = M'$ then Ret $\false$\\
+Ret $H(M) = H(M')$
+}
+
+
+\bnm
+\AdvCR{H}{\advA} = \Prob{\CR^\advA_H\Rightarrow\true}
+\enm
+
+
+
+
+\fpage{.25}{
+\underline{$\CR^\advA_{H,\ic}$}\\[1pt]
+$E \getsr \blockciphers(k,n)$\\
+$(M,M') \getsr \advA^{\ic,\icInv}$\\
+If $M = M'$ then Ret $\false$\\
+Ret $H^\ic(M) = H^\ic(M')$\medskip
+
+\underline{$\ic(K,X)$}\\
+Ret $\cipherE(K,X)$\medskip
+
+\underline{$\icInv(K,Y)$}\\
+Ret $\cipherD(K,Y)$
+}
+
+\begin{theorem*}
+Let $f$ be the Davies-Meyer compression function built from a block cipher
+$\cipherE\Colon\bits^k\times\bits^n\rightarrow\bits^n$ modeled as an ideal
+cipher. For any adversary $\advA$ making at most~$q$ queries it holds that
+\bnm
+  \AdvCR{f}{\advA} \le \frac{(q+1)(q+2)}{2^n} \;.
+\enm
+\end{theorem*}
+
+\begin{proof}
+Assume $\advA$ that outputs $(Y,M)$ and $(Y',M')$ has already queried $\cipherE$
+or $\cipherD$ for associated points. This can be argued easily by reducing to
+by making at most $q' = q+2$ queries. We also assume
+$\advA$  Then each query defines a triple 
+$(K_i,X_i,Y_i)$ where either $Y_i = \cipherE(K_i,X_i)$ was queried or $X_i =
+\cipherD(K_i,Y_i)$ was queried. For a collision to occur it must be that there
+exist indices $i,j$ such that $X_i \oplus Y_i = X_j \oplus Y_j$, to arrange that
+$X_i \oplus \cipherE(K_i,X_i) = X_j \oplus \cipherE(K_j,X_j)$. Let $C_j$ be the
+event that such a collision occurs upon a query the $j\thh$ query. Then we have
+that $X_i,Y_i$ are at this point fixed values while exactly one of $X_j$ or
+$Y_j$ is a fixed value, with the other being a uniformly chosen point subject
+only to permutivity. Then we have that 
+\begin{align*}
+\Prob{\CR_{f,\cipherE}^\advA\Rightarrow\true} 
+  &\le \sum_{j=1}^{q'} \Prob{C_j}   \\
+  &\le \sum_{j=1}^{q'} \frac{j-1}{2^n-j+1}\\
+  &\le \sum_{j=1}^{q'} \frac{j-1}{2^n-q'}\\
+  &= \frac{q'(q'-1)}{2(2^n-q')}
+  &= \frac{(q+2)(q+1)}{2^n} 
+\end{align*}
+\end{proof}
+
+
+\begin{theorem*}
+Let $f$ be a compression function and $H$ be the MD hash function built from it. 
+Let $\advA$ be a $\CR_H$-adversary outputing messages eacah of length at most $\sigma$
+blocks after MD padding. Then we give an $\CR_f$-adversary $\advB$
+such that
+\bnm
+  \AdvCR{\advA}{H} \le \AdvCR{\advB}{f} \;.
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus at most $2\sigma$ computations of
+$f$.
+\end{theorem*}
+
+
+\fpage{.25}{
+\underline{$\CR^\advA_{H,\ic}$}\\[1pt]
+$E \getsr \blockciphers(k,n)$\\
+$(M,M') \getsr \advA^{\ic,\icInv}$\\
+If $M = M'$ then Ret $\false$\\
+Ret $H^\ic(M) = H^\ic(M')$\medskip
+
+\underline{$\ic(K,X)$}\\
+If $\TabE[K,X] \ne \bot$ then\\
+\myInd $Y \getsr \Range[K]$\\
+\myInd $\TabE[K,X] \getsr Y$\\
+\myInd $\TabD[K,Y] \getsr X$\\
+\myInd $\Domain[K] \getu X$\\
+\myInd $\Range[K] \getu Y$\\
+Ret $\TabE[K,X]$\medskip
+
+\underline{$\icInv(K,Y)$}\\
+If $\TabD[K,Y] \ne \bot$ then\\
+\myInd $X \getsr \Domain[K]$\\
+\myInd $\TabE[K,X] \gets Y$\\
+\myInd $\TabD[K,Y] \gets X$\\
+\myInd $\Domain[K] \getu X$\\
+\myInd $\Range[K] \getu Y$\\
+Ret $\TabD[K,Y]$
+}

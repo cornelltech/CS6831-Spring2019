@@ -80,7 +80,7 @@ $\advA$ simply queries for $0^n$, which returns $0^n \oplus K = K$, thereby reco
 Now consider the identity cipher $\cipherE_{K}(M) = M$ for $\keyspace=\{0,1\}^k$. Since the cipher simply returns the message, no information about the key is included in the ciphertext. The best an adversary can do is return a random key, which has probability $2^{-k}$ of being the correct target key.
 Then for any adversary $\advA$, it holds that $\AdvTKR{\cipher}{\advA} = 2^{-k}$, meaning the identity cipher is ``secure''. However, the identity cipher clearly does not provide message confidentiality, and thus our TKR notion says nothing about this property.
 
-\begin{wrapfigure}[17]{r}{0pt}
+\begin{wrapfigure}[18]{r}{0pt}
 	\fpage{.25}{
 		\underline{$\KR^\advA_\cipher$}\\[1pt]
 		$K \getsr \keyspace$\\
@@ -181,7 +181,67 @@ detail easily.)  When we deviate from this convention we should remark on it.
 	}
 	\caption{The exhaustive key search attack.}
 	\label{fig:eks}
-\end{wrapfigure} 
+\end{wrapfigure}  
+
+We know that $\AdvKR{\cipher}{\advA_\eks} = 1$ since a consistent key is guaranteed to exist. However, notice that finding $\AdvTKR{\cipher}{\advA_\eks}$ is trickier: $\advA_\eks$ might return a consistent key that is not necessarily the target key. For instance, this attack would not work on the identity map cipher since every key is consistent. For ``real'' ciphers, we expect this to be close to 1. 
+The worst-case running time for this attack is $|\keyspace|$, while the expected running time is $|\keyspace|/2$.
+
+\paragraph{Computational security.} Computational security presents a large paradigm shift from previous notions. It focuses on computationally-bound adversaries. For instance, exhaustive key search attack is clearly not computationally efficient and thus considered a weak attack. We measure computational costs by assuming abstract unit costs of (most) operations. This is course-grained but useful for our purposes. 
+
+We have shown previously that TKR is not a good security notion, but we now ask whether KR is an improved definition. In particular, the identity cipher has been shown to be secure under TKR security, yet it is insecure under KR security, which is clearly an improvement. However, KR does not imply message confidentiality: it is a necessary but not sufficient goal. We now move on to a very different notion of security.
+
+\paragraph{PRP and PRF security.} A standard goal for cipher security is security in the sense of pseudorandom permutations and/or pseudorandom functions. For simplicity, we will focus on \textbf{block ciphers}, which for keyspace $\keyspace=\{0,1\}^k$ and message space $\msgspace=\{0,1\}^n$ are defined by $\cipherE : \{0,1\}^k \times \{0,1\}^n \to \{0,1\}^n$. Let $Perm(n)$ be the set of all permutations on $n$ bits. Notice that since $|\{0,1\}^n| = 2^n$, then $|Perm(n)| = 2^n!$. %Let $Func(n,n)$ be the set of all functions from $\{0,1\}^n \to \{0,1\}^n$. We again note that $|Func(n,n)| = (2^n)^{2^n}$.
+
+We now define a \textbf{pseudorandom function} (PRF) as a function that is indistinguishable from a random function (RF). At a high level this means that the input-output behavior of some block cipher $\cipherE_K$ ``looks like'' the input-output behavior of a random function. The games for PRF security are provided in \figref{fig:prf}. There are two games defined for PRF security: PRF1 and PRF0. In PRF1, the adversary has access to the $\Fn$ oracle that returns the output from the block cipher $\cipherE_K$. However, in PRF0 the adversary instead receives a random output for each unique message queried to the $\Fn$ oracle. The adversary $\advA$ does not know in which game it is playing and must query the $\Fn$ oracle to distinguish between $\cipherE_K$ and $\rho$. $\advA$ returns a bit signifying which game it believes it is in. The PRF advantage for $\advA$ is defined as 
+\begin{equation*}
+\AdvPRF{\cipher}{\advA} = \left| \Prob{\PRF1_\cipher^\advA\Rightarrow 1} 
+- \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|.
+\end{equation*}
+
+The adversary $\advA$ wins if the probability that $\advA$ outputs 1 in game $\PRF1_\cipher^\advA$ is far greater than the probability that it outputs 1 in game $\PRF0_\cipher^\advA$. In particular, notice that if $\advA$ simply always output 1, $\AdvPRF{\cipher}{\advA}$ would be 0 as expected, since $\advA$ did not successfully distinguish $\cipher$ from a random function. 
+
+\begin{figure}
+	\centering
+	\hfpages{.16}{
+		\underline{$\PRF1_{\cipher}^\advA$}\\
+		$K \getsr \keyspace$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		Return $\cipherE_K(M)$\\
+	}{
+		\underline{$\PRF0_{\cipher}^\advA$}\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		If $T[M]=\bot$ then \\
+		\myInd $T[M]\getsr \bits^n$\\
+		Return $T[M]$
+	}	
+\caption{The PRF security games.}
+\label{fig:prf}
+\end{figure} 
+
+Just as we provided a generic attack for TKR security using the exhaustive key search attack, is there a generic distinguishing attack for any cipher? One interesting observation is that for a given key, a block cipher $\cipherE_K$ is a permutation, meaning that two different inputs could not produce the same output. (If this were not the case, decryption would be impossible.) However, a random function simply chooses outputs at random, so it is entirely possible for two different inputs to produce the same output. The probability of choosing $q$ values at random from $\{0,1\}^n$ and for two of these values to be the same is approximately $\frac{q^2}{2^n}$. This is colloquially known as the \textbf{birthday bound}, since it implies that the number of people expected to produce two individuals with the same birthday is far fewer than what one would expect. 
+
+If $\advA$ were to query its $\Fn$ oracle enough times, eventually the probability that a repeat value is produced would be large enough and $\advA$ could then check to see if such a repeat value exists. If it does, then clearly $\advA$ must be in game $\PRF0_{\cipher}^\advA$; otherwise, $\advA$ can assume it is in game $\PRF1_{\cipher}^\advA$. This attack is called the \textbf{birthday attack}. The pseudocode for this adversary is defined below.
+ 
+\begin{center}
+\begin{tabular}{l}
+	\underline{\textbf{adversary} $A^\Fn_{\text{bday}}$} \\
+	Let $M_1, M_2, \cdots, M_q \gets \{0,1\}^n$ be distinct \\
+	For $i=1, \cdots, q$ do $C_i \gets \Fn(M_i)$ \\
+	If $\exists i \neq j$ such that $C_i = C_j$ then return 0 \\
+	Else return 1
+\end{tabular}
+\end{center}
+
+Notice that in game $\PRF1_{\cipher}^\advA$ all output values will be distinct, so $A_{\text{bday}}$ will always return 1 and thus $\Prob{\PRF1_\cipher^\advA\Rightarrow 1}=1$. The probability that $A_{\text{bday}}$ returns 1 in game $\PRF0_{\cipher}^\advA$ is the probability that all values chosen at random from the random function will be distinct, which is $1 - \frac{q^2}{2^n}$. The PRF-advantage of $A^\Fn_{\text{bday}}$ is then defined as 
+\begin{equation*}
+\AdvPRF{\cipher}{\advA} \geq 1 - \left(1 - \frac{q^2}{2^n}\right) = \frac{q^2}{2^n}.
+\end{equation*}
 
 
 \paragraph{Exhaustive key search.} We now ask whether we can lower-bound (T)KR security in general. We do this by providing a \textit{generic} attack, or an attack that works against any cipher. One such generic attack is the exhaustive key search attack. The pseudocode is shown in \figref{fig:eks}. At a high level, this attack simply chooses a message at random, queries the $\Fn$ oracle to get the corresponding ciphertext, and then brute-force searches through the entire keyspace until it finds the key that outputs the correct ciphertext.  
