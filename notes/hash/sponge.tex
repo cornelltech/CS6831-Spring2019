@@ -3,7 +3,7 @@
 \subsection{Sponge Construction}
 We've seen one popular approach to building hash functions, namely using the Merkle-Damg\aa rd domain extension transform with a compression function such as Davies-Meyer.
 It is the approach used by many standardized hash functions (MD5, SHA-1, SHA-2).
-In this section, we present an alternate design approach to building hash functions called the sponge construction, which is used in the standardized SHA-3 hash function.
+In this section, we will look at an alternate design approach to building hash functions called the sponge construction, which is used in the standardized SHA-3 hash function.
 The sponge construction is illustrated in Figure~\ref{fig:sponge}.
 
 The sponge construction maintains an internal state of length $r+c$ bits known as ``rate'' bits ($r$) and ``capacity'' bits ($c$).
@@ -104,8 +104,8 @@ In contrast, the hash digest of the Merkle\dash Damg\aa rd construction is the c
 \end{scope}
 \end{tikzpicture}
 \caption{The sponge construction for hash functions built from permutation $f$, similar to as used in SHA-3.
-Variable size messages are incorporated in a message-length dependent number of absorbing rounds.
-The hash digest is read out in a fixed number of squeezing rounds.
+Variable size messages are broken into $n$ blocks of size $r$ and incorporated in $n$ absorbing rounds.
+The hash digest of length $mr$ is read out in $m$ squeezing rounds.
 }
 \label{fig:sponge}
 \end{figure}
