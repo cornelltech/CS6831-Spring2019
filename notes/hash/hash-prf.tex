@@ -2,15 +2,33 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hash-based PRF and the Random Oracle Model}
 
+\begin{wrapfigure}{r}{2in}
+  \centering
 \begin{tikzpicture}[scale=0.4]
 	\node[draw,trapezium,trapezium left angle=70,trapezium right angle=70,minimum height=1.0cm,thick,shift={(1.15,0)},rotate=-90] (hfxn)
 	{\begin{sideways}\Large $\hash$ \end{sideways}};
 	\draw[->,thick] (0,0) node[left] {$\prfkey \concat \msg$} -- (hfxn);
 	\draw[->,thick] (hfxn) -- ++(3,0) node[right] {$Y$};
 \end{tikzpicture}
+\caption{Simple hash-based PRF.}
+\label{fig:hash-based-prf}
+\end{wrapfigure}
 
-\hfpages{.25}{
-\underline{$\PRF1_{F,\Horacle}^\advA$}\\
+Another property that is often desired of hash functions is that of a PRF.
+Consider a simple hash-based PRF construction, $\prf:\keyspace\times\msgspace\rightarrow\bits^{n}$, constructed from a hash function $\hash:\bits^{*}\rightarrow\bits^{n}$ such that $\prf_{\prfkey}(\msg) = \hash(\prfkey\concat\msg)$.
+
+Now we can consider how to prove the PRF security of $\prf$.
+One approach would be to instantiate $\hash$ with a specific hash function construction, e.g. SHA-2 or SHA-3, and prove security with respect to the building blocks of those constructions, e.g. PRF security of the compression function or PRP security of the permutation.
+However, this would not be a modular approach, as a new proof would be required for each hash function.
+Instead, we will use a similar approach to as when we proved the PRF security of the Davies-Meyer compression function.
+\scribenote{Add reference}
+There we introduced an idealized model for the block cipher, called the ideal cipher model.
+Here, we will introduce another idealized model known as the \emph{random oracle model} (ROM), in which we, as the name suggests, model the hash function as a random oracle.
+
+\begin{wrapfigure}{r}{2in}
+  \centering
+\hfpages{.15}{
+\underline{$\PRF1_{\prf,\Horacle}^\advA$}\vspace{0.5em}\\
 $K \getsr \keyspace$\\
 $b' \getsr \advA^{\Fn,\Horacle}$\\
 Return $b'$\medskip
@@ -21,10 +39,10 @@ Return $F^\Horacle_K(M)$\medskip
 \underline{$\Horacle(X)$}\\
 If $\TabH[X] = \bot$ then\\
 \myInd $\TabH[X] \getsr \bits^n$\\
-Ret $\TabH[X]$
+Return $\TabH[X]$
 
 }{
-\underline{$\PRF0_{F,\Horacle}^\advA$}\\
+\underline{$\PRF0_{F,\Horacle}^\advA$}\vspace{0.3em}\\
 $\rho \getsr \Func(\msgspace,n)$\\
 $b' \getsr \advA^{\Fn,\Horacle}$\\
 Return $b'$\medskip
@@ -35,9 +53,17 @@ Return $\rho(M)$\\
 \underline{$\Horacle(X)$}\\
 If $\TabH[X] = \bot$ then\\
 \myInd $\TabH[X] \getsr \bits^n$\\
-Ret $\TabH[X]$
+Return $\TabH[X]$
 }
+\caption{PRF security games in the random oracle model.}
+\label{fig:prf-ro}
+\end{wrapfigure}
 
+Consider the modified PRF security games shown in Figure~\ref{fig:prf-ro}.
+In the ROM, a new oracle $\Horacle$ is added to the security game.
+Calling the hash function is done by sending queries to $\Horacle$.
+The random oracle $\Horacle$ is instantiated lazily by maintaining a table $\TabH$, randomly sampling and storing in $\TabH$ return values for new queries.
+We prove the following theorem about the security of the hash-based PRF in the random oracle model:
 
 \begin{theorem}
 Let  $\Horacle\Colon\msgspace\rightarrow\bits^n$ be modeled as a random oracle
@@ -50,6 +76,87 @@ to $\Horacle$ it holds that
 \enm
 \end{theorem}
 
+
+\begin{wrapfigure}{r}{3.8in}
+  \centering
+\hfpagesss{.15}{.18}{.15}{
+\underline{$\G0$}\vspace{0.5em}\\
+$\prfkey \getsr \keyspace$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(\msg)$}\\
+Return $\Horacle(\prfkey\concat\msg)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Return $\TabH[X]$
+
+}{
+\underline{$\fbox{\G1}$\;\;$\G2$}\vspace{0.5em}\\
+$\prfkey \getsr \keyspace$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(\msg)$}\\
+If $\TabT[\prfkey\concat\msg] = \bot$ then\\
+\myInd $\TabT[\prfkey\concat\msg]\getsr \bits^{n}$\\
+Return $\TabT[\prfkey\concat\msg]$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabT[X]\neq\bot$ then\\
+\myInd $\badtrue$\\
+\myInd \fbox{$\TabH[X]\gets\TabT[X]$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Return $\TabH[X]$
+
+}{
+\underline{$\G3$}\vspace{0.3em}\\
+$\rho \getsr \Func(\msgspace,n)$\\
+$b' \getsr \advA^{\Fn,\Horacle}$\\
+Return $b'$\medskip
+
+\underline{$\Fn(M)$}\\
+Return $\rho(M)$\\
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$ then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Return $\TabH[X]$
+}
+\caption{PRF security games in the random oracle model.}
+\label{fig:hash-prf-games}
+\end{wrapfigure}
+
+\emph{Proof.}
+Consider the set of games given in Figure~\ref{fig:hash-prf-games}.
+Game \G0 is identical to $\PRF1_{\prf,\Horacle}$ with pseudocode for the PRF oracle $\Fn$ filled in to represent the hash-based PRF.
+In Game \G1, the PRF oracle does not call the random oracle, but instead maintains a separate table $\TabT$ to respond to queries with random values.
+If the random oracle $\Horacle$ is called with a key\dash message pair that is stored in $\TabT$, a $\bad$ flag is set and the random value sampled in $\Fn$ is copied over and $\Horacle$ responds in a consistent manner.
+Since the value is copied over from $\TabT$ to $\TabH$, \G1 is identical to \G0.
+
+Game \G2 is identical until $\bad$ to \G1.
+Instead of copying the value from $\TabT$ to $\TabH$, a new random value is sampled.
+By the fundamental lemma of game playing, we bound the difference in advantage between \G1 and \G2 by the probability the $\bad$ flag is set.
+To set the $\bad$ flag, $\advA$ must make a query to $\Horacle$ that begins with PRF key $\prfkey$.
+Since only random values are returned, $\advA$ has no knowledge of $\prfkey$, so on any given query, the probability the $\bad$ flag is set is $1/\abs{\keyspace}$.
+Thus, over $q$ queries, using the union bound we have
+\begin{align*}
+	\absv*{\Prob{\G1\Rightarrow 1} - \Prob{\G2\Rightarrow1}} &\le \Prob{\G1 \setsbad}\\
+  &\le \frac{q}{\abs{\keyspace}}.
+\end{align*}
+
+Lastly, \G2 is identical to \G3 is identical to $\PRF0_{\prf,\Horacle}$.
+Since the values $\TabH$ is not updated with the values from $\TabT$ both $\Fn$ and $\Horacle$ act as independent random functions.\hfill$\dqed$
+
+So we've proved security of the hash-based PRF security when the hash function is modeled by a random oracle.
+However, how do we gain confidence that the random oracle model fits for specific hash functions?
+In other words, if we prove a protocol secure with respect to the random oracle model, is it safe to instantiate the random oracle with a hash function such as SHA-2 or SHA-3?
+In the case of the ideal cipher model, we gain confidence through use of cryptanalysis of specific block ciphers.
+
+\begin{wrapfigure}{r}{2.9in}
 \begin{tikzpicture}[scale=0.4]
 
 	\begin{scope}[]
@@ -86,3 +193,19 @@ to $\Horacle$ it holds that
 	\path (1.8, -12.5) node[anchor=west] {$\msg' = \msg_1\concat\msg_2\concat 10^r\concat\bm{\langle}\left|\msg\right|\bm{\rangle}\concat\msg^*$};
 
 \end{tikzpicture}
+\caption{Length extension attack when instantiating the proposed hash-based PRF construction with a Merkle-Damg\aa rd hash function.}
+\label{fig:length-extension-md}
+\end{wrapfigure}
+
+In fact, this can be a problem in practice, as real hash functions often do not act as random oracles, i.e., there exist attacks that take advantage of the structure of the hash function.
+Take the example of instantiating the hash-based PRF that we just proved secure in the random oracle model with the Merkle-Damg\aa rd function.
+This construction is distinguishable from a PRF through a straightforward length extension attack.
+The attack is depicted in Figure~\ref{fig:length-extension-md}.
+The output of the Merkle\dash Damg\aa rd hash function on one message can be chained into computing the output for a longer message without knowledge of the secret key.
+
+There are variants of the basic Merkle\dash Damg\aa rd hash function that can be used to instantiate the hash-based construction, but this leads us to a larger question.
+If not all hash functions are properly modeled by the random oracle model, how do we proceed?
+As mentioned before, a non-modular approach would be to prove protocols without the random oracle model.
+Another approach is to build hash functions that are better modeled by the random oracle model.
+This is a notion known as indifferentiability and we will look at more closely later in the section.
+One of the strengths of the sponge construction from Figure~\ref{fig:sponge} is that it meets this indifferentiability property.
