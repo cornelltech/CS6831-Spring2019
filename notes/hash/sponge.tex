@@ -1,7 +1,29 @@
 %!TEX root = ../main.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Sponge Construction}
+We've seen one popular approach to building hash functions, namely using the Merkle-Damg\aa rd domain extension transform with a compression function such as Davies-Meyer.
+It is the approach used by many standardized hash functions (MD5, SHA-1, SHA-2).
+In this section, we present an alternate design approach to building hash functions called the sponge construction, which is used in the standardized SHA-3 hash function.
+The sponge construction is illustrated in Figure~\ref{fig:sponge}.
 
+The sponge construction maintains an internal state of length $r+c$ bits known as ``rate'' bits ($r$) and ``capacity'' bits ($c$).
+It also makes use of a permutation $f$ on domain $\bits^{r+c}$.
+The sponge construction is executed in two phases, the ``absorbing'' phase and the ``squeezing'' phase.
+One round of the absorbing phase corresponds to XORing a message block of length $r$ with the rate bits and then passing the entire internal state (rate and capacity bits) through permutation $f$ to get a new internal state for the next round.
+The number of rounds, i.e. rate of absorbing, is determined by $r$, the size of blocks into which the message must be broken.
+In the squeezing phase, $r$ bits of the hash digest are read off from the rate bits in each squeezing round.
+Between squeezing rounds, the internal state is again passed through the permutation $f$.
+A nice property that emerges from this approach is that the hash digest size can be chosen as a parameter indicating the number of squeezing rounds to perform.
+
+We will see in the next section that Merkle-Damg\aa rd style constructions are subject to a few subtle ``gotchas'' if used incorrectly, e.g., malleability attacks.
+While there exist fixes to the basic Merkle\dash Damg\aa rd construction to alleviate these concerns, many believe the sponge construction addresses them in a more elegant way leading to a cleaner analysis.
+It turns out that the use of capacity bits as part of the internal state is critical to the security properties of the construction.
+In particular, the capacity bits do not directly interact with inputs and are not directly returned as outputs.
+In contrast, the hash digest of the Merkle\dash Damg\aa rd construction is the complete internal state of the function.
+
+
+\begin{figure}[t]
+  \centering
 \begin{tikzpicture}[scale=0.45]
 
 \tikzset{SpongePerm/.style=rounded corners=4pt,};
@@ -21,7 +43,7 @@
   \node[XOR,thick] (xm0) at (1+1.5,8) {};
   \draw[edge,thick] (1,8) -- (xm0);
   \draw[edge,thick] (1,2) -- ++(3,0);
-  \draw[edge,thick] (1+1.5,10.5) node[above] {\large $m_{0}$} -- (xm0);
+  \draw[edge,thick] (1+1.5,10.5) node[above] {\large $\msg_{0}$} -- (xm0);
   \draw[edge,thick] (xm0) -- ++(1.5,0);
 
 	\draw[edgee,anchor=east] (-1,0) -- node[left] {$c$ bits} ++(0,3);
@@ -44,8 +66,8 @@
     \draw[edge,thick] (xm\z) -- ++(1.5,0);
   \end{scope}
 }
-\draw[edge,thick] (5+1.5,10.5) node[above] {\large $m_{1}$} -- (xm4);
-\draw[edge,thick] (12+1.5,10.5) node[above] {\large $m_{n-1}$} -- (xm11);
+\draw[edge,thick] (5+1.5,10.5) node[above] {\large $\msg_{1}$} -- (xm4);
+\draw[edge,thick] (12+1.5,10.5) node[above] {\large $\msg_{n-1}$} -- (xm11);
 
 \begin{scope}[xshift=8cm]
   \draw[edge,thick] (1,2) -- ++(1.5,0) node[right] {$\dots$};
@@ -67,7 +89,7 @@
   \begin{scope}[xshift=\z*4cm+17cm]
     \draw[edge,thick] (0,2) -- ++(3,0);
     \draw[edge,thick] (0,8) -- ++(3,0);
-    \draw[edge,thick] (0+1.5,8) -- ++(0,2.5) node[above] {\large $z_{\z}$};
+    \draw[edge,thick] (0+1.5,8) -- ++(0,2.5) node[above] {\large $Y_{\z}$};
     \draw[SpongePerm] (3,0) rectangle node {\large$f$} ++(1,10);
   \end{scope}
 }
@@ -78,6 +100,12 @@
   \draw[edge,thick] (3,2) -- ++(1.5,0);
   \draw[edge,thick] (3,8) -- ++(1.5,0);
   \draw[SpongePerm] (4.5,0) rectangle node {\large$f$} ++(1,10);
-  \draw[edge,thick] (5.5,8) -- ++(1.5,0) -- ++(0,2.5) node[above] {\large $z_{m-1}$};
+  \draw[edge,thick] (5.5,8) -- ++(1.5,0) -- ++(0,2.5) node[above] {\large $Y_{m-1}$};
 \end{scope}
 \end{tikzpicture}
+\caption{The sponge construction for hash functions built from permutation $f$, similar to as used in SHA-3.
+Variable size messages are incorporated in a message-length dependent number of absorbing rounds.
+The hash digest is read out in a fixed number of squeezing rounds.
+}
+\label{fig:sponge}
+\end{figure}

@@ -60,7 +60,7 @@ to $\Horacle$ it holds that
 	\end{scope}
 
 	\begin{scope}[shift={(3.8,0)}]
-		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.35,0.3)},rotate=-90]
+		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.35,0.3)},rotate=-90] (centerbox)
 		{\begin{sideways}\Large$f$\end{sideways}};
 		\draw[->,thick] ++(0.9,+4) node[above] {$\msg_1$} -- ++(0,-1.5) -- ++(1.4,0);
 		\draw[->,thick] ++(0,0.5) -- ++(2.4,0);
@@ -74,16 +74,15 @@ to $\Horacle$ it holds that
 		\draw[->,thick] ++(4.4,0.5) -- ++(2,0) node[right] {$Y$};
 	\end{scope}
 
-\end{tikzpicture}
-
-\begin{tikzpicture}[scale=0.4]
-
-	\begin{scope}[]
+	\begin{scope}[shift={(7, -9)}]
 		\node [draw,trapezium,trapezium left angle=50,trapezium right angle=90,minimum height=0.75cm,thick,shift={(1.15,0.3)},rotate=-90]
 		{\begin{sideways}\Large$f$\end{sideways}};
 		\draw[->,thick] ++(0.5,+4) node[above] {$\qquad\msg^* \concat 10^{r'} \concat \bm{\langle} \left| \msg' \right| \bm{\rangle}$} -- ++(0,-1.5) -- ++(1.4,0);
-		\draw[->,thick] ++(0,0.5) node[left] {$Y$} -- ++(1.9,0);
-		\draw[->,thick] ++(4.4,0.5) -- ++(2,0) node[right] {$Y'$};
+		\draw[->,thick] ++(4.2,0.5) -- ++(2,0) node[right] {$Y'$};
 	\end{scope}
+
+	\draw[->,thick] (16,0.5) -- ++(1,0) -- ++(0, -3) -- ++(-15, 0) -- ++(0, -6) -- ++(6.9,0);
+	\path (2, -11) node[anchor=west] {$\msg = \msg_1\concat\msg_2$};
+	\path (1.8, -12.5) node[anchor=west] {$\msg' = \msg_1\concat\msg_2\concat 10^r\concat\bm{\langle}\left|\msg\right|\bm{\rangle}\concat\msg^*$};
 
 \end{tikzpicture}
