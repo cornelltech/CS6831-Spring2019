@@ -4,7 +4,7 @@
 
 \paragraph{Ciphers.}
 We start by defining a cipher. A cipher $\cipher = (\cipherE,\cipherD)$ is
-defined by a a pair of deterministic algorithms $\cipherE$ and $\cipherD$.  To
+defined by a pair of deterministic algorithms $\cipherE$ and $\cipherD$.  To
 any cipher $\cipher$ we associate sets called the key space $\keyspace$, message
 space $\msgspace$, and ciphertext space $\ctxtspace$. We do not surface these sets in the
 notation for a cipher, and we will require that the association be clear
@@ -22,14 +22,19 @@ it as a map $\cipherD\Colon\keyspace\times\ctxtspace\rightarrow\msgspace$.
 Both $\cipherE$ and $\cipherD$ must be efficiently computable for all $K \in
 \keyspace$.  (We have not defined efficiently computable and use the term here
 informally.) We require that a cipher be correct, meaning that
-$\forall M \in \msgspace, \forall K \in \keyspace, \cipherD_K(\cipherE_K(M)) = M$.
+$\forall M \in \msgspace, \forall K \in \keyspace$, it holds that $\cipherD_K(\cipherE_K(M)) = M$.
 
-\begin{example} One simple example of a cipher is the \textbf{one-time pad} (OTP). Let $\keyspace = \msgspace=\ctxtspace=\{0,1\}^n$ for some $n \in \N$. Then we define OTP as follows:
-\begin{align*}
-&\cipherE_K(M) = M \oplus K \\
-&\cipherD_K(C) = C \oplus K
-\end{align*}
-Claude Shannon proved that OTP is perfectly secure in 1949 \cite{shannon1949communication}.
+\begin{example} One simple example of a cipher is the \textbf{one-time pad} (OTP). Let $\keyspace = \msgspace=\ctxtspace=\{0,1\}^n$ for some $n \in \N$. Then for any key $K\getsr\keyspace$ and for any message $M \in \msgspace$, we define the OTP as follows:
+\begin{equation*}
+\cipherE_K(M) = M \oplus K \qquad
+\cipherD_K(C) = C \oplus K
+\end{equation*}
+Claude Shannon proved that the OTP is perfectly secure for one-time use in 1949 \cite{shannon1949communication}. Intuitively, we expect a cipher to be \textbf{perfectly secure} if a ciphertext provides no information about the message.
+Formally, a cipher is perfectly secure if for any $M_1, M_2 \in \msgspace$, any $K \in \keyspace$, and any $C \in \ctxtspace$, 
+\begin{equation*}
+\Prob{K \getsr \keyspace: \cipherE_{K}(M_1) = C} = \Prob{K \getsr \keyspace: \cipherE_{K}(M_2) = C}.
+\end{equation*}
+Notice that although the OTP is perfectly secure, it is not practical since the key must be as large as the message. 
 \end{example}
 
 \paragraph{Security notions.} What do we intuitively expect of a cipher?
@@ -39,99 +44,108 @@ Minimally:
 \item The message should remain secret.
 \end{itemize}
 
-Let's try to formalize these notions. We will start with a security notion called \textbf{target key recovery security} (TKR).
-As the name suggests, the goal of the adversary is to recover the challenge key given a chosen plaintext attack, meaning the adversary can choose which messages to query to the $\Fn$ oracle. The game pseudocode is provided in \figref{fig:tkr}. We let $\TKR_\cipher$-advantage of a $\TKR_\cipher$-adversary $\advA$ be defined by 
+\begin{wrapfigure}[13]{r}{0pt}
+	\fpage{.15}{
+		\underline{$\TKR^\advA_\cipher$}\\[1pt]
+		$K \getsr \keyspace$\\
+		$K^* \getsr \advA^\Fn$\\
+		Return $(K = K^*)$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		$C \gets \cipherE_K(M)$\\
+		Return $C$
+	}
+	\caption{The target key recovery game.}
+	\label{fig:tkr}
+\end{wrapfigure}
+
+Let's try to formalize these ideas. We will start with a security notion called \textbf{target key recovery security} (TKR).
+As the name suggests, the goal of the adversary is to recover the challenge key given a chosen plaintext attack, meaning the adversary can choose which messages for which it will receive the corresponding ciphertexts. In the $\TKR_\cipher$ game, the adversary makes the queries for these messages to what is called the $\Fn$ oracle. On input $M$, the $\Fn$ oracle simply returns the corresponding ciphertext $C \gets \cipherE_K(M)$, thereby hiding information about key $K$ from the adversary. 
+ The game pseudocode is provided in \figref{fig:tkr}. We let $\TKR_\cipher$-advantage of a $\TKR_\cipher$-adversary $\advA$ be defined by 
 \bnm
 \AdvTKR{\cipher}{\advA} = \Prob{\TKR^\advA_\cipherE \Rightarrow\true}  \;.
 \enm
 
-\begin{figure}[p]
-	\centering
-	\fpage{.45}{
-		\underline{$\TKR^\advA_\cipher$}\\[1pt]
-		$K \getsr \keyspace$\\
-		$K^* \getsr \advA^\Fn$\\
-		Ret $(K = K^*)$\medskip
-		
-		\underline{$\Fn(M)$}\\
-		$C \gets \cipherE_K(M)$\\
-		Ret $C$
+We must now ask ourselves how well TKR captures the security of a cipher. Let us first try to analyze the security of the OTP using this definition. Notice that the OTP actually fails to provide TKR security, which we show with the following adversary.
+\begin{center}
+	\fpage{.15}{
+		\underline{\textbf{adversary }$\advA$}\\[2pt]
+		$K \gets \Fn(0^n)$ \\
+		Return $K$
 	}
-	\caption{The target key recovery game.}
-	\label{fig:tkr}
-\end{figure}
+\end{center}	
 
-
-We must now ask ourselves how well TKR captures the security of a cipher. Let us first try to analyze the security of OTP using this definition. Notice that OTP actually fails to provide TKR security, which we show with the following adversary.
-\begin{align*}
-&\underline{\textbf{adversary } \advA} \\
-&K \gets \Fn(0^n) \\
-&\text{Return } K 
-\end{align*}	
-
-$\advA$ simply queries for $0^n$, which returns $0^n \oplus K = K$, thereby recovering the challenge key with $\AdvTKR{\cipher}{\advA} = 1$. This then means that OTP is actually insecure according to the TKR security definition. But as we noted earlier, OTP is considered secure! Our definition then fails to capture the security of OTP. 
+$\advA$ simply queries for $0^n$, which returns $0^n \oplus K = K$, thereby recovering the challenge key with $\AdvTKR{\cipher}{\advA} = 1$. This then means that the OTP is actually insecure according to the TKR security definition. But as we noted earlier, the OTP is considered perfectly secret! The implication here is that TKR speaks to security for encryption under multiple messages, but the OTP is only secure for one-time use. This highlights the necessity for a cipher that is secure for multiple messages, but it also demonstrates that our TKR definition is imperfect. Indeed, TKR ultimately fails to capture the goal of perfect secrecy. 
 
 Now consider the identity cipher $\cipherE_{K}(M) = M$ for $\keyspace=\{0,1\}^k$. Since the cipher simply returns the message, no information about the key is included in the ciphertext. The best an adversary can do is return a random key, which has probability $2^{-k}$ of being the correct target key.
-Then for any adversary $\advA$, it holds that $\AdvTKR{\cipher}{\advA} = 2^{-k}$, meaning the identity cipher is secure. Clearly this is not the case, and thus TKR security does not provide message confidentiality. Furthermore, this security notion is ``unfair'' to an adversary, since there can be many keys that are \textit{consistent} on a query transcript. 
+Then for any adversary $\advA$, it holds that $\AdvTKR{\cipher}{\advA} = 2^{-k}$, meaning the identity cipher is ``secure''. However, the identity cipher clearly does not provide message confidentiality, and thus our TKR notion says nothing about this property.
 
-\begin{figure}[p]
-	\centering
-	\fpage{.45}{
+\begin{wrapfigure}[18]{r}{0pt}
+	\fpage{.25}{
 		\underline{$\KR^\advA_\cipher$}\\[1pt]
-		$\win \gets \false$\\
 		$K \getsr \keyspace$\\
 		$K^* \getsr \advA^\Fn$\\ 
+		$\win \gets \true$ \\
+		If $\calX = \emptyset$ then \\
+		\ind Return $\false$ \\
 		For $M \in \calX$:\\
 		\ind If $\cipherE_{K^*}(M) \ne \cipherE_{K}(M)$ then\\
 		\ind\ind $\win \gets \false$\\
 		Return $\win$\medskip
 		
 		\underline{$\Fn(M)$}\\
-		$\win \gets \true$ \\
 		$\calX \gets \calX \cup \{M\}$\\
 		$C \gets \cipherE_K(M)$\\
-		Ret $C$
+		Return $C$
 	}
 	\caption{The key recovery game.}
 	\label{fig:kr}
-\end{figure}
+\end{wrapfigure}
 
-We then look at a different notion called \textbf{key recovery security} (KR). Under this definition, if an adversary outputs a key that is consistent with the query transcript, then it wins. The game pseudocode is provided in \figref{fig:kr}. We let $\KR_\cipher$-advantage of a $\KR_\cipher$-adversary $\advA$ be defined by 
+Furthermore, this security notion is ``unfair'' to an adversary, since there can be many keys that are \textit{consistent} on a query transcript. We then look at a different notion called \textbf{key recovery security} (KR). Under this definition, if an adversary outputs a key that is consistent with the query transcript, then it wins. The game pseudocode is provided in \figref{fig:kr}. Notice that if an adversary makes no queries to the $\Fn$ oracle, then $\KR_\cipherE$ will return $\false$.
+We let $\KR_\cipher$-advantage of a $\KR_\cipher$-adversary $\advA$ be defined by 
 \bnm
 \AdvKR{\cipher}{\advA} = \Prob{\KR^\advA_\cipherE \Rightarrow\true}  \;.
 \enm
 
 How does KR compare to TKR? We now look at how to formally compare security definitions to gain an understanding of the relationship between TKR and KR. 
 
-\paragraph{Comparing security definitions.} To show that some definition DEF1 does not imply another definition DEF2, we can show a \textit{counter-example}. This requires producing a scheme such that we can show that no (reasonable) DEF1-adversary has a good advantage. We then give a DEF2-adversary that does maintain a good DEF2 advantage.
+\paragraph{Comparing security definitions.} To show that some definition DEF1 does not imply another definition DEF2, we can show a \textit{counter-example}. This requires producing a scheme such that we can show that no (reasonable) DEF1-adversary has a good advantage. We then give a DEF2-adversary that does maintain a good DEF2 advantage (perhaps under some assumption, such as the existence of a DEF2-secure scheme). 
 
-Conversely, to show that DEF1 does imply DEF2, we can show a \textit{reduction}. This requires converting a DEF2-adversary $\advA$ into a DEF1-adversary $\advB$ such that $\advB$'s DEF1 advantage upper bounds $\advA$'s DEF2 advantage. 
+Conversely, to show that DEF1 does imply DEF2, we can show a \textit{reduction}. This requires converting a DEF2-adversary $\advA$ into a DEF1-adversary $\advB$ such that $\advB$'s DEF1 advantage upper bounds $\advA$'s DEF2 advantage. Moreover, the resources, such as number of queries and running time, of $\advB$ should be close to that of $\advA$.
 
 \begin{example}
 TKR $\not \Rightarrow$ KR \\
 To show this, we need a counter-example, and in this case we can use the identity cipher $\cipherE_{K}(M) = M$ for $\keyspace=\{0,1\}^k$ and $\msgspace=\{0,1\}^n$. 
-We have already discussed that any adversary cannot get a TKR advantage greater than $2^{-k}$. Next we must provide a KR-adversary that achieves a ``good'' advantage. We construct a KR-adversary $\advA_{KR}$ that simply returns $0^k$. Since $\forall M\in\msgspace, \forall K, K^* \in \keyspace, \cipherE_{K}(M) = \cipherE_{K^*}(M) = M$, $\advA_{KR}$ achieves advantage 1. Thus, we have shown that TKR $\not \Rightarrow$ KR. \qedsym
+We have already discussed that any adversary cannot get a TKR advantage greater than $2^{-k}$. Next we must provide a KR-adversary that achieves a ``good'' advantage. We construct a KR-adversary $\advA_{KR}$ that simply returns $0^k$. Since $\forall M\in\msgspace, \forall K, K^* \in \keyspace, \cipherE_{K}(M) = \cipherE_{K^*}(M) = M$, $\advA_{KR}$ achieves advantage 1. Thus, we have shown that TKR $\not \Rightarrow$ KR. 
 \end{example}
 
 We now ask whether KR $\Rightarrow$ TKR and prove this with the following theorem. 
 
 \begin{theorem}
 	\label{thm-tkr-kr}
-	Let $\cipher$ be a cipher. For any $\TKR_\cipher$-adversary $\advA$, we give a
+	Let $\cipher$ be a cipher with message space $\msgspace$. For any $\TKR_\cipher$-adversary $\advA$, we give a
 	$\KR_\cipher$-adversary $\advB$ such that 
-	$\AdvKR{\cipher}{\advA} = \AdvTKR{\cipher}{\advB}$.
+	$\AdvTKR{\cipher}{\advA} = \AdvKR{\cipher}{\advB}$, where the runtime and query usage of $\advB$ is the same as that of $\advA$. 
 \end{theorem}
 
-\begin{proof}[\thref{thm-tkr-kr}]
-	We are given an adversary $\advA$ that wins the $\TKR_\cipher$ game with advantage $\AdvKR{\cipher}{\advA}$, meaning that $\advA$ will return the target key chosen by the game with probability $\AdvKR{\cipher}{\advA}$. We now want to construct an adversary $\advB$ that wins the $\KR_\cipher$ game and do so with the following.
-	\begin{align*}
-	&\underline{\textbf{adversary } \advB^\Fn} \\
-	&K^* \getsr \advA^\Fn \\
-	&\text{Return } K^* 
-	\end{align*}
-	$\advB$ is given access to its oracle $\Fn$, and it runs $\advA$ using this same oracle. Notice that $\advB$ can simply provide $\advA$ its own oracle because the distribution of outputs for oracle $\Fn$ in game $\TKR_\cipher$ and for oracle $\Fn$ in game $\KR_\cipher$ are equivalent. This is known as an \textit{elementary wrapper}: a reduction that runs an adversary and simulates an oracle in the simplest way possible. 
+%[\thref{thm-tkr-kr}]
+
+\begin{proof}
+	We are given an adversary $\advA$ that wins the $\TKR_\cipher$ game with advantage $\AdvTKR{\cipher}{\advA}$, meaning that $\advA$ will return the target key chosen by the game with probability $\AdvTKR{\cipher}{\advA}$. We now want to construct an adversary $\advB$ that wins the $\KR_\cipher$ game and do so with the following.
+	\begin{center}
+	\fpage{.23}{
+		\underline{\textbf{adversary } $\advB^\Fn$} \\
+		$K^* \getsr \advA^\Fn$ \\
+		If $\advA$ made no queries then \\
+		\ind $M \getsr \msgspace$ ; $C \gets \Fn(M)$ \\
+		Return $K^*$	
+	}
+	\end{center}
+
+	$\advB$ is given access to its oracle $\Fn$, and it runs $\advA$ using this same oracle. Notice that $\advB$ can simply provide $\advA$ its own oracle because the distribution of outputs for oracle $\Fn$ in game $\TKR_\cipher$ and for oracle $\Fn$ in game $\KR_\cipher$ are equivalent. This is known as an \textit{elementary wrapper}: a reduction that runs an adversary once and simulates an oracle in a simple and efficient way \cite{BonehShoupBook}.
 	
-	Now $\advA$ returns the precise target key chosen by the game, so $\advB$ returns this key because the target key will always be consistent with all queries. $\AdvTKR{\cipher}{\advB}$ is then the probability that the key returned by $\advA$ is the target key, which is $\AdvKR{\cipher}{\advA}$. $\qedsym$
+	Now $\advA$ returns the precise target key chosen by the game, so $\advB$ returns this key because the target key will always be consistent with all queries. In the case that $\advA$ makes no queries to oracle $\Fn$, $\advB$ would automatically lose the game, so it makes a query to $\Fn$ with a randomly chosen message. $\AdvKR{\cipher}{\advB}$ is then the probability that the key returned by $\advA$ is the target key, which is $\AdvTKR{\cipher}{\advA}$.
 \end{proof}
 
 
@@ -139,7 +153,7 @@ In our theorem statements including reductions,  we need to interpret the words
 ``we give a''. We will focus on concrete, specified reductions. That means that
 the adversary $\advB$ not only exists, but is fully specified  --- minus the
 details of $\advA$ ---  within the proof.  In particular, if you give someone
-$\advA$ then $\advB$ becomes runnable.  Runnable reductions are generally
+$\advA$ then $\advB$ becomes a runnable adversary.  Runnable reductions are generally
 speaking easier to interpret when it comes to implied security guarantees. They
 even allow us to use the human-ignorance model~\cite{rogaway2006formalizing}
 which, roughly, states that a reduction even to a mathematically easy assumption
@@ -150,17 +164,13 @@ value that we know exists, but don't know an exact value for. This comes up in
 various arguments, and can cause problems in interpreting the reduction in terms
 of concrete security.  This issue is subtle and we will revisit it.
 
-The takeaway here being that one interprets ``we give a'' to mean runnable
+The takeaway here is that one interprets ``we give a'' to mean runnable
 adversaries that are specified fully in the proof. (Or when brevity is at stake,
-specified to a leave of detail that the average reader could specify it in
+specified to a level of detail that the average reader could specify it in
 detail easily.)  When we deviate from this convention we should remark on it.
 
-
-
-\paragraph{Exhaustive key search.} We now ask whether we can lower-bound (T)KR security in general. We do this by providing a \textit{generic} attack, or an attack that works against any cipher. One such generic attack is the exhaustive key search attack. The pseudocode is shown in \figref{fig:eks}. At a high level, this attack simply chooses a message at random, queries the $\Fn$ oracle to get the corresponding ciphertext, and then brute-force searches through the entire keyspace until it finds the key that outputs the correct ciphertext.  
-\begin{figure}[p]
-	\centering
-	\fpage{.45}{
+\begin{wrapfigure}{r}{0pt}
+	\fpage{.22}{
 		\underline{$\advA^\eks_\Fn$}\\[1pt]
 		$M \getsr \msgspace$ \\
 		$C \gets \Fn(M)$ \\
@@ -171,7 +181,7 @@ detail easily.)  When we deviate from this convention we should remark on it.
 	}
 	\caption{The exhaustive key search attack.}
 	\label{fig:eks}
-\end{figure} 
+\end{wrapfigure}  
 
 We know that $\AdvKR{\cipher}{\advA_\eks} = 1$ since a consistent key is guaranteed to exist. However, notice that finding $\AdvTKR{\cipher}{\advA_\eks}$ is trickier: $\advA_\eks$ might return a consistent key that is not necessarily the target key. For instance, this attack would not work on the identity map cipher since every key is consistent. For ``real'' ciphers, we expect this to be close to 1. 
 The worst-case running time for this attack is $|\keyspace|$, while the expected running time is $|\keyspace|/2$.
@@ -234,106 +244,41 @@ Notice that in game $\PRF1_{\cipher}^\advA$ all output values will be distinct, 
 \end{equation*}
 
 
+\paragraph{Exhaustive key search.} We now ask whether we can lower-bound (T)KR security in general. We do this by providing a \textit{generic} attack, or an attack that works against any cipher. One such generic attack is the exhaustive key search attack. The pseudocode is shown in \figref{fig:eks}. At a high level, this attack simply chooses a message at random, queries the $\Fn$ oracle to get the corresponding ciphertext, and then brute-force searches through the entire keyspace until it finds the key that outputs the correct ciphertext.  
 
-We define a \textbf{pseudorandom permutation} (PRP) as a function that is indistinguishable from a random permutation (RP). The games for PRP security are provided in \figref{fig:prp}. These games work similarly to the PRF games but now utilize a random permutation in $\PRP0_\cipher^\advA$ rather than a random function. The PRP advantage for $\advA$ is defined as 
-\begin{equation*}
-\AdvPRP{\cipher}{\advA} = \left| \Prob{\PRP1_\cipher^\advA\Rightarrow 1} 
-- \Prob{\PRP0_\cipher^\advA\Rightarrow1} \right|.
-\end{equation*}
+We know that $\AdvKR{\cipher}{\advA_\eks} = 1$ since a consistent key is guaranteed to exist. However, notice that finding $\AdvTKR{\cipher}{\advA_\eks}$ is trickier: $\advA_\eks$ might return a consistent key that is not necessarily the target key. For instance, this attack would not work on the identity map cipher since every key is consistent. For ``real'' ciphers, we expect this to be close to 1. 
+The worst-case running time for this attack is $|\keyspace|$, while the expected running time is $|\keyspace|/2$.
 
-\begin{figure}
-	\centering
-	\hfpages{.25}{
-		\underline{$\PRP1_{\cipher}^\advA$}\\
-		$K \getsr \keyspace$\\
-		$b' \getsr \advA^\Fn$\\
-		Return $b'$\medskip
-		
-		\underline{$\Fn(M)$}\\
-		Return $\cipherE_K(M)$\\
-	}{
-		\underline{$\PRP0_{\cipher}^\advA$}\\
-		$\pi \getsr \Perm(n)$\\
-		$b' \getsr \advA^\Fn$\\
-		Return $b'$\medskip
-		
-		\underline{$\Fn(M)$}\\
-		Return $\pi(M)$\\
-	}
-\caption{The PRP security games.}
-\label{fig:prp}	
-\end{figure}
+\paragraph{Computational security.} Computational security presents a large paradigm shift from previous notions. It focuses on computationally-bound adversaries. For instance, an exhaustive key search attack is clearly not computationally efficient for large key spaces and is thus not considered a threat in practice. We measure computational costs by assuming abstract unit costs of (most) operations. This is course-grained but useful for our purposes. 
 
-Considering that these notions are similar, can we relate them to each other? Intuitively, there is no difference between a random function and a random permutation when observing only a few input-output pairs. We formalize this intuition with the following lemma. 
+We have shown previously that TKR is not a good security notion, but we now ask whether KR is an improved definition. In particular, the identity cipher has been shown to be secure under TKR security, yet it is insecure under KR security, which is clearly an improvement. However, KR does not imply message confidentiality: it is a necessary but not sufficient goal. We now move on to very different notions of security for ciphers.
 
-\begin{lem}[PRF-PRP Switching Lemma]
-	\label{switching-lem}
-	Let $\cipher$ be a cipher with ciphertext space $\bits^n$. 
-	Let $\advA$ be an adversary making at most $q$ queries. Then
-	\bnm
-	\left| \Prob{\PRF0_\cipher^\advA\Rightarrow 1} 
-	- \Prob{\PRP0_\cipher^\advA\Rightarrow1} \right| \le \frac{q^2}{2^n}  \;.
-	\enm
-\end{lem}
+\section*{Exercises}
 
-The intuition for the following proof is that if you have oracle access to a random function or a random permutation, then you need to make enough queries to witness a collision, as determined by the birthday bound. 
-
-One's first instinct might be to bound the difference using a conditioning argument. For instance, let $\mathsf{Dist}$ be the event that in game $\PRF0_{\cipher}^\advA$ all values returned from oracle $\Fn$ are distinct. Then one might say that $\Prob{\PRP1_\cipher^\advA\Rightarrow 1} =   \Prob{\PRP0_\cipher^\advA\Rightarrow1 | \mathsf{Dist}}$. However, this is incorrect and in fact $\Prob{\PRP1_\cipher^\advA\Rightarrow 1} \neq   \Prob{\PRP0_\cipher^\advA\Rightarrow1 | \mathsf{Dist}}$. Refer to \cite{bellare2006multi} for further technical details. 
-
-To correctly prove this, we will instead use a game-playing argument. We first provide the following definition and lemma.
-
-\begin{definition}
-	Games $\G1$ and $\G2$ are \textbf{identical-until-bad} if they both contain a $\bad$ flag and their code differs only in statements following the setting of $\bad$ to $\true$. 
-\end{definition} 
-
-\begin{lem}[Fundamental Lemma of game playing \cite{bellare2006security}]
-	Let $\G$, $\Hgame$ be games that are identical-until-bad and $y$ be any
-	value. Then
-	\bnm
-	\big| \Prob{\G\Rightarrow y} 
-	- \Prob{\Hgame\Rightarrow y} \big| \le \Prob{\Hgame\setsbad} = \Prob{\G\setsbad}  \;.
-	\enm
-\end{lem}
-
-\begin{proof}[\lemref{switching-lem}]
-	 We define the games in \figref{fig:switching}. Notice that the output from game $\G0$ has an identical distribution to that of game $\PRP0_\cipher^\advA$. The only difference between them is that game $\PRP0_\cipher^\advA$ chooses a random permutation and returns the output from that, while game $\G0$ chooses unique values at random as $\advA$ makes queries to $\Fn$. Then $\Prob{\PRP0_\cipher^\advA\Rightarrow1} = \Prob{\G0}$. Game $\G1$ includes the boxed statement and also has an identical output distribution to that of game $\G0$. It simply chooses an output value at random, and if it detects a repeat it then chooses another unique value. In the case of a repeat, it also sets the $\bad$ flag to $\true$. We then have that $\Prob{\G1} = \Prob{\G0}$. We next transition to game $\G2$ and notice that $\G1$ and $\G2$ are \textbf{identical-until-bad}. The Fundamental Lemma of game playing then states that $\Prob{\G1} \leq \Prob{\G2} + \Prob{\bad \text{ set to } \true}$. Game $\G2$ returns values chosen at random and allows for repeat values, so it has an identical output distribution to $\PRF0_\cipher^\advA$. This means $\Prob{\PRF0_\cipher^\advA\Rightarrow1} = \Prob{\G2}$. Finally, the probability that $\bad$ is set to $\true$ is the probability that a random value is chosen by $\Fn$ such that it is not distinct, which is bounded by the birthday bound. We then have the following:
-	 
-	 \begin{figure}
-	 	\centering
-	 	\hfpagess{.20}{.20}{
-	 		\underline{$\G0$}\\[2pt]
-	 		$b' \getsr \advA^\Fn$\\
-	 		Return $b'$\medskip
-	 		
-	 		\underline{$\Fn(M)$}\\
-	 		If $\TabF[M] = \bot$ then\\
-	 		\ind $\TabF[M] \getsr \bits^n \setminus \TabF$\\
-	 		Return $\TabF[M]$
-	 	}{
-	 		\underline{\fbox{$\G1$} \;\;\; $\G2$}\\[2pt]
-	 		$b' \getsr \advA^\Fn$\\
-	 		Return $b'$\medskip
-	 		
-	 		\underline{$\Fn(M)$}\\
-	 		$C \getsr \bits^n$\\
-	 		If $C \in \TabF$ then\\
-	 		\ind $\badtrue$\\
-	 		\ind \fbox{$C \getsr \bits^n \setminus \TabF$}\\
-	 		$\TabF[M] \gets C$\\
-	 		Return $\TabF[M]$
-	 	}
-	 	\caption{The games for the switching lemma (\lemref{switching-lem}).}
-	 	\label{fig:switching}	
-	 \end{figure} 
-	 
-	 \begin{align*}
-	 &\left| \Prob{\PRP0_\cipher^\advA\Rightarrow 1} 
-	 - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right| \\ 
-	 &\myInd\myInd\myInd =  \left|\Prob{\G0} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
-	 &\myInd\myInd\myInd  =  \left|\Prob{\G1} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
-	 &\myInd\myInd\myInd  \le \left|\Prob{\G2} + \Prob{\bad \text{ set to } \true} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|\\
-	 &\myInd\myInd\myInd  = \Prob{\bad \text{ set to } \true}\\
-	 &\myInd\myInd\myInd  \le \frac{q^2}{2^n} \\
-	 \end{align*} 
-	 $\qedsym$
-\end{proof}
+\begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
+	\item Let $\cipherE : \bits^k \times \bits^n \to \bits^n$ be a secure block cipher and define $F : \bits^{2k} \times \bits^{2n} \to \bits^{2n}$ by
+	\begin{center}
+		\begin{minipage}{0.5\linewidth}
+			\underline{\textbf{Algorithm} $F_{K_1 \| K_2}(x_1 \| x_2)$} \\
+			$y_1 \gets \cipherE(K_1, x_1 \oplus x_2) \ ; \ y_2 \gets \cipherE(K_2, \overline{x_2})$ \\
+			Return $y_1 \| y_2$
+		\end{minipage}
+	\end{center}
+	for all $k$-bit strings $K_1$ and $K_2$ and all $n$-bit strings $x_1$ and $x_2$, where $\overline{x}$ denotes the bitwise complement of $x$. Let $T_\cipherE$ denote the time for one computation of $\cipherE$ or $\cipherE^{-1}$. 
+	\begin{enumerate}
+		\item Prove that $F$ is a block cipher.
+		\item What is the running time of a 4-query exhaustive key search attack on $F$? The running time should be worst case and should be a function of $T_\cipherE$. 
+		\item Provide a 4-query key-recovery attack in the form of an adversary $\advA$ specified in pseudocode, achieving $\AdvKR{F}{\advA}=1$ and having running time $\calO(2^n \cdot T_\cipherE)$. 
+	\end{enumerate}
+	(Taken from \cite{BellareBCNotes}, pages 60-61)
+	
+%	\item Let $\cipherE : \bits^k \times \bits^n \to \bits^n$ be a secure PRP. Consider the family of permutations $\cipherE' : \bits^k \times \bits^{2n} \to \bits^{2n}$ defined for all $x,x' \in \bits^n$ by 
+%	\begin{equation*}
+%	\cipherE'_K(x \|x') = \cipherE_K(x) \| \cipherE_K(x \oplus x').
+%	\end{equation*}
+%	Show that $\cipherE'$ is not a secure PRP. 
+%	(Taken from \cite{BellareRogawayBook}, page 87)
+	
+	\item Give Shannon's definition of perfect secrecy. Let $\cipher=(\cipherE, \cipherD)$ be a perfectly secret cipher defined over $(\keyspace,\msgspace,\ctxtspace)$ where $\keyspace=\msgspace$. Let $\cipher' = (\cipherE',\cipherD')$ be a cipher where encryption is defined as $\cipherE'((k_1,k_2), m) = (\cipherE(k_1,k_2), \cipherE(k_2,m)$. Show that $\cipher'$ is perfectly secret. \\  
+	(Taken from \cite{BonehShoupBook}, page 38)
+\end{enumerate}
