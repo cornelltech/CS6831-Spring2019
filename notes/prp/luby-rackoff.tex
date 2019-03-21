@@ -199,7 +199,7 @@ Game $\G3$ generates fresh random values $X_2, X_3$ on every input to the second
 This is in contrast to $\G2$ where a fresh random value is only returned for inputs that have never been seen.
 Thus, the difference between $\G2$ and $\G3$ occur when repeat inputs are used with the second or third round functions, which corresponds to repeat values of $R_1$ and $R_2$, respectively.
 Intuitively, since we are only considering adversaries $\advA$ that make unique queries to $\Fn$, finding repeat values of $R_1$ and $R_2$ is hard because they both include randomness from the random function.
-The pseudocode in Figure~\ref{fig:games-luby-rackoff} captures the event of a repeat query by a setting a $\bad$ flag.
+The pseudocode in Figure~\ref{fig:games-luby-rackoff} captures the event of a repeat query by  setting a $\bad$ flag.
 The only difference between $\G2$ and $\G3$ occur after the $\bad$ flag is set; $\G2$ returns the consistent value from the look-up table $\TabF$, while $\G3$ returns a fresh random value.
 Then by the fundamental lemma of game-playing,
 \bnm
@@ -240,7 +240,7 @@ Bounding the probability of $W_i^1$ is more nuanced.
 Here, $R_1 = L_0\xor X_1$ where $X_1$ is randomly sampled.
 However, $X_1$ is not freshly randomly sampled on every call to $\Fn$, and the adversary can induce use of the same $X_1$ with repeated queries of the same $R_0$.
 To bound the probability of collision to $i/2^n$, we must argue that $X_1$ is independent of $L_0$.
-Since the $\advA$'s $L_0$ query is dependent only on $\advA$'s random coins and the previous outputs of $\Fn$ and in $\G4$ the outputs of $\Fn$ are independently drawn random samples, we have that $L_0$ is independent of $X_1$.
+Since $\advA$'s $L_0$ query is dependent only on $\advA$'s random coins and the previous outputs of $\Fn$ and in $\G4$ the outputs of $\Fn$ are independently drawn random samples, we have that $L_0$ is independent of $X_1$.
 
 Thus, by two applications of the union bound, we have
 \begin{align*}

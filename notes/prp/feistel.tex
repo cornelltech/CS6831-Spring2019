@@ -2,7 +2,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Building PRPs from PRFs}
 In the previous section, we showed that it is hard to distinguish between a PRF and a PRP (see \lemref{switching-lem}).
-However, as in the use case of block ciphers for length-preserving encryption and decryption, we specifically require a block cipher secure as a PRP for correctness purposes.
+However, as in the use case of block ciphers for length-preserving encryption and decryption, we specifically require a block cipher to be secure as a PRP for correctness purposes.
 Specifically, we need to be able to correctly decrypt in most applications of block ciphers.
 A natural question to ask is does the existence of a PRF imply the existence of a PRP, or more constructively, can we build a PRP given a PRF?
 
@@ -85,3 +85,5 @@ To use only a single key, we could consider an alternate construction, where the
 As before, the round function will take in the second half of the input, but it will also take in an $n$-bit round counter.
 To stack Feistel rounds into a multi-round Feistel network, we simply ensure that each round uses a different round counter.
 Figure~\ref{fig:feistel-3} depicts a 3-round Feistel network constructed in this manner.
+It turns out that three rounds are necessary to create a PRP using a Feistel network.
+We leave showing a PRP distinguishing adversary for the 2-round Feistel network as an exercise to the reader.
