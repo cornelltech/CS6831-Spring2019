@@ -1,0 +1,178 @@
+\section{PRF and PRP Security}
+\label{sec:prf}
+
+A standard goal for cipher security is security in the sense of pseudorandom permutations and/or pseudorandom functions. For simplicity, we will focus on \textbf{block ciphers}, which for keyspace $\keyspace=\bits^k$ and message space $\msgspace=\bits^n$ are defined by $\cipherE : \bits^k \times \{0,1\}^n \to \bits^n$. Let $\Perm(n)$ be the set of all permutations on $n$ bits. Notice that since $|\bits^n| = 2^n$, then $|\Perm(n)| = 2^n!$. Let $\Func(n,n)$ be the set of all functions from $\bits^n \to \bits^n$. Note that $|\Func(n,n)| = (2^n)^{2^n}$.
+
+\subsection{PRF security}
+
+We now define a \textbf{pseudorandom function} (PRF) as a function that is indistinguishable from a random function (RF). At a high level this means that the input-output behavior of some block cipher $\cipherE_K$ ``looks like'' the input-output behavior of a random function assuming key $K$ is kept secret. There are two games defined for PRF security: PRF1 and PRF0. The pseudocode for both is provided in \figref{fig:prf}. In PRF1, the adversary has access to an $\Fn$ oracle that returns the output from the block cipher $\cipherE_K$. However, in PRF0 the adversary instead receives the output from a random function $\rho$ when it queries the $\Fn$ oracle. The adversary $\advA$ does not know in which game it is playing and must query the $\Fn$ oracle to distinguish between $\cipherE_K$ and $\rho$. Adversary $\advA$ returns a bit signifying which game it believes it is in. The PRF advantage for $\advA$ is defined as 
+\begin{equation*}
+\AdvPRF{\cipher}{\advA} = \left| \Prob{\PRF1_\cipher^\advA\Rightarrow 1} 
+- \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|.
+\end{equation*}
+
+The adversary $\advA$ wins if the probability that $\advA$ outputs 1 in game $\PRF1_\cipher^\advA$ is far greater than the probability that it outputs 1 in game $\PRF0_\cipher^\advA$. In particular, notice that if $\advA$ simply always output 1, $\AdvPRF{\cipher}{\advA}$ would be 0 as expected, since $\advA$ did not successfully distinguish $\cipher$ from a random function. 
+
+\begin{figure}
+	\centering
+	\hfpages{.15}{
+		\underline{$\PRF1_{\cipher}^\advA$}\\
+		$K \getsr \keyspace$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		Return $\cipherE_K(M)$
+	}{
+		\underline{$\PRF0_{\cipher}^\advA$}\\
+		$\rho \getsr \Func(n,n)$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		Return $\rho(M)$
+	}	
+\caption{The PRF security games.}
+\label{fig:prf}
+\end{figure} 
+
+Just as we provided a generic attack for TKR security using the exhaustive key search attack, is there a generic distinguishing attack for any cipher? One interesting observation is that for a given key, a block cipher $\cipherE_K$ is a permutation, meaning that two different inputs cannot produce the same output. (If this were not the case, decryption would be impossible.) However, a random function simply chooses outputs at random, so it is entirely possible for two different inputs to produce the same output. The probability of choosing $q$ values at random from $\{0,1\}^n$ and for two of these values to be the same is approximately $\frac{q^2}{2^n}$. This is colloquially known as the \textbf{birthday paradox}, since it implies that the number of people expected to produce two individuals with the same birthday is far fewer than what one might expect. 
+
+If $\advA$ were to query its $\Fn$ oracle enough times, eventually the probability that a repeat value is produced would be large enough and $\advA$ could then check to see if such a repeat value exists. If no repeat occurs, then $\advA$ can assume it is in game $\PRF1_{\cipher}$; otherwise, $\advA$ must be in game $\PRF0_{\cipher}$. This attack is called the \textbf{birthday attack}. The pseudocode for this adversary is defined below.
+ 
+\begin{center}
+\fpage{.35}{
+	\underline{\textbf{adversary} $\advA^\Fn_{\text{bday}}$} \\
+	Let $M_1, M_2, \cdots, M_q \gets \{0,1\}^n$ be distinct \\
+	For $i=1, \cdots, q$ do $C_i \gets \Fn(M_i)$ \\
+	If $C_1, \cdots, C_q$ are all distinct then return 1 \\
+	Else return 0	
+}
+\end{center}
+
+In addition to creating $q$ messages and querying $\Fn$ $q$ times, $\advA_{\text{bday}}$ must check to see if there are any duplicates in its answered queries. Overall, $\advA_{\text{bday}}$ will then have running time of $\calO(q)$.
+To bound the advantage of $\advA_{\text{bday}}$, first notice that in game $\PRF1_{\cipher}$, $\Fn$ outputs the value from $\cipher$, so all output values will be distinct. Thus, $\advA_{\text{bday}}$ will always return 1 and $\Prob{\PRF1_\cipher\Rightarrow 1}=1$. The probability that $\advA_{\text{bday}}$ returns 1 in game $\PRF0_{\cipher}$ is trickier to bound. To do so, we first define $C(N,q)$ as the probability that in the event of choosing $q$ values uniformly at random from set $\{1,\cdots,N\}$, not all of the values chosen are distinct. In game $\PRF0_{\cipher}$, $\Fn$ returns the output from a random function and since $M_1, \cdots, M_q$ are all distinct, then $C_1, \cdots, C_q$ are independently distributed, random values from $\bits$. The probability of all these values being distinct is the probability that there does not exist a collision, which is $1-C(N,q)$, where $N=2^n$. $C(N,q)$ is the birthday bound, so it can be lower-bounded by $\frac{q^2}{2^n}$. 
+The PRF-advantage of $\advA^\Fn_{\text{bday}}$ is then defined as 
+\begin{align*}
+\AdvPRF{\cipher}{\advA_\text{bday}} &= \left| \Prob{\PRF1_\cipher^{\advA_\text{bday}}\Rightarrow 1} 
+- \Prob{\PRF0_\cipher^{\advA_\text{bday}}\Rightarrow1} \right| \\
+&= 1 - (1 - C(N,q)) \\ 
+&= C(N,q) \\ 
+&\geq \frac{q^2}{2^n}.
+\end{align*}
+
+In order for $\advA_{\text{bday}}$ to have a high probability of succeeding, we expect $q \approx 2^{n/2}$. This means $\advA_{\text{bday}}$ will also have running time of about $2^{n/2}$. For large values of $n$, this becomes an impractical attack. 
+
+
+\subsection{PRP security} 
+We define a \textbf{pseudorandom permutation} (PRP) as a function that is indistinguishable from a random permutation (RP). The games for PRP security are provided in \figref{fig:prp}. These games work similarly to the PRF games but now utilize a random permutation in $\PRP0_\cipher^\advA$ rather than a random function. The PRP advantage for $\advA$ is defined as 
+\begin{equation*}
+\AdvPRP{\cipher}{\advA} = \left| \Prob{\PRP1_\cipher^\advA\Rightarrow 1} 
+- \Prob{\PRP0_\cipher^\advA\Rightarrow1} \right|.
+\end{equation*}
+
+\begin{figure}
+	\centering
+	\hfpages{.15}{
+		\underline{$\PRP1_{\cipher}^\advA$}\\
+		$K \getsr \keyspace$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		Return $\cipherE_K(M)$
+	}{
+		\underline{$\PRP0_{\cipher}^\advA$}\\
+		$\pi \getsr \Perm(n)$\\
+		$b' \getsr \advA^\Fn$\\
+		Return $b'$\medskip
+		
+		\underline{$\Fn(M)$}\\
+		Return $\pi(M)$
+	}
+\caption{The PRP security games.}
+\label{fig:prp}	
+\end{figure}
+
+Considering that these notions are similar, can we relate them to each other? Intuitively, there is no difference between a random function and a random permutation when observing only a few input-output pairs, as long as the ciphertext space $n$ is sufficiently large. We formalize this intuition with the following lemma. 
+
+\begin{lem}[PRF-PRP Switching Lemma]
+	\label{switching-lem}
+	Let $\cipher$ be a cipher with ciphertext space $\bits^n$. 
+	Let $\advA$ be an adversary making at most $q$ queries. Then
+	\bnm
+	\left| \Prob{\PRF0_\cipher^\advA\Rightarrow 1} 
+	- \Prob{\PRP0_\cipher^\advA\Rightarrow1} \right| \le \frac{q^2}{2^n}  \;.
+	\enm
+\end{lem}
+
+The intuition for the following proof is that if you have oracle access to a random function or a random permutation, then you need to make enough queries to witness a collision, as determined by the birthday bound. 
+
+One's first instinct might be to bound the difference using a conditioning argument. For instance, let $\mathsf{Dist}$ be the event that in game $\PRF0_{\cipher}^\advA$ all values returned from oracle $\Fn$ are distinct. Then one might say that $\Prob{\PRP1_\cipher^\advA\Rightarrow 1} =   \Prob{\PRP0_\cipher^\advA\Rightarrow1 | \mathsf{Dist}}$. However, this is incorrect and in fact $\Prob{\PRP1_\cipher^\advA\Rightarrow 1} \neq   \Prob{\PRP0_\cipher^\advA\Rightarrow1 | \mathsf{Dist}}$. Refer to \cite{bellare2006multi} for further technical details. 
+
+To correctly prove this, we will instead use a game-playing argument. We first provide the following definitions and lemma. 
+
+\begin{definition}
+	A \textbf{flag} is a variable in a pseudocode game that is set upon the occurrence of some event in the game. 
+\end{definition}
+
+Typically, games will utilize a flag called \textit{bad} which is set to $\true$.  
+
+\begin{definition}
+	Games $\G1$ and $\G2$ are \textbf{identical-until-bad} if they both contain a flag $\bad$  and their code differs only in statements following the setting of $\bad$ to $\true$. 
+\end{definition} 
+
+\begin{lem}[Fundamental Lemma of game playing \cite{bellare2006security}]
+	Let $\G$, $\Hgame$ be games that are identical-until-bad and let $y$ be any
+	value. Then
+	\bnm
+	\big| \Prob{\G\Rightarrow y} 
+	- \Prob{\Hgame\Rightarrow y} \big| \le \Prob{\Hgame\setsbad} = \Prob{\G\setsbad}  \;.
+	\enm
+\end{lem}
+
+Stated another way, this lemma tells us about the advantage an adversary gains in distinguishing a pair of identical-until-bad games, $\G$ and $\Hgame$. Since $\G$ and $\Hgame$ only differ upon the setting of flag $\bad$, then intuitively we can see that the advantage of an adversary to distinguish between these games must be at most the probability that $\bad$ is set during its execution.
+
+The overall technique we will implement here (and generally in game-playing arguments) is to create a chain of games that are identical-until-bad. We can then invoke the Fundamental Lemma of game playing to upper-bound the adversary's advantage by the probability that $\bad$ gets set in either game. We can slowly modify the games in ways that change the probability of $\bad$ being set until we reach some terminal game where we can utilize conventional probabilistic methods to bound the probability of setting $\bad$. Note that the following proof introduces a $\bad$ flag that can be immediately bounded by traditional means without modification, although future proofs we will see will require further transformations. 
+
+\begin{proof}[Proof of \lemref{switching-lem}]
+	 We define the games in \figref{fig:switching}. Notice that the output from game $\G0$ has an identical distribution to that of game $\PRP0_\cipher^\advA$. The only difference between them is that game $\PRP0_\cipher^\advA$ chooses a random permutation and returns the output from that, while game $\G0$ chooses unique values at random as $\advA$ makes queries to $\Fn$. Then $\Prob{\PRP0_\cipher^\advA\Rightarrow1} = \Prob{\G0}$. Game $\G1$ includes the boxed statement and also has an identical output distribution to that of game $\G0$. It simply chooses an output value at random, and if it detects a repeat it then chooses another unique value. In the case of a repeat, it also sets the $\bad$ flag to $\true$. We then have that $\Prob{\G1} = \Prob{\G0}$. We next transition to game $\G2$ and notice that $\G1$ and $\G2$ are \textbf{identical-until-bad}. The Fundamental Lemma of game playing then states that $\Prob{\G1} \leq \Prob{\G2} + \Prob{\bad \text{ set to } \true}$. Game $\G2$ returns values chosen at random and allows for repeat values, so it has an identical output distribution to $\PRF0_\cipher^\advA$. This means $\Prob{\PRF0_\cipher^\advA\Rightarrow1} = \Prob{\G2}$. Finally, the probability that $\bad$ is set to $\true$ is the probability that a random value is chosen by $\Fn$ such that it is not distinct, which is bounded by the birthday bound. We then have the following:
+	 
+	 \begin{figure}
+	 	\centering
+	 	\hfpagess{.20}{.20}{
+	 		\underline{$\G0$}\\[2pt]
+	 		$b' \getsr \advA^\Fn$\\
+	 		Return $b'$\medskip
+	 		
+	 		\underline{$\Fn(M)$}\\
+	 		If $\TabF[M] = \bot$ then\\
+	 		\ind $\TabF[M] \getsr \bits^n \setminus \TabF$\\
+	 		Return $\TabF[M]$
+	 	}{
+	 		\underline{\fbox{$\G1$} \;\;\; $\G2$}\\[2pt]
+	 		$b' \getsr \advA^\Fn$\\
+	 		Return $b'$\medskip
+	 		
+	 		\underline{$\Fn(M)$}\\
+	 		$C \getsr \bits^n$\\
+	 		If $C \in \TabF$ then\\
+	 		\ind $\badtrue$\\
+	 		\ind \fbox{$C \getsr \bits^n \setminus \TabF$}\\
+	 		$\TabF[M] \gets C$\\
+	 		Return $\TabF[M]$
+	 	}
+	 	\caption{The games for the proof of the PRF-PRP Switching Lemma (\lemref{switching-lem}).}
+	 	\label{fig:switching}	
+	 \end{figure} 
+	 
+	 \begin{align*}
+	 \left| \Prob{\PRP0_\cipher^\advA\Rightarrow 1} 
+	 - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  
+	 &=  \left|\Prob{\G0} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
+	 &=  \left|\Prob{\G1} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|  \\
+	 &\le \left|\Prob{\G2} + \Prob{\bad \text{ set to } \true} - \Prob{\PRF0_\cipher^\advA\Rightarrow1} \right|\\
+	 &= \Prob{\bad \text{ set to } \true}\\
+	 &\le \frac{q^2}{2^n} \\
+	 \end{align*} 
+\end{proof}
