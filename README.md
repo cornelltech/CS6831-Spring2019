@@ -195,9 +195,9 @@ what we're hoping to cover.
 | Mar 11 | Hash functions 2 | [Slides](slides/hashfunctions-lec12.pptx) | |
 | Mar 13 | Hash functions 3 | [Slides](slides/hashfunctions-lec13.pptx) | |
 | Mar 18 | Public key encryption / RSA | [Slides](slides/pke.pptx)| |
-| Mar 20 | Public-key encryption / El Gamal  |   | |
-| Mar 25 | Chosen-ciphertext attacks |   | |
-| Mar 27 | Anonymous key exchange  |  | |
+| Mar 20 | Public-key encryption / El Gamal  | [Slides](slides/pke2.pptx)  | |
+| Mar 25 | ECC |   | |
+| Mar 27 | Chosen-ciphertext attacks  |  | |
 | Apr 1  | No lecture (Spring Break) |  | |
 | Apr 3  | No lecture (Spring Break) |  | |
 | Apr 8  | Digital signatures | | |
