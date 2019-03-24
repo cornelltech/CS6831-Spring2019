@@ -47,6 +47,7 @@
 \usepackage{adjustbox}
 \usepackage{multirow}
 \usepackage[font=small]{caption}
+\usepackage[font=small]{subcaption}
 \def\authnotes{1}
 \newtheorem{thm}{Theorem} %[section]
 \newtheorem*{theorem*}{Theorem}
@@ -1787,7 +1788,7 @@
 \newcommand{\commitspace}{\calC}
 \newcommand{\frankspace}{\calT}
 \newcommand{\Efrankspace}{\calT}
-\newcommand{\HMAC}{\textsf{HMAC}}
+\newcommand{\HMAC}{\textnormal{\textsf{HMAC}}}
 \newcommand{\FSE}{\textsf{FSE}}
 \newcommand{\ftag}{T}
 \newcommand{\fopen}{K_{f}}
@@ -2199,6 +2200,7 @@
 
 \newcommand{\simoracle}{\textsf{Sim}}
 \newcommand{\foracle}{\textsf{f}}
+\newcommand{\FnOracle}{\textnormal{Fn}}
 \newcommand{\INDIFF}{\textnormal{Indiff}}
 \newcommand{\AdvINDIFF}[2]{\Adv^{\mathrm{indiff}}_{#1}(#2)}
 
@@ -2206,7 +2208,18 @@
 \newcommand{\RKAPRF}{\textnormal{RKA-PRF}}
 \newcommand{\AdvRKAPRF}[2]{\Adv^{\mathrm{rka\dash prf}}_{#1}(#2)}
 
+\newcommand{\ipad}{\mathrm{ipad}}
+\newcommand{\opad}{\mathrm{opad}}
+\newcommand{\modify}[1]{{\color{blue} #1 }}
+\newcommand{\ftable}{\mathtt{f}}
+\newcommand{\Htable}{\mathtt{H}}
+
+\newenvironment{proofsketch}{%
+  \renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
+
+
 \newcommand{\DDH}{\textnormal{DDH}}
+
 
 \newcommand{\RSAk}{\textnormal{RSA}\dash k}
 \newcommand{\AdvOWFRSA}[2]{\Adv^{\mathrm{owf}}_{#1}(#2)}
