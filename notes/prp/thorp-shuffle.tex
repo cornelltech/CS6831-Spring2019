@@ -3,7 +3,7 @@
 \paragraph{Connection to card shuffling algorithms.}
 It turns out that building PRP block ciphers, perhaps unsurprisingly, is highly related to literature in designing ``good'' card shuffling algorithms.
 Shuffling a deck of cards can be thought of as a permutation in which the position of each card pre-shuffle is mapped to its position post-shuffle.
-A ``good'' shuffle desires that all possible deck permutations are close-to equally likely, similar to the goals of a PRP.
+A ``good'' shuffle desires that all possible deck permutations are close to equally likely, similar to the goals of a PRP.
 We will examine the connection of the Thorp shuffle~\cite{Thorp73} to the Feistel construction.
 
 The Thorp shuffle, depicted in~\figref{fig:unbalanced-card-shuffle}, works as follows.
@@ -17,7 +17,7 @@ The connection of the Thorp shuffle to cryptography and block cipher design was 
 Consider the maximally unbalanced Feistel construction given in~\figref{fig:unbalanced-card-shuffle}.
 An unbalanced Feistel construction splits its inputs into unequal sized bit strings and the round function compresses the larger string to the size of the smaller string.
 In this example of a maximally unbalanced construction, the input is split into two strings of length $1$ bit and $n-1$ bits.
-Observe that if the round function of the Feistel construction was a pseudorandom function, it would perform exactly one pass of the Thorp shuffle.
+Observe that if the round function of the Feistel construction were a pseudorandom function, it would perform exactly one pass of the Thorp shuffle.
 Consider the positions of the cards as bit strings of length $n = \lg N$.
 With position $i$ in the first half of the deck, the output of the pseudorandom function on the bit representation of $i$ acts as the coin flip for determining card $i$ and card $i + N/2$ placement in position $2i$ or $2i+1$.
 
@@ -75,7 +75,7 @@ The security of the Thorp shuffle as a block cipher was shown by Morris et al.~\
 \node[card] (s6) [right=\thorpcarddist of s5] {8\ding{171}};
 \node[card] (s7) [right=\thorpcarddist of s6] {4\ding{171}};
 \node (o0) [below=\thorplabeldist of s0] {\texttt{000}};
-\node (o1) [below=\thorplabeldist of s1] {\texttt{010}};
+\node (o1) [below=\thorplabeldist of s1] {\texttt{100}};
 \node (o2) [below=\thorplabeldist of s2] {\texttt{101}};
 \node (o3) [below=\thorplabeldist of s3] {\texttt{001}};
 \node (o4) [below=\thorplabeldist of s4] {\texttt{110}};

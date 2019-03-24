@@ -1,0 +1,48 @@
+%!TEX root = ../main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Further Security Properties for Hash Functions}
+
+Hash functions are used to accomplish a wide array tasks in cryptography that require properties stronger than, weaker than, and orthogonal to just collision resistance.
+In this section, we will examine a few of these alternate security goals for hash functions and their relations to each other.
+
+\subsection{Preimage and Second Preimage Resistance}
+
+Preimage resistance, often known as ``one-wayness'' of a one-way function, means that given an output $Y$ of a function $\hash$, it is hard to invert $\hash$ and find an element of the domain space that evaluates to $Y$, i.e., it is hard to find any preimage of $Y$.
+Second preimage resistance means that given a domain element and function $\hash$, it is hard to find a second domain element that evaluates to the same output $Y$ for both domain elements, i.e., it is hard to find a second preimage of $Y$ even if already given one preimage.
+Pseudocode for preimage resistance and second preimage resistance, $\OWF$ and $\SPR$, respectively, is given in Figure~\ref{fig:preimage-resistance}.
+The advantage of an adversary against these games is defined as:
+\bnm
+\AdvOWF{\hash}{\advA} = \Prob{\OWF^\advA_{\hash}\Rightarrow\true}\hspace{2em}\text{and}\hspace{2em}\AdvSPR{\hash}{\advA} = \Prob{\SPR^\advA_{\hash}\Rightarrow\true}\;.
+\enm
+
+\begin{wrapfigure}{r}{3.5in}
+  \centering
+\hfpagess{.2}{.3}{
+\underline{$\OWF^\advA_{\hash}$}\\[1pt]
+$M \getsr \msgspace$\\
+$Y \gets \hash(M)$\\
+$M' \getsr \advA(Y)$\\
+Return $(\hash(M') = Y)$
+}{
+\underline{$\SPR^\advA_{\hash}$}\\[1pt]
+$M \getsr \msgspace$\\
+$Y \gets \hash(M)$\\
+$M' \getsr \advA(M)$\\
+Return $(\hash(M') = \hash(M)) \land (M \ne M')$
+}
+\caption{
+Security games for Preimage resistance (left) and second preimage resistance (right).
+}
+\label{fig:preimage-resistance}
+\end{wrapfigure}
+
+These definitions, along with collision resistance, are certainly closely related.
+We can think about how they compare to each other.
+For example, we might conjecture $\CR\Rightarrow\SPR$.
+Thinking about the contrapositive, if one can find a second preimage of an output $Y$ than those two preimages constitute a collision.
+It turns out that we can formally show the following relations: $\CR\Rightarrow\SPR\Rightarrow\OWF$;
+and furthermore, there exist separations for the opposite direction: $\OWF\not\Rightarrow\SPR\not\Rightarrow\CR$.
+Formally showing these implications and separations is left as an exercise.
+Note that these results hold specifically for the definitions of preimage resistance, second preimage resistance, and collision resistance given in this book.
+While they are perhaps the most common such definitions, there exist several nuanced alternate definitions for these notions in the literature that do not satisfy the above implications.
+Rogaway and Shrimpton~\cite{RogawayShrimpton04} explore the landscape of these definitions.
