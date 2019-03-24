@@ -221,3 +221,97 @@ Ret $\TabH[X]$
 
 $\SEscheme = (\kgSym,\encSym,\decSym)$
 
+
+\hfpages{.15}{
+\underline{$\enc(X,M)$}\\
+$r \getsr \Z_{|G|}$\\
+$C_0 \gets g^r$\\
+$C_1 \gets X^r \cdot M$\\
+Ret $(C_0,C_1)$
+}{
+\underline{$\dec(x,(C_1,C_2))$}\\
+$M \gets C_2 \cdotsm C_1^{-x}$\\
+Ret $M$
+}
+
+
+\fpage{.20}{
+\underline{$\DDH_{G,g}^\advB$}\\
+$b \getsr \bits$\\
+$x,y,z \getsr \Z_{|G|}$\\
+$Z_0 \gets g^z$\\
+$Z_1 \gets g^{xy}$\\
+$b' \getsr \advB(g,g^x,g^y,Z_b)$\\
+Ret $(b' = b)$
+}
+
+\begin{theorem}
+Let $\AEnc$ be the El Gamal scheme over group $G$ with generator $g$. 
+Let $\advA$ be an $\INDCPA_\AEnc$-adversary. Then we give a $\DDH_{G,g}$ 
+adversary $\advB$ such that 
+\bnm
+  \AdvINDCPA{\AEnc}{\advA} \le 2\cdotsm \AdvDDH{G,g}{\advB} \;.
+\enm
+Adversary $\advB$ runs in time that of $\advA$. 
+\end{theorem}
+
+
+\fpage{.20}{
+\underline{$G_0$ \;\;\; \fbox{$G_1$}}\\
+$b \getsr \bits$\\
+$x \getsr \Z_{|G|}$\\
+$X \gets g^x$\\
+$b' \getsr \advA^\EncOracle(g,X)$\\
+Ret $(b' = b)$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+$C_1 \gets g^y$\\
+$Z \gets g^{xy}$\\
+\fbox{$z \getsr \Z_{|G|}$ \;;\; $Z \gets g^z$}\\
+$C_2 \gets Z\cdot M_b$\\
+Ret $(C_1,C_2)$
+}
+
+\fpage{.20}{
+\underline{Adversary $\advB(X,Y,Z)$}\\
+$b \getsr \bits$\\
+$b' \getsr \advA^\EncSim(g,X)$\\
+Ret $(b' = b)$\medskip
+
+\underline{$\EncSim(M_0,M_1)$}\\
+$C_1 \gets Y$\\
+$C_2 \gets Z\cdot M_b$\\
+Ret $(C_1,C_2)$
+}
+
+
+\begin{align*}
+  \AdvINDCPA{\AEnc}{\advA} 
+    &= 2\cdotsm\Prob{\INDCPA_{\AEnc}^\advA\Rightarrow\true} - 1\\
+    &= 2\cdotsm\Prob{G_0\Rightarrow\true} - 1\\
+    &= 2\cdotsm\left(\Prob{G_1\Rightarrow\true} + \AdvDDH{G,g}{\advB})\right) - 1\\
+    &= 2\cdotsm\left(\frac{1}{2}+ \AdvDDH{G,g}{\advB})\right) - 1
+\end{align*}
+
+
+
+\bnm
+J_p(a) = \left\{ \begin{array}{rl} 
+            1 & \textnormal{if $a$ is square mod $p$}\\
+            0 & \textnormal{if $a \bmod p = 0$}\\
+            -1 & \textnormal{otherwise}
+      \end{array}\right.
+\enm
+
+
+\fpage{.20}{
+\underline{Adversary $\advB(X,Y,Z)$}\\
+If $J_p(X) = 1$ or $J_p(Y) = 1$ then\\
+\myInd $s \gets 1$\\
+Else \\
+\myInd $s \gets -1$\\
+If $J_p(Z) = s$ then\\
+\myInd Ret 1
+Ret 0
+}
+
