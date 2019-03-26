@@ -1,0 +1,60 @@
+%!TEX root = main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Diffie-Hellman Key Exchange}
+
+\subsection{Discrete Logarithm and Related Assumptions}
+
+\subsection{ElGamal Encryption}
+
+\hfpages{.2}{
+	\underline{$\enc(X,M)$:}\\
+	$y \getsr \Z_{|G|}$ \\
+	$C_1 \gets g^y$\\
+	$Z \gets X^y$\\
+	$C_2 \gets Z \cdot M$\\
+	Return $(C_1,C_2)$
+}{
+	\underline{$\dec(x,(C_1,C_2))$:}\\
+	$M \gets C_2 \cdot C_1^{-x}$\\
+	Return $M$
+}
+
+\begin{theorem}
+	Let $\AEnc$ be the ElGamal scheme over group $G$ with generator $g$. 
+	Let $\advA$ be an $\INDCPA_\AEnc$-adversary. Then we give a $\DDH_{G,g}$ 
+	adversary $\advB$ such that 
+	\bnm
+	\AdvINDCPA{\AEnc}{\advA} \le 2\cdotsm \AdvDDH{G,g}{\advB} \;.
+	\enm
+	Adversary $\advB$ runs in time that of $\advA$. 
+\end{theorem}
+
+\begin{proof} 
+	\fpage{.20}{
+		\underline{$G_0$ \;\;\; \fbox{$G_1$}}\\
+		$b \getsr \bits$\\
+		$x \getsr \Z_{|G|}$\\
+		$X \gets g^x$\\
+		$b' \getsr \advA^\EncOracle(g,X)$\\
+		Ret $(b' = b)$\medskip
+		
+		\underline{$\EncOracle(M_0,M_1)$}\\
+		$C_1 \gets g^y$\\
+		$Z \gets g^{xy}$\\
+		\fbox{$z \getsr \Z_{|G|}$ \;;\; $Z \gets g^z$}\\
+		$C_2 \gets Z\cdot M_b$\\
+		Ret $(C_1,C_2)$
+	}
+	
+	\fpage{.20}{
+		\underline{Adversary $\advB(X,Y,Z)$}\\
+		$b \getsr \bits$\\
+		$b' \getsr \advA^\EncSim(g,X)$\\
+		Ret $(b' = b)$\medskip
+		
+		\underline{$\EncSim(M_0,M_1)$}\\
+		$C_1 \gets Y$\\
+		$C_2 \gets Z\cdot M_b$\\
+		Ret $(C_1,C_2)$
+	}
+\end{proof}
