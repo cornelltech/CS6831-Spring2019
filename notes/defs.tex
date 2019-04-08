@@ -445,6 +445,7 @@
 \newcommand{\notcheated}{\mathsf{Honest}}
 \newcommand{\badtrue}{\bad\gets\true}
 \newcommand{\Good}{\mathsf{Good}}
+\newcommand{\good}{\mathsf{good}}
 \newcommand{\EvNbadA}{\overline{\mathsf{Bad}}_1}
 \newcommand{\EvbadA}{\mathsf{Bad}_1}
 \newcommand{\EvNbadB}{\overline{\mathsf{Bad}}_2}
@@ -955,7 +956,7 @@
 \newcommand{\encr}{{\enc}^{\$}}
 \newcommand{\dec}{{\sf dec}}
 \newcommand{\encsign}{{\cal ES}}
-\newcommand{\sign}{{\sf S}}
+%\newcommand{\sign}{{\sf S}}
 \newcommand{\mac}{{\sf Mac}}
 \newcommand{\verdecc}{{\cal VD}}
 \newcommand{\henc}{{\cal HE}}
@@ -2232,8 +2233,20 @@
 \newcommand{\ICDH}{\textnormal{ICDH}}
 \newcommand{\DDHoracle}{\textnormal{DHCheck}}
 
+
 \newcommand{\RSAk}{\textnormal{RSA}\dash k}
 \newcommand{\AdvOWFRSA}[2]{\Adv^{\mathrm{owf}}_{#1}(#2)}
+
+
+
+\newcommand{\DS}{{\mathsf{DS}}}
+\newcommand{\sign}{{\mathsf{sign}}}
+
+\newcommand{\SignOracle}{\textnormal{Sign}}
+\newcommand{\HashSim}{\textnormal{HSim}}
+\newcommand{\SignSim}{\textnormal{SignSim}}
+
+%\newcommand{\ver}{{\mathsf{ver}}}
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"
