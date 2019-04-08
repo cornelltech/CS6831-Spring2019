@@ -1,0 +1,421 @@
+%!TEX root = main.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Key Exchange and Public Key Tools}
+\label{sec:pke2}
+
+In the symmetric key setting, we assume that two parties exchanging messages have access to a shared secret key. However, how do these parties share such a secret securely? Let us assume a \textit{passive adversary}, meaning that the adversary can listen in on network traffic but cannot alter or inject packets (we note that this assumption is not sufficient for real-world applications). In this section, we will present a key exchange protocol, called Diffie-Hellman anonymous key exchange. We will then go over some important assumptions in public key cryptography that allow us to prove such a protocol secure. Finally, we will end by going over another asymmetric encryption scheme called ElGamal encryption. 
+
+\subsection{Diffie-Hellman Key Exchange}
+
+In this section, we will go over one method to construct a secure key exchange protocol. The Diffie-Hellman key exchange protocol was created by Whitfield Diffie and Martin Hellman. This protocol does not confirm to either party sharing the secret of the identity of the other, therefore making this an \textit{anonymous} protocol. Before we describe the protocol, we will first go over some prerequisite algebra and number theory.
+
+Let $p$ be a large prime number. We fix the group $\group = \Z_p^*=\{1,2,3,\ldots,p-1\}$, with group operation multiplication mod $p$. Recall that $\Z_p^*$ is the set of nonzero elements of $\Z_p$. We then know that $\group$ is \textit{cyclic}. This means that one can provide a group member $g \in \group$, called the \textit{generator}, such that $\group = \{g^0, g^1, g^2, \ldots, g^{p-1}\}$. 
+
+\begin{example}
+	Let $p=7$. Is 2 or 3 a generator for $\Z_7^*$?
+	
+	First let us note that $\Z_7^* = \{1,2,3,4,5,6\}$. If either 2 or 3 is a generator, then exponentiating this value will produce all the elements in $\Z_7^*$. Looking at the table below, we can see that 2 only produces the values $\{1,2,4\}$, while 3 does indeed produce all elements of $\Z_7^*$. We can therefore conclude that 3 is a generator for $\Z_7^*$. 
+	\begin{center}
+	\begin{tabular}{|c|c|c|c|c|c|c|c|}
+		\hline
+		$x$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 \\
+		\hline \hline
+		$2^x \mod 7$ & 1 & 2 & 4 & 1 & 2 & 4 & 1 \\
+		\hline
+		$3^x \mod 7$ & 1 & 3 & 2 & 6 & 4 & 5 & 1 \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{example}
+
+\begin{figure}
+	\center
+	\begin{tikzpicture}
+		\node (rect1) [draw]  {
+			\begin{minipage}[t][4cm]{2cm}
+				{\centering\underline{\textbf{Alice}} \\}
+				$x \getsr \Z_{|\group|}$ \\
+				$X \gets g^x$
+			\end{minipage}
+		};
+		\node (rect2) [draw, right of=rect1, node distance=6cm] {
+			\begin{minipage}[t][4cm]{2cm}
+				{\centering\underline{\textbf{Bob}} \\}
+				$y \getsr \Z_{|\group|}$ \\
+				$Y \gets g^y$
+			\end{minipage}
+		};
+		\node (group1) [above of=rect1, node distance=3cm] {$\group,g$};
+		\node (group2) [above of=rect2, node distance=3cm] {$\group,g$};
+		\path[->,>=stealth'] (group1) edge (rect1);
+		\path[->,>=stealth'] (group2) edge (rect2);
+		
+		\path[->,>=stealth'] (rect1.10) edge node[anchor=south] {$X$} ( rect2.west|-rect1.10); 
+		\path[<-,>=stealth'] (rect1.-40) edge node[anchor=south] {$Y$} (rect2.west|-rect1.-40);
+
+		\node (key1) at (0,-1.75) {$K \gets \hash(Y^x)$};
+		\node (key2) at (6,-1.75) {$K \gets \hash(X^y)$};
+	\end{tikzpicture}
+	\caption{The Diffie-Hellman anonymous key exchange protocol for cyclic group $\group$ with generator $g$.}
+	\label{fig:DHKE}
+\end{figure}
+
+\scribenote{The notes fix G but then the protocol shown generalizes G. In the protocol, should I just use $\Z_p^*$?}
+
+\paragraph{Diffie-Hellman key exchange.} We now describe the details of the Diffie-Hellman anonymous key exchange protocol. We assume both parties have access to public values $\group$ and $g\in\group$. It executes as follows, as shown in \figref{fig:DHKE}:
+\begin{enumerate}
+	\item Alice chooses $x$ uniformly at random from $\Z_{|\group|}$, computes $X \gets g^x$, and sends $X$ to Bob.
+	
+	\item Bob chooses $y$ uniformly at random from $\Z_{|\group|}$, computes $Y \gets g^y$, and sends $Y$ to Alice.
+	
+	\item Upon receiving $X$, Alice computes $K \gets \hash(Y^x)$, where $\hash$ is a collision-resistant hash function. 
+	
+	\item Upon receiving $Y$, Bob computes $K \gets \hash(X^y)$. 
+\end{enumerate}
+
+The secret key $K$ shared by Alice and Bob must be the same since
+\begin{equation*}
+	Y^x = g^{yx} = g^{xy} = X^y.
+\end{equation*}
+
+\paragraph{Security of Diffie-Hellman key exchange.} Notice that if an adversary could easily compute $x$ given $X \gets g^x$, then the adversary could certainly compute $K$, rendering this protocol insecure. The function that calculates this value is called the \textbf{discrete logarithm function}, usually denoted as $\dlog$, and is the inverse of the exponentiation function. Thus, for Diffie-Hellman key exchange to have any chance of being secure, we must find a group in which it is difficult to compute $\dlog$. In particular, for $p$ at least 2048-bits and $q = |\group|$ at least 256-bits, where $p$ and $q$ are both primes, the discrete logarithm function is believed to be hard to compute in the order $q$ subgroup of $Z_p^*$ \cite{BonehShoupBook}. This is called the \textbf{discrete logarithm assumption}.
+
+However, a group that only meets the discrete logarithm assumption on its own is not sufficient to guarantee the security of the Diffie-Hellman key exchange. In fact, this protocol is only secure if and only if the \textbf{computational Diffie-Hellman assumption} holds, which says that given $g^\alpha, g^\beta \in \group$, where $\alpha \getsr \Z_{|\group|}$ and $\beta \getsr \Z_{|\group|}$, it is hard to compute $g^{\alpha\beta} \in \group$ \cite{BonehShoupBook}. We will now take a more formal look at the discrete logarithm assumption, the computational Diffie-Hellman assumption, and other related assumptions. 
+
+\subsection{The Discrete Logarithm and Related Assumptions}
+
+\begin{figure}
+	\center
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Problem & Given & Compute \\
+		\hline \hline
+		Discrete logarithm (DL) & $g, g^x$ & $x$ \\
+		\hline
+		Computational Diffie-Hellman (CDH) & $g,g^x,g^y$ & $g^{xy}$ \\
+		\hline
+		Decisional Diffie-Hellman (DDH) & $g, g^x, g^y, g^z$ & Is $z \equiv xy\ (\bmod \ |\group|)$? \\
+		\hline
+	\end{tabular}
+	\caption{A summary of the discrete logarithm related problems over a cyclic group $\group$ with generator $g$ from this section. For each row, we state the problem, the values given to the adversary, and what the adversary must provide to solve the problem.}
+	\label{fig:DL}
+\end{figure}
+
+\paragraph{The Discrete Logarithm.} For $X \in \group$, the discrete logarithm function $\dlog(X)$ finds the unique value $x \in \Z_{|\group|}$ such that $g^x = X$. We show game $\DL_{\group, g}$, where given $X = g^x$ adversary $\advA$ must find $x$. 
+
+\begin{center}
+	\fpage{.18}{
+		\underline{$\DL^\advA_{\group, g}$} \\
+		$x \getsr \Z_{|\group|} \ ; \ X \gets g^x$ \\
+		$\hat{x} \getsr \advA(X)$ \\
+		Return $\hat{x} = x$ 
+	}
+\end{center}
+
+The DL-advantage of $\advA$ is defined as 
+\begin{equation*}
+\AdvDL{\group, g}{\advA} = \Prob{\DL^\advA_{\group, g}\Rightarrow\true}.
+\end{equation*}
+
+Consider the following adversary $\advA'$ for game $\DL_{\group, g}$:
+
+\begin{center}
+	\mpage{.25}{
+		\underline{adversary $\advA'(X)$} \\
+		For $i=2,\ldots,|G|-1$ do \\
+		\ind If $X = g^i$ then \\
+		\ind \ind Return $i$
+	}
+\end{center}
+
+$\advA'$ simply brute-force searches through every possible value to find the correct exponent $x$. While $\AdvDL{\group, g}{\advA'}=1$, the running time of $\advA'$ is $\bigO(|G|)$, which becomes very slow for large groups. Other algorithms have been developed that are more efficient, such as Baby-step giant-step, whose running time is $\bigO(|G|^{0.5})$. However, this is still quite slow, and while certain groups might have more efficient algorithms, nothing faster is known for other groups. For such a group $\group$ in which the discrete logarithm problem is hard, we refer to this as the discrete logarithm assumption for group $\group$. This is formalized below.
+
+\begin{definition}
+	The \textbf{discrete logarithm (DL) assumption} holds for $\group$ if $\AdvDL{\group, g}{\advA}$ is negligible for all efficient adversaries $\advA$.
+\end{definition}
+
+\paragraph{Computational Diffie-Hellman.} A related problem to the discrete logarithm problem is the computational Diffie-Hellman problem, which says that given $g^x, g^y \in \group$, where $x \getsr \Z_{|\group|}$ and $y \getsr \Z_{|\group|}$, it is hard to compute $g^{xy} \in \group$ \cite{BonehShoupBook}. We formalize this with game $\CDH_{\group, g}$ shown below.  
+
+\begin{center}
+	\fpage{.26}{
+		\underline{$\CDH^\advA_{\group, g}$} \\
+		$x,y \getsr \Z_{|\group|}$ \\
+		$X \gets g^x \ ; \ Y \gets g^y \ ; \ Z \gets g^{xy}$ \\
+		$\hat{Z} \getsr \advA(X,Y)$ \\
+		Return $\hat{Z} = Z$ 
+	}
+\end{center}
+
+The CDH-advantage of $\advA$ is defined as 
+\begin{equation*}
+\AdvCDH{\group, g}{\advA} = \Prob{\CDH^\advA_{\group, g}\Rightarrow\true}.
+\end{equation*}
+
+Similar to the DL assumption, the computational Diffie-Hellman assumption for group $\group$ tells us that the CDH problem is hard in $\group$.
+
+\begin{definition}
+	The \textbf{computational Diffie-Hellman (CDH) assumption} holds for $\group$ if $\AdvCDH{\group, g}{\advA}$ is negligible for all efficient adversaries $\advA$.
+\end{definition}
+
+\paragraph{Decisional Diffie-Hellman.} The decisional Diffie-Hellman problem for group $\group$ and generator $g$ says that for $x \getsr \Z_{|\group|}$, $y \getsr \Z_{|\group|}, z \getsr \Z_{|\group|}$, when given $g^x,g^y \in \group$ and either $g^z \in \group$ or $g^{xy} \in \group$, it is hard to distinguish between getting $g^z$ and $g^{xy}$. This is formalized in game $\DDH_{\group,g}$ below.  
+
+\begin{center}
+	\fpage{.20}{
+		\underline{$\DDH_{\group,g}^\advA$}\\
+		$b \getsr \bits$\\
+		$x,y,z \getsr \Z_{|G|}$\\
+		$Z_0 \gets g^z$\\
+		$Z_1 \gets g^{xy}$\\
+		$b' \getsr \advA(g^x,g^y,Z_b)$\\
+		Return $(b' = b)$
+	}
+
+%	\hfpages{.25}{
+%		\underline{$\DDH1_{\group, g}^\advA$}\\
+%		$x,y,z \getsr \Z_{|\group|}$ \\
+%		$X \gets g^x \ ; \ Y \gets g^y \ ; \ Z \gets g^{xy}$ \\
+%		$b \getsr \advA(X,Y,Z)$ \\
+%		Return $b$ 
+%	}{
+%		\underline{$\DDH0_{\group, g}^\advA$}\\
+%		$x,y,z \getsr \Z_{|\group|}$ \\
+%		$X \gets g^x \ ; \ Y \gets g^y \ ; \ Z \gets g^z$ \\
+%		$b \getsr \advA(X,Y,Z)$ \\
+%		Return $b$
+%	}
+\end{center}
+
+The DDH-advantage of $\advA$ is defined as 
+\begin{equation*}
+\AdvDDH{\group, g}{\advA} = 2 \cdot \Prob{\DDH_{\group, g}^\advA\Rightarrow\true} - 1.
+\end{equation*}
+
+The decisional Diffie-Hellman assumption for group $\group$ tells us that the DDH problem is hard in $\group$. 
+
+\begin{definition}
+	The \textbf{decisional Diffie-Hellman (DDH) assumption} holds for $\group$ if $\AdvDDH{\group, g}{\advA}$ is negligible for all efficient adversaries $\advA$.
+\end{definition}
+
+We summarize the three problems mentioned in this section in \figref{fig:DL}. 
+
+\subsection{ElGamal Encryption}
+
+\begin{figure}
+	\center
+	\hfpages{.2}{
+		\underline{$\enc(X,M)$:}\\
+		$y \getsr \Z_{|\group|}$ \\
+		$C_1 \gets g^y$\\
+		$Z \gets X^y$\\
+		$C_2 \gets Z \cdot M$\\
+		Return $(C_1,C_2)$
+	}{
+		\underline{$\dec(x,(C_1,C_2))$:}\\
+		$M \gets C_2 \cdot C_1^{-x}$\\
+		Return $M$
+	}
+	\caption{The ElGamal encryption scheme.}
+	\label{fig:elgamal}
+\end{figure}
+
+\begin{wrapfigure}{r}{1.5in}
+	\center
+	\fpage{.20}{
+		\underline{$G_0$ \;\;\; \fbox{$G_1$}}\\
+		$b \getsr \bits$\\
+		$x \getsr \Z_{|\group|}$\\
+		$X \gets g^x$\\
+		$b' \getsr \advA^\EncOracle(g,X)$\\
+		Ret $(b' = b)$\medskip
+		
+		\underline{$\EncOracle(M_0,M_1)$}\\
+		$C_1 \gets g^y$\\
+		$Z \gets g^{xy}$\\
+		\fbox{$z \getsr \Z_{|\group|}$ \;;\; $Z \gets g^z$}\\
+		$C_2 \gets Z\cdot M_b$\\
+		Ret $(C_1,C_2)$
+	}
+	\caption{Games for the proof of \thref{proof:elgamal}.}
+	\label{fig:elgamal-games}
+\end{wrapfigure}
+
+We will now go over a well-known public key encryption scheme called \textbf{ElGamal encryption}. Let $\group$ be a cyclic group and let $g$ be a generator for $\group$. During key generation, secret key $x$ is chosen at random from $\Z_{|\group|}$, and the public key is computed as $X \gets g^x$. The encryption algorithm $\enc$ takes in public key $X$ and message $M$. It then chooses $y\getsr \Z_{|\group|}$ and computes $C_1 \gets g^y$ and $Z \gets X^y$. It then returns $(C_1, Z \cdot M)$, which is equal to $(g^y, g^{xy} \cdot M)$. The decryption algorithm $\dec$ takes in this ciphertext value in addition to the secret key $x$. It computes $M \gets C_2 \cdot C_1^{-x}$. Notice that
+\begin{equation*}
+	C_2 \cdot C_1^{-x} = g^{xy} \cdot M \cdot (g^y)^{-x} = M
+\end{equation*}
+which gives us the original message back as desired. 
+
+The ElGamal scheme can be proven IND-CPA secure if DDH holds in $\group$, which we show with the following theorem. 
+
+\begin{theorem}
+\label{proof:elgamal}
+	Let $\AEnc$ be the ElGamal scheme over group $\group$ with generator $g$. 
+	Let $\advA$ be an $\INDCPA_\AEnc$-adversary. Then we give a $\DDH_{\group,g}$ 
+	adversary $\advB$ such that 
+	\bnm
+	\AdvINDCPA{\AEnc}{\advA} \le 2\cdotsm \AdvDDH{\group,g}{\advB} \;.
+	\enm
+	Adversary $\advB$ runs in time that of $\advA$. 
+\end{theorem} 
+	
+\begin{proof}
+	We define the games in \figref{fig:elgamal-games}. Game $G_0$ has an identical output distribution as game $\INDCPA_{\AEnc}$, so $\Prob{G_0\Rightarrow\true} = \Prob{\INDCPA_{\AEnc}^\advA\Rightarrow\true}$. Game $G_1$ is the same as $G_0$ except now instead of assigning $Z \gets g^{xy}$, we choose a random value $z \getsr \Z_{|\group|}$ and assign $Z \gets g^z$. Now consider the following adversary $\advB$ playing game $\DDH_{\group, g}$. 
+	
+	\begin{center}
+		\fpage{.20}{
+			\underline{Adversary $\advB(X,Y,Z)$}\\
+			$b \getsr \bits$\\
+			$b' \getsr \advA^\EncSim(g,X)$\\
+			If $(b'=b)$ then return 1 \\
+			Else return 0 \medskip
+			
+			\underline{$\EncSim(M_0,M_1)$}\\
+			$C_1 \gets Y$\\
+			$C_2 \gets Z\cdot M_b$\\
+			Ret $(C_1,C_2)$
+		}
+	\end{center}
+	
+	It takes inputs $X,Y,Z$ and must determine which value of $Z$ it was given. Recall that $X = g^x$ and $Y = g^y$. $\advB$ first chooses a bit $b$ at random. It then runs adversary $\advA$ with a simulation of its encryption oracle, called $\EncSim$, and gives $\advA$ both $g$ and $X$, which acts as the public key. If $\advA$ returns the correct bit, then $\advB$ returns 1; otherwise, it returns 0. We now have that
+	\begin{align*}
+		\AdvDDH{\group,g}{\advB} &= 2 \cdot \Prob{\DDH_{\group, g}^\advB\Rightarrow\true} - 1 \\
+		&=
+		\begin{aligned}
+			2 \cdot (&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1}\cdot\Prob{b=1} + \\
+			&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0}\cdot\Prob{b=0}) - 1 .
+		\end{aligned}
+	\end{align*} 
+	
+	To find $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1}$, first notice that when $b=1$, adversary $\advB$ gets $Z = g^{xy}$. This means encryption during $\EncSim$ has the same output distribution as $\EncOracle$ in game $G_0$. Furthermore, in this case game $\DDH_{\group, g}$ returns $\true$ when $\advB$ returns 1, which occurs when $b'=b$. We know that $b'=b$ when $\advA$ successfully determines the correct message encrypted. This happens with the same probability as $\advA$ winning in game $G_0$ and thus $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1} = \Prob{G_0 \Rightarrow\true}$. 
+	
+	Likewise, to find $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0}$, we again notice that when $b=0$, adversary $\advB$ gets $Z = g^z$. This now means that $\EncSim$ has the same output distribution as $\EncOracle$ in game $G_1$. $\DDH_{\group, g}$ returns $\true$ when $\advB$ returns 1, which occurs when $b'\neq b$. We know that $b' \neq b$ when $\advA$ fails to determine the correct message encrypted. This happens exactly when $\advA$ does not win in game $G_1$ and thus $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0} = 1 - \Prob{G_1 \Rightarrow\true}$. 
+	
+	We now put this together to get
+	\begin{align*}
+		\AdvDDH{\group,g}{\advB} &= 2 \cdot \left(\Prob{G_0 \Rightarrow\true} \cdot \frac{1}{2} + (1 - \Prob{G_1 \Rightarrow\true})\cdot\frac{1}{2}\right) - 1 \\
+		&= \Prob{G_0 \Rightarrow\true} - \Prob{G_1 \Rightarrow\true}.
+	\end{align*}
+	
+	Lastly, in game $G_1$ since $Z$ is a random value that is multiplied with the message, $C_2$ is also a random value and thus no information is leaked about $b$. We then know that the success of $\advA$ is that of a random coin flip, so $\Prob{G_1 \Rightarrow\true} = \frac{1}{2}$. We then have that
+	\begin{align*}
+		\AdvINDCPA{\AEnc}{\advA} 
+		&= 2\cdotsm\Prob{\INDCPA_{\AEnc}^\advA\Rightarrow\true} - 1\\
+		&= 2\cdotsm\Prob{G_0\Rightarrow\true} - 1\\
+		&= 2\cdotsm\left(\Prob{G_1\Rightarrow\true} + \AdvDDH{G,g}{\advB})\right) - 1\\
+		&= 2\cdotsm\left(\frac{1}{2}+ \AdvDDH{G,g}{\advB})\right) - 1 \\
+		&= 2 \cdot \AdvDDH{G,g}{\advB}.
+	\end{align*}
+\end{proof}
+
+\paragraph{ElGamal in the group $Z_p^*$.} \thref{proof:elgamal} tells us that we must be careful to use a group for which DDH holds when utilizing ElGamal encryption. Indeed, DDH is easy in some well-known groups. In particular, the group $\Z_p^*$ for prime $p$ is one such example. ElGamal is thus not IND-CPA secure when it uses $\Z_p^*$. Before we show how DDH is easy for group $\Z_p^*$, we will go over some relevant topics in number theory that are exploited in the attack. 
+
+An integer $n$ is called a \textit{quadratic residue} modulo $p$ if there is some integer $x$ such that $n \equiv x^2 \ (\bmod \ p)$. Now let $p$ be a prime, $g$ be a generator for $\Z_p^*$, and $a\in\Z_p^*$. 
+
+The \textit{Legendre symbol} is defined as follows:
+\bnm
+J_p(a) = \left\{ \begin{array}{rl} 
+	1 & \textnormal{if $a$ is a quadratic residue mod $p$}\\
+	0 & \textnormal{if $a \bmod p = 0$}\\
+	-1 & \textnormal{otherwise}
+\end{array}\right.
+\enm 
+When $J_p(a)=1$, this means $a=g^x$ and $x$ is even. When $J_p(a)=-1$, this means $a=g^x$ and $x$ is instead odd. The case where $J_p(a)=0$ is impossible since $\gcd(a,p)=1$. Furthermore, $J_p(a)$ is easy to compute since
+\bnm
+	J_p(a) = a^{\frac{p-1}{2}} \bmod p.
+\enm
+To see the proof of this, we point the interested reader to Euler's criterion. Now consider the following facts: 
+\begin{fact}
+	$J_p(g^{xy}) = 1 \textrm{ iff } J_p(g^x)=1 \textrm{ or } J_p(g^y)=1$
+\end{fact}
+\begin{fact}
+	The number of quadratic residues modulo $p$ in $\Z_p^*$ is $\frac{p-1}{2}$
+\end{fact}
+
+\begin{wrapfigure}{r}{2.5in}
+	\center
+	\begin{tabular}{|c||c|c|}
+		\hline
+		& $J_p(g^y)=1$ & $J_p(g^y)=-1$ \\
+		\hline \hline
+		$J_p(g^x)=1$ & $J_p(g^{xy})=1$ & $J_p(g^{xy})=1$ \\
+		\hline
+		$J_p(g^x)=-1$ & $J_p(g^{xy})=1$ & $J_p(g^{xy})=-1$ \\
+		\hline
+	\end{tabular}
+	\caption{The values of $J_p(g^{xy})$ for various values of $J_p(g^x)$ and $J_p(g^y)$.}
+	\label{fig:legendre-table}
+\end{wrapfigure}
+
+Note that the first fact is true because $g^{xy}$ is a quadratic residue modulo $p$ if $xy$ is even, which occurs when either $x$ or $y$ is even. It tells us that $\Prob{J_p(g^{xy})=1}=0.75$, as shown in \figref{fig:legendre-table}. The second fact tells us that exactly half the elements of $\Z_p^*$ are quadratic residues. This means that for any $a \in Z_p^*$, $\Prob{J_p(a)}=0.5$. These facts then allow us to find a way to solve the DDH problem in $\Z_p^*$ with non-negligible probability. In particular, the adversary must distinguish between being given $g^z$ for $z \getsr \Z_{p-1}$ and $g^{xy}$ for $x,y \getsr \Z_{p-1}$. Notice that $\Prob{J_p(g^{xy})=1}=0.75$ while $\Prob{J_p(g^{z})=1}=0.5$. Thus, we can construct an adversary $\advB$ that simply computes the Legendre symbol for $Z$, which is easy to compute. $\advB$ is shown below.
+\begin{center}
+	\fpage{.20}{
+		\underline{Adversary $\advB(X,Y,Z)$}\\
+		If $J_p(Z) = 1$ then \\
+		\myInd Return 1 \\
+		Return 0
+	}
+\end{center}
+The DDH-advantage of $\advB$ is
+\begin{align*}
+	\AdvDDH{\Z_p^*,g}{\advB} &= 2 \cdot \Prob{\DDH_{\Z_p^*, g}^\advB\Rightarrow\true} - 1 \\
+	&=
+	\begin{aligned}
+		2 \cdot (&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1}\cdot\Prob{b=1} + \\
+		&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0}\cdot\Prob{b=0}) - 1
+	\end{aligned} \\
+	&= 2 \cdot (0.75 \cdot \frac{1}{2} + 0.5 \cdot \frac{1}{2}) - 1 \\
+	&= 0.25.
+\end{align*}
+
+While a DDH-advantage of 0.25 is quite high, we can construct an adversary $\advB'$ that gains an even greater advantage with only a slightly longer running time. $\advB'$ checks that the Legendre symbols of $X$, $Y$, and $Z$ all match according to the table in \figref{fig:legendre-table}.
+
+\begin{center}
+	\fpage{.25}{
+		\underline{Adversary $\advB'(X,Y,Z)$}\\
+		If $J_p(X) = 1$ or $J_p(Y) = 1$ then\\
+		\myInd $s \gets 1$\\
+		Else \\
+		\myInd $s \gets -1$\\
+		If $J_p(Z) = s$ then\\
+		\myInd Return 1 \\
+		Return 0
+	}
+\end{center}
+
+Notice that if $J_p(X) = 1$ or $J_p(Y) = 1$, then $J_p(g^{xy})=1$ always. Otherwise, $J_p(g^{xy})=-1$. In the case that $Z=g^z$ for $z \getsr \Z_{p-1}$, there is probability 0.5 that they match. The DDH-advantage of $\advB'$ is then
+\begin{align*}
+	\AdvDDH{\Z_p^*,g}{\advB} &= 2 \cdot \Prob{\DDH_{\Z_p^*, g}^\advB\Rightarrow\true} - 1 \\
+	&=
+	\begin{aligned}
+		2 \cdot (&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1}\cdot\Prob{b=1} + \\
+		&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0}\cdot\Prob{b=0}) - 1
+	\end{aligned} \\
+	&= 2 \cdot (1 \cdot \frac{1}{2} + 0.5 \cdot \frac{1}{2}) - 1 \\
+	&= 0.5.
+\end{align*}
+
+Now that we have shown $Z_p^*$ is not a DDH-hard group, are DL and CDH also not hard in $Z_p^*$? The current best known attack solving DL in $Z_p^*$ is via a generalized number field sieve which runs in time $\bigO(e^{ (C+o(1))\cdot \ln(p)^{1/3} \cdot (\ln\ln(p))^{2/3 }} )$. If the prime factorization of $p-1$ is known, we can solve DL in the subgroups. Since we need to find generators of the group, the factorization is usually known. This means we need subgroups to be large. It is recommended to pick $p=2q+1$ for a large prime $q$. These are referred to as ``safe primes''. We can also use the subgroup of quadratic residues that has order $q$ in this case. Having the order of the group be prime comes with certain advantages, such as exponents having inverses. Furthermore, DDH is conjectured to be hard in this group. 
+
+\section*{Exercises}
+
+\begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
+	\item Let $\group$ be a cyclic group and let $g$ be a generator of $\group$. Let $\advA$ be an adversary against the DL problem. Show that there exists an adversary $\advB$ such that 
+	\begin{equation*}
+		\AdvDL{\group,g}{\advA} \leq \AdvCDH{\group,g}{\advB}
+	\end{equation*}
+	where the running time of $\advB$ is that of $\advA$ plus the time to do one exponentiation in $\group$. 
+	
+	\item Let $\group$ be a cyclic group and let $g$ be a generator of $\group$. Let $\advB$ be an adversary against the CDH problem. Show that there exists an adversary $\advC$ such that 
+	\begin{equation*}
+	\AdvCDH{\group,g}{\advB} \leq \AdvDDH{\group,g}{\advC} + \frac{1}{|\group|}
+	\end{equation*}
+	where the running time of $\advC$ is that of $\advB$.
+	
+	\item (from \cite{BonehShoupBook}, Problem 11.1) Let $\group$ be a cyclic group of prime order $q$ generated by $g\in \group$. Let $\hash:\msgspace \to \group$ be a hash function, which we shall model as a random oracle. Let $\prf$ be the PRF defined over $(\Z_q,\msgspace,\group)$ as follows:
+	\begin{equation*}
+		\prf(K,M) = \hash(M)^K \textnormal{ for } K \in \Z_q, M \in \msgspace.
+	\end{equation*}
+	Show that $\prf$ is a secure PRF in the random oracle model for $\hash$ under the DDH assumption for $\group$. In particular, you should show that for every adversary $\advA$ attacking $\prf$ as a PRF, there exists a DDH adversary $\advB$ such that $\AdvPRF{\prf}{\advA}\leq \AdvDDH{(\group,g)}{\advB} + \frac{1}{q}$. 
+	
+	
+\end{enumerate}

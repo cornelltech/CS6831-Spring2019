@@ -60,6 +60,7 @@
 \newtheorem{clm}[thm]{Claim}
 \newtheorem{rem}[thm]{Remark}
 \newtheorem{exa}{Example}
+\newtheorem{fact}{Fact}
 
 \newenvironment{theorem}{\begin{thm}
     \begin{sl}
@@ -2132,6 +2133,12 @@
 \newcommand{\rorcpaideal}{\text{RoR-CPA-Ideal}}
 \newcommand{\integers}{\mathbb{Z}}
 
+\newcommand{\dlog}{\mathsf{Dlog}_{G,g}}
+\newcommand{\AdvDL}[2]{\Adv^{\mathrm{dl}}_{#1}(#2)}
+\newcommand{\DL}{\textnormal{DL}}
+\newcommand{\AdvCDH}[2]{\Adv^{\mathrm{cdh}}_{#1}(#2)}
+\newcommand{\CDH}{\textnormal{CDH}}
+
 \newcommand{\PRF}{\textnormal{PRF}}
 \newcommand{\AdvPRF}[2]{\Adv^{\mathrm{prf}}_{#1}(#2)}
 
@@ -2153,6 +2160,8 @@
 \newcommand{\AdvRAND}[2]{\Adv^{\mathrm{\INDRAND}}_{#1}(#2)}
 \newcommand{\RORCCA}{\textnormal{ROR-CCA}}
 \newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
+
+\newcommand{\LORCCA}{\textnormal{LOR-CCA}}
 
 % \newcommand{\INDSIM}{\textnormal{INDSIM}}
 \newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
@@ -2220,6 +2229,8 @@
 
 \newcommand{\DDH}{\textnormal{DDH}}
 
+\newcommand{\ICDH}{\textnormal{ICDH}}
+\newcommand{\DDHoracle}{\textnormal{DHCheck}}
 
 \newcommand{\RSAk}{\textnormal{RSA}\dash k}
 \newcommand{\AdvOWFRSA}[2]{\Adv^{\mathrm{owf}}_{#1}(#2)}

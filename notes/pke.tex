@@ -16,7 +16,7 @@ message or a distinguished error symbol $\bot$.
     $(\pk,\sk) \getsr \kg$\\
     $b \getsr \bits$\\
     $b' \getsr \advA^\EncOracle(\pk)$\\
-		Ret $b'$\medskip
+		Ret $(b'=b)$\medskip
 
     \underline{$\EncOracle(M_0,M_1)$}\\
     If $|M_0| \ne |M_1|$ then\\
@@ -146,13 +146,13 @@ the time to simulate $q$ RO queries. Adversary $\advC$ makes a single encryption
 $b \getsr \bits$\\
 $((N,e),(N,d)) \getsr \kg(k)$\\
 $b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
-Ret $b'$\medskip
+Ret $(b'=b)$\medskip
 
 \underline{$\EncOracle(M_0,M_1)$}\\
 $R \getsr \Z^*_N$\\
 $C_1 \gets R^e \bmod N$\\
 $K \gets \Horacle(R)$\\
-$C_2 \getsr \encSym(K,M)$\\
+$C_2 \getsr \encSym(K,M_b)$\\
 Ret $(C_1,C_2)$\medskip
 
 \underline{$\Horacle(X)$}\\
@@ -167,10 +167,10 @@ $C_1 \gets R^e \bmod N$\\
 $K \getsr \bits^n$\\
 $b \getsr \bits$\\
 $b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
-Ret $b'$\medskip
+Ret $(b'=b)$\medskip
 
 \underline{$\EncOracle(M_0,M_1)$}\\
-$C_2 \getsr \encSym(K,M)$\\
+$C_2 \getsr \encSym(K,M_b)$\\
 Ret $(C_1,C_2)$\medskip
 
 \underline{$\Horacle(X)$}\\
@@ -188,7 +188,7 @@ $C_1 \gets R^e \bmod N$\\
 $K \getsr \bits^n$\\
 $b \getsr \bits$\\
 $b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
-Ret $b'$\medskip
+Ret $(b'=b)$\medskip
 
 \underline{$\EncOracle(M_0,M_1)$}\\
 %$C_2 \getsr \encSym(K,M)$\\
@@ -220,19 +220,6 @@ Ret $\TabH[X]$
 	}
 
 $\SEscheme = (\kgSym,\encSym,\decSym)$
-
-
-\hfpages{.15}{
-\underline{$\enc(X,M)$}\\
-$r \getsr \Z_{|G|}$\\
-$C_0 \gets g^r$\\
-$C_1 \gets X^r \cdot M$\\
-Ret $(C_0,C_1)$
-}{
-\underline{$\dec(x,(C_1,C_2))$}\\
-$M \gets C_2 \cdotsm C_1^{-x}$\\
-Ret $M$
-}
 
 
 \fpage{.20}{
