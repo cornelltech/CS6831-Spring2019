@@ -13,7 +13,7 @@ We now define a \textbf{pseudorandom function} (PRF) as a function that is indis
 
 The adversary $\advA$ wins if the probability that $\advA$ outputs 1 in game $\PRF1_\cipher^\advA$ is far greater than the probability that it outputs 1 in game $\PRF0_\cipher^\advA$. In particular, notice that if $\advA$ simply always output 1, $\AdvPRF{\cipher}{\advA}$ would be 0 as expected, since $\advA$ did not successfully distinguish $\cipher$ from a random function. 
 
-\begin{figure}
+\begin{figure}[H]
 	\centering
 	\hfpages{.15}{
 		\underline{$\PRF1_{\cipher}^\advA$}\\
@@ -36,30 +36,59 @@ The adversary $\advA$ wins if the probability that $\advA$ outputs 1 in game $\P
 \label{fig:prf}
 \end{figure} 
 
-Just as we provided a generic attack for TKR security using the exhaustive key search attack, is there a generic distinguishing attack for any cipher? One interesting observation is that for a given key, a block cipher $\cipherE_K$ is a permutation, meaning that two different inputs cannot produce the same output. (If this were not the case, decryption would be impossible.) However, a random function simply chooses outputs at random, so it is entirely possible for two different inputs to produce the same output. The probability of choosing $q$ values at random from $\{0,1\}^n$ and for two of these values to be the same is approximately $\frac{q^2}{2^n}$. This is colloquially known as the \textbf{birthday paradox}, since it implies that the number of people expected to produce two individuals with the same birthday is far fewer than what one might expect. 
+Just as we provided a generic attack for TKR security using the exhaustive key search attack, is there a generic distinguishing attack for any cipher? One interesting observation is that for a given key, a block cipher $\cipherE_K$ is a permutation, meaning that two different inputs cannot produce the same output. (If this were not the case, decryption would be impossible.) However, a random function simply chooses outputs at random, so it is entirely possible for two different inputs to produce the same output. The probability of choosing $q$ values at random from $\{0,1\}^n$ and for two of these values to be the same is approximately $\frac{q^2}{2^n}$. This is colloquially known as the \textbf{birthday paradox}, since it implies that the number of people expected to produce two individuals with the same birthday is far fewer than what one might expect. The following is a more exact approximation of this birthday bound. 
 
-If $\advA$ were to query its $\Fn$ oracle enough times, eventually the probability that a repeat value is produced would be large enough and $\advA$ could then check to see if such a repeat value exists. If no repeat occurs, then $\advA$ can assume it is in game $\PRF1_{\cipher}$; otherwise, $\advA$ must be in game $\PRF0_{\cipher}$. This attack is called the \textbf{birthday attack}. The pseudocode for this adversary is defined below.
+\begin{theorem}(Birthday bound)
+	\label{thm:bday}
+	Let $C(N,q)$ be the probability that when we choose $q\geq 1$ values uniformly at random from set $\{1,2,\ldots,N\}$, with $N \geq q$, not all values chosen are distinct. Then
+	\begin{align*}
+		C(N,q) &\leq \frac{q(q-1)}{2N} \\
+		C(N,q) &\geq 1 - e^{-q(q-1)}/2N.
+	\end{align*}
+	If $1 \leq q \leq \sqrt{2N}$ then
+	\begin{equation*}
+		C(N,q) \geq 0.3 \cdot \frac{q(q-1)}{N}.
+	\end{equation*}
+\end{theorem}
+
+The interested reader may refer to \cite{BellareRogawayBook} for the proof of \thref{thm:bday}.
  
-\begin{center}
-\fpage{.35}{
-	\underline{\textbf{adversary} $\advA^\Fn_{\text{bday}}$} \\
-	Let $M_1, M_2, \cdots, M_q \gets \{0,1\}^n$ be distinct \\
-	For $i=1, \cdots, q$ do $C_i \gets \Fn(M_i)$ \\
-	If $C_1, \cdots, C_q$ are all distinct then return 1 \\
-	Else return 0	
-}
-\end{center}
+With this observation in mind, notice that if an adversary $\advA$ playing the PRF game were to query its $\Fn$ oracle enough times, eventually the probability that a repeat value is produced would be large enough and $\advA$ could then check to see if such a repeat value exists. If no repeat occurs, then $\advA$ can assume it is in game $\PRF1_{\cipher}$; otherwise, $\advA$ must be in game $\PRF0_{\cipher}$. This attack is called the \textbf{birthday attack}. We present this more formally with the following.
 
-In addition to creating $q$ messages and querying $\Fn$ $q$ times, $\advA_{\text{bday}}$ must check to see if there are any duplicates in its answered queries. Overall, $\advA_{\text{bday}}$ will then have running time of $\calO(q)$.
-To bound the advantage of $\advA_{\text{bday}}$, first notice that in game $\PRF1_{\cipher}$, $\Fn$ outputs the value from $\cipher$, so all output values will be distinct. Thus, $\advA_{\text{bday}}$ will always return 1 and $\Prob{\PRF1_\cipher\Rightarrow 1}=1$. The probability that $\advA_{\text{bday}}$ returns 1 in game $\PRF0_{\cipher}$ is trickier to bound. To do so, we first define $C(N,q)$ as the probability that in the event of choosing $q$ values uniformly at random from set $\{1,\cdots,N\}$, not all of the values chosen are distinct. In game $\PRF0_{\cipher}$, $\Fn$ returns the output from a random function and since $M_1, \cdots, M_q$ are all distinct, then $C_1, \cdots, C_q$ are independently distributed, random values from $\bits$. The probability of all these values being distinct is the probability that there does not exist a collision, which is $1-C(N,q)$, where $N=2^n$. $C(N,q)$ is the birthday bound, so it can be lower-bounded by $\frac{q^2}{2^n}$. 
-The PRF-advantage of $\advA^\Fn_{\text{bday}}$ is then defined as 
-\begin{align*}
-\AdvPRF{\cipher}{\advA_\text{bday}} &= \left| \Prob{\PRF1_\cipher^{\advA_\text{bday}}\Rightarrow 1} 
-- \Prob{\PRF0_\cipher^{\advA_\text{bday}}\Rightarrow1} \right| \\
-&= 1 - (1 - C(N,q)) \\ 
-&= C(N,q) \\ 
-&\geq \frac{q^2}{2^n}.
-\end{align*}
+\begin{clm}
+	\label{clm:bday}
+	Let $\cipherE\Colon\bits^k \times \{0,1\}^n \to \bits^n$ be a block cipher. For $2 \leq q \leq 2^{(n+1)/2}$, there is an adversary $\advA_\text{bday}$ making $q$ $\Fn$ queries and having running time of $\calO(q)$, such that
+	\begin{equation*}
+		\AdvPRF{\cipher}{\advA_\text{bday}} \geq 0.3 \cdot \frac{q(q-1)}{2^n}.
+	\end{equation*}
+\end{clm} 
+
+\begin{proof}
+	We show the pseudocode for $\advA_{\text{bday}}$ below. 
+	
+	\begin{center}
+		\fpage{.35}{
+			\underline{\textbf{adversary} $\advA^\Fn_{\text{bday}}$} \\
+			Let $M_1, M_2, \cdots, M_q \getsr \{0,1\}^n$ be distinct \\
+			For $i=1, \cdots, q$ do $C_i \gets \Fn(M_i)$ \\
+			If $C_1, \cdots, C_q$ are all distinct then return 1 \\
+			Else return 0	
+		}
+	\end{center}
+	
+	In addition to creating $q$ messages and querying $\Fn$ $q$ times, $\advA_{\text{bday}}$ must check to see if there are any duplicates in its answered queries. Overall, $\advA_{\text{bday}}$ will then have running time of $\calO(q)$.
+	To bound the advantage of $\advA_{\text{bday}}$, first notice that in game $\PRF1_{\cipher}$, $\Fn$ outputs the value from $\cipher$, so all output values will be distinct. Thus, $\advA_{\text{bday}}$ will always return 1 and $\Prob{\PRF1_\cipher\Rightarrow 1}=1$. 
+	
+	The probability that $\advA_{\text{bday}}$ returns 1 in game $\PRF0_{\cipher}$ is trickier to bound. In game $\PRF0_{\cipher}$, $\Fn$ returns the output from a random function and since $M_1, \cdots, M_q$ are all distinct, then $C_1, \cdots, C_q$ are independently distributed, random values from $\bits^n$. The probability that all these values are distinct is the probability that there does not exist a collision, which is $1-C(N,q)$, where $N=2^n$. 
+	The PRF-advantage of $\advA^\Fn_{\text{bday}}$ is then defined as 
+	\begin{align*}
+	\AdvPRF{\cipher}{\advA_\text{bday}} &= \left| \Prob{\PRF1_\cipher^{\advA_\text{bday}}\Rightarrow 1} 
+	- \Prob{\PRF0_\cipher^{\advA_\text{bday}}\Rightarrow1} \right| \\
+	&= 1 - (1 - C(2^n,q)) \\ 
+	&= C(2^n,q) \\ 
+	&\geq 0.3 \cdot \frac{q(q-1)}{2^n}.
+	\end{align*}
+\end{proof} 
 
 In order for $\advA_{\text{bday}}$ to have a high probability of succeeding, we expect $q \approx 2^{n/2}$. This means $\advA_{\text{bday}}$ will also have running time of about $2^{n/2}$. For large values of $n$, this becomes an impractical attack. 
 
