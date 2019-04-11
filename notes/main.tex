@@ -6,6 +6,16 @@
 \def\submission{1}
 \input{defs}
 
+\usepackage{pgfplots}
+    \pgfplotsset{
+        compat=1.12,
+    }
+\usepackage{amsmath}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[n,advantage,operators,sets,adversary,landau,probability,notions,logic,
+ ff,mm,primitives,events,complexity,asymptotics,keys]{cryptocode}
 
 \addbibresource{notes.bib}
 
@@ -124,6 +134,8 @@
 \input{hashfunctions3}
 \newpage
 \input{pke}
+\newpage
+\input{ecc/ecc_main}
 
 \printbibliography
 
