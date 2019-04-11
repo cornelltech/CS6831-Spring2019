@@ -1,0 +1,271 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Digital Signatures}
+\label{sec:pke}
+
+A digital signature scheme $\DS = (\kg,\sign,\ver)$ is a triple of
+algorithms. Key generation is randomized and outputs a key pair $(\pk,\sk)$,
+where $\pk$ is called the public or verification key and $\sk$ is called the secret or
+signing key.
+Signing takes as input a secret key $\sk$ and a message $M$ and outputs a
+signature, usually denoted $\sigma$.
+Verification takes as input a public key $\pk$, message $M$, and signature
+$\sigma$ and outputs a
+bit.
+
+
+
+\fpage{.20}{
+		\underline{$\UFCMA_\DS^\advA$}\\
+    $(\pk,\sk) \getsr \kg$\\
+    $(M^*,\sigma^*) \getsr \advA^\SignOracle(\pk)$\\
+    If $M^* \in \calM$ then \\
+    \myInd Ret $\false$\\
+		Ret $\ver(\pk,M^*,\sigma^*)$\medskip
+
+    \underline{$\SignOracle(M)$}\\
+    $\calM \gets \calM \cup \{M\}$\\
+    $\sigma \getsr \sign(\sk,M)$\\
+    Ret $\sigma$
+	}
+
+\bnm
+  \AdvUFCMA{\DS}{\advA} = \Prob{\UFCMA_{\DS}^\advA\Rightarrow\true}
+\enm
+
+
+
+Let $\DS$ be the full domain hash (FDH) digital signature scheme. 
+
+
+\begin{theorem*}
+Let $\DS$ be the FDH scheme using $\RSAk$ and $\Horacle\Colon\msgspace\rightarrow\Z_N^*$ modeled as
+a RO. Let $\advA$ be any $\UFCMA_\DS$-adversary making at most $q_h$ queries to
+$\Horacle$ and $q_s$ queries to its signing oracle. 
+Then we give an $\RSAk$-adversary $\advB$ such that
+\bnm
+    \AdvUFCMA{\DS}{\advA} \le (q_h + q_s + 1) \cdotsm\AdvOWF{\RSAk}{\advB}
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus $\bigO(q_s+q_h)$. 
+\end{theorem*}
+
+
+\begin{proof}
+To start we make some simplifying assumptions about $\advA$. First, whenever it
+makes a query to $\SignOracle$ on a message $M$ it has previously made a query
+$\Horacle(M)$. Second, when it outputs a forgery attmept $(M^*,\sigma^*)$ it has
+previously queried $M^*$. And, as we normally assume, it does not repeat a query
+to $\Horacle$.  Should $\advA$ not abide by these restrictions, we can easily
+build an adversary $\advA'$ from $\advA$ that does so, at cost at most an extra
+$q_s + 1$ queries to $\Horacle$.
+
+Now, to build some intuition, let's first consider the case that $q_s = 0$, that is, 
+we are arguing about unforgeability in a no-message attack. 
+%Assume that $\advA$
+%queries $\Horacle(M^*)$ where $M^*$ is the output message for its forgery. This
+%is without loss. 
+Then in this case we can 
+guess which random oracle query corresponds to the solution, and program its
+output to be equal be the OWF challenge $Y$.  In more detail, we set our forgery
+adversary $\advB$ to be:
+%Intuitively, to forge against FDH one needs to invert RSA on $\Horacle(M)$ for
+%some $M$. Then we can build an inverter $\advB$ that works as follows. 
+
+\fpage{.25}{
+\underline{$\UFCMA_{\DS}$}\\
+$((N,e),(N,d)) \getsr \kg$\\
+$(M^*,\sigma^*) \getsr \advA^{\Horacle,\SignOracle}((N,e))$\\
+If $M^* \in \calM$ then Ret $\false$\\
+Ret $\left(\TabH[M^*] = (\sigma^*)^e \bmod N\right)$\medskip
+
+\underline{$\Horacle(M)$}\\
+If $\TabH[M] = \bot$ then\\
+\myInd $\TabH[M] \getsr \Z_N^*$\\
+Ret $\TabH[M]$\medskip
+
+\underline{$\SignOracle(M)$}\\
+$\calM \gets \calM \cup \{M\}$\\
+$X \getsr \Horacle(M)$\\
+Ret $X^d \bmod N$
+}
+
+\fpage{.25}{
+\underline{$\G_0$ \;\;\; \fbox{$\G_1$}}\\
+$((N,e),(N,d)) \getsr \kg$\\
+$i^* \getsr [1,q_h]$\\
+$i \gets 0$\\
+$(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
+If $(M^* \ne M_{i^*})$ then \\
+\myInd $\badtrue$\\
+\myInd \fbox{Ret $\false$}\\
+Ret $\left(\TabH[M^*] = (\sigma^*)^e \bmod N\right)$\medskip
+
+\underline{$\HashSim(M)$}\\
+$i \gets i+1$\\
+$M_i \gets M$\\
+If $i = i^*$ then\\
+\myInd Ret $\TabH[M_i] \getsr \Z_N^*$\\
+$\TabH[M_i] \getsr \Z_N^*$\\
+Ret $\TabH[M_i]$
+}
+\fpage{.25}{
+\underline{$\G_2$}\\
+$((N,e),(N,d)) \getsr \kg$\\
+$i^* \getsr [1,q_h]$\\
+$i \gets 0$\\
+$(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
+If $(M^* \ne M_{i^*})$ then \\
+\myInd $\badtrue$\\
+\myInd \fbox{Ret $\false$}\\
+Ret $\left(\TabH[M^*] = (\sigma^*)^e \bmod N\right)$\medskip
+
+\underline{$\HashSim(M)$}\\
+$i \gets i+1$\\
+$M_i \gets M$\\
+If $i = i^*$ then\\
+\myInd Ret $\TabH[M_i] \gets Y$\\
+$\TabH[M_i] \getsr \Z_N^*$\\
+Ret $\TabH[M_i]$
+}
+
+\fpage{.25}{
+\underline{$\advB_{toy}((N,e),Y)$}\\
+$(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
+Ret $\sigma^*$\medskip
+
+\underline{$\HashSim(M)$}\\
+If $i = i^*$ then\\
+\myInd Ret $Y$\\
+}
+
+
+\fpage{.30}{
+\underline{$\advB((N,e),Y)$}\\
+$i^* \getsr [1,q_h]$\\
+$i \gets 0$\\
+$(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
+If $(M^* \ne M_{i^*})$ then $X' \getsr \Z_N^*$\\
+Else $X' \gets \sigma^*$\\
+Ret $X'$\medskip
+
+\underline{$\HashSim(M)$}\\
+$i \gets i+1$\\
+$M_i \gets M$\\
+If $i = i^*$ then\\
+\myInd Ret $Y$\\
+$\sigma_i \getsr \Z_N^*$\\
+$\TabH[M_i] \gets (\sigma_i)^e \bmod N$\\
+Ret $\TabH[M_i]$\medskip
+
+\underline{$\SignSim(M)$}\\
+Let $i$ be s.t.~$M_i = M$\\
+If $i = i^*$ then\\
+\myInd Ret $\sigma \getsr \Z_N^*$\\
+Ret $\sigma_i$
+}
+\fpage{.30}{
+\underline{$\G_0$}\\
+$((N,e),(N,d) \getsr \kg$\\
+$X \getsr \Z_N^*$\\
+$Y \gets X^e \bmod N$\\
+$i^* \getsr [1,q_h]$\\
+$i \gets 0$\\
+$(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
+If $(M^* \ne M_{i^*})$ then \\
+\myInd $\badtrue$\\
+\myInd $X' \getsr \Z_N^*$\\
+$X' \gets \sigma^*$\\
+Ret $(X = X')$\medskip
+
+\underline{$\HashSim(M)$}\\
+$i \gets i+1$\\
+$M_i \gets M$\\
+If $i = i^*$ then\\
+\myInd Ret $Y$\\
+$\sigma_i \getsr \Z_N^*$\\
+$\TabH[M_i] \gets (\sigma_i)^e \bmod N$\\
+Ret $\TabH[M_i]$\medskip
+
+\underline{$\SignSim(M)$}\\
+Let $i$ be s.t.~$M_i = M$\\
+If $i = i^*$ then\\
+\myInd $\badtrue$\\
+\myInd Ret $\sigma \getsr \Z_N^*$\\
+Ret $\sigma_i$
+}
+\fpage{.30}{
+\underline{$\G_1$}\\
+$((N,e),(N,d) \getsr \kg$\\
+$X \getsr \Z_N^*$\\
+$Y \gets X^e \bmod N$\\
+$i^* \getsr [1,q_h]$\\
+$i \gets 0$\\
+$(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
+If $(M^* \ne M_{i^*})$ then \\
+\myInd $\badtrue$\\
+\myInd $X' \gets \sigma^*$\\
+$X' \gets \sigma^*$\\
+Ret $(X = X')$\medskip
+
+\underline{$\HashSim(M)$}\\
+$i \gets i+1$\\
+$M_i \gets M$\\
+If $i = i^*$ then\\
+\myInd Ret $Y$\\
+$\sigma_i \getsr \Z_N^*$\\
+$\TabH[M_i] \gets (\sigma_i)^e \bmod N$\\
+Ret $\TabH[M_i]$\medskip
+
+\underline{$\SignSim(M)$}\\
+Let $i$ be s.t.~$M_i = M$\\
+If $i = i^*$ then\\
+\myInd $\badtrue$\\
+\myInd Ret $\sigma \gets X$\\
+Ret $\sigma_i$
+}
+
+
+\begin{align*}
+  \AdvUFCMA{\DS}{\advA} &= \Prob{\G_1\Rightarrow\true}\\
+      &\le \Prob{\G_0\Rightarrow\true} + \Prob{\bad_0}\\
+      &= \AdvOWF{\RSAk}{\advB} + \Prob{\bad_0}
+\end{align*}
+
+\begin{align*}
+\AdvOWF{\RSAk}{\advB_{toy}} = \AdvUFCMA{\DS}{\advA}
+\end{align*}
+
+Intuitively $\advB$ wins as long as $\advA$ wins and $i^*$ is the correct guess
+of which hash query by $\advA$ corresponds to the winning $M^*$. (Recall that we
+are assuming that $\advA$ always queries $\Horacle$ for the forgery message
+$M^*$.) To analyze this, let game $\G_0$ be equal to $\UFCMA_{\DS}^\advA$ except
+that it additionally includes a random choice of $i^* \getsr [1,q_h]$ and sets a
+flag $\bad$ to true should $M^* \ne M_{i^*}$. Let
+game $\G_1$ be the same as $\G_0$ except that  it chooses a random index $i^*
+\getsr [1,q_h]$ and checks if $M^*$ is equal to the $i\thh$ random oracle
+query. If not, it sets a flag $\bad$ to true and outputs $\false$, 
+Otherwise it checks if $\advA$'s output is a winning forgery, outputing
+$\true$ if so and $\false$ otherwise. Let $\good$ be the event that $\bad$ is
+not set in game $\G_0$, and we let $\good$ be the same event for $\G_1$ (a
+slight abuse of notation). Then we have that both games are
+identical-until-$\bad$ and a variant of the fundamental lemma of game playing
+says that:
+\bnm
+  \Prob{\G_0 \Rightarrow\true \land\good} = \Prob{\G_1\Rightarrow\true \land
+  \good} \;.
+\enm
+Then using this, we have that:
+\begin{align*}
+\AdvOWF{\RSAk}{\advB} 
+  &= \Prob{\G_0\Rightarrow\true}
+  &\ge \Prob{\G_0\Rightarrow\true\land\good}\\
+  &= \Prob{\G_1\Rightarrow\true\land\good}\\
+  &= \Prob{\G_1\Rightarrow\true}\cdot\Prob{\good}\\
+  &= \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q_h}
+\end{align*}
+%Given that $\Horacle$ is modeled as a random oracle, this would seem
+%to correspond to having to 
+%We must create an adversary $\advB$ that inverts RSA .
+
+\end{proof}
+
+
