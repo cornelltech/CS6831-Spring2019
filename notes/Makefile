@@ -1,10 +1,11 @@
 PROJ = main 
 FIGS = 
 FIGOUT = 
-MAIN =  main.tex
+MAIN = main.tex
+BIB  = notes.bib
 SECTIONS = *.tex
 APPENDICES = 
-FULL = $(MAIN) $(FIGS) $(FIGOUT) $(SECTIONS) $(APPENDICES)
+FULL = $(MAIN) $(FIGS) $(FIGOUT) $(SECTIONS) $(APPENDICES) $(BIB)
 
 main.pdf : $(FULL)  *.tex
 	pdflatex $(PROJ).tex
