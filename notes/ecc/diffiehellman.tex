@@ -1,0 +1,64 @@
+\subsection{Elliptic Curve Diffie Hellman}
+
+The Elliptic Curve Group can be used to perform Elliptic Curve Diffie Hellman for key exchange \figref{fig:ecdh}. It is very similar to Diffie Hellman except that it uses group operation instead of exponentiation \figref{fig:dh}. The security needed by Elliptic Curve Diffie Hellman is analogous to Computational Diffie Hellman Assumption that given X and Y one can't learn $xyP$. The best way to solve Elliptic Curve Computational Diffie Hellman is to solve Elliptic Curve Discrete Log Problem which is given X, compute the value of x. One of the generic attacks against the Elliptic Curve Discrete Log Problem is Baby-Step Giant-Step Algorithm.
+
+\begin{figure}[t]
+  \centering
+  \pseudocode{
+    \textbf{Client} \> {} \> \textbf{ Server}\\[2pt][\hline]\\[-0.5\baselineskip]
+    x \sample \Z_q \> \> y \sample \Z_q\\
+   X = Px \> \> Y=Py\\
+    \> \sendmessagerightx[0.5in]{1}{X} \>\\
+    \> \sendmessageleftx[0.5in]{1}{Y}\>\\
+    K = H(xY) \> \> K = H(yX)
+   % \> \sendmessagerightx[0.5in]{1}{b} \> \\
+    %\> \> (\mathbf{\typo}, \mathbf{\usernameT}) \leftarrow \textsf{A}(b)\\
+    %\> ({\pw,\username})  \xleftrightarrow {\text{Set Intersection}} (\mathbf{\typo}, \mathbf{\usernameT})\\
+  }
+  \caption{Elliptic Curve Diffie Hellman Key Exchange}
+  \label{fig:ecdh}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \pseudocode{
+    \textbf{Client} \> {} \> \textbf{ Server}\\[2pt][\hline]\\[-0.5\baselineskip]
+    x \sample \Z_q \> \> y \sample \Z_q\\
+   X = g^x \> \> Y=g^y\\
+    \> \sendmessagerightx[0.5in]{1}{X} \>\\
+    \> \sendmessageleftx[0.5in]{1}{Y}\>\\
+    K = H(Y^x) \> \> K = H(X^y)
+   % \> \sendmessagerightx[0.5in]{1}{b} \> \\
+    %\> \> (\mathbf{\typo}, \mathbf{\usernameT}) \leftarrow \textsf{A}(b)\\
+    %\> ({\pw,\username})  \xleftrightarrow {\text{Set Intersection}} (\mathbf{\typo}, \mathbf{\usernameT})\\
+  }
+  \caption{Diffie Hellman Key Exchange }
+  \label{fig:dh}
+\end{figure}
+
+
+\paragraph{Baby-Step Giant-Step Algorithm.} Baby-Step Giant-Step algorithm tries to solve the Elliptic Curve Discrete Log Problem, which is given xP for a random x, compute x. The algorithm is shown in \ref{fig:bsgs}. In the algorithm, we take rewrite $x = a*m+b$, then multiplying it by P, we get $xP + (-amP) = bP$. We precompute pairs of (b, bP) for different values of P. Then find the value of a for which $xP + (-amP) = bP$ and the value of x will be then $a*m+b$ for the given a and b. The worst-case runtime of this algorithm $q^{0.5}$. But the space complexity is also $q^{0.5}$. Pollard Rho method reduces the space complexity to constant. This is the best-known attack against Elliptic Curve. This attack can also be used against Discrete Log Problem, by just replacing group operation by exponentiation. There are, however, a bunch of corner cases for some curves where attacks can be faster.
+
+
+\begin{algorithm}
+\caption{Baby-Step Giant-Step Algorithm with input xP,P,q }\label{fig:bsg}
+\begin{algorithmic}[1]
+\Procedure{BabyStepGiantStep}{}
+\State Let $x = a*m+b$ with $m = ceil(q^{0.5})$ then
+\State xP + (-amP) = bP
+\For{$b = 1 \dots m$}
+\State Store(b,bP)
+\EndFor
+\For{$a = 1 \dots m$}
+\If{xP+(-amP) = bP}
+\State return am+b
+\EndIf
+\EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Point Compression.} Any point x has exactly 0 or 2 solutions to the curve equation. Also, the two solutions are symmetric against x-axis. Thus, we can reduce the space to represent the points in Elliptic Curve by just representing x and a bit 0 or 1 to represent y. This reduces the space complexity by a factor of 2.
+
+\subsection{Summary}
+Elliptic Curves are specially constructed groups where Discrete Log Problem is conjectured to be hard. These group operations are faster than RSA or Diffie Hellman over $Z_p$. These are increasingly used in practice and are being adopted where Discrete Log Property is required for security, eg Signing Algorithm(EC-DSA algorithm), etc.
