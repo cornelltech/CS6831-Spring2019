@@ -91,7 +91,7 @@ Ret $X^d \bmod N$
 \fpage{.25}{
 \underline{$\G_0$ \;\;\; \fbox{$\G_1$}}\\
 $((N,e),(N,d)) \getsr \kg$\\
-$i^* \getsr [1,q_h]$\\
+$i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
@@ -110,7 +110,7 @@ Ret $\TabH[M_i]$
 \fpage{.25}{
 \underline{$\G_2$}\\
 $((N,e),(N,d)) \getsr \kg$\\
-$i^* \getsr [1,q_h]$\\
+$i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
@@ -140,7 +140,7 @@ If $i = i^*$ then\\
 
 \fpage{.30}{
 \underline{$\advB((N,e),Y)$}\\
-$i^* \getsr [1,q_h]$\\
+$i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then $X' \getsr \Z_N^*$\\
@@ -167,7 +167,7 @@ Ret $\sigma_i$
 $((N,e),(N,d) \getsr \kg$\\
 $X \getsr \Z_N^*$\\
 $Y \gets X^e \bmod N$\\
-$i^* \getsr [1,q_h]$\\
+$i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
@@ -197,7 +197,7 @@ Ret $\sigma_i$
 $((N,e),(N,d) \getsr \kg$\\
 $X \getsr \Z_N^*$\\
 $Y \gets X^e \bmod N$\\
-$i^* \getsr [1,q_h]$\\
+$i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
@@ -238,10 +238,10 @@ Intuitively $\advB$ wins as long as $\advA$ wins and $i^*$ is the correct guess
 of which hash query by $\advA$ corresponds to the winning $M^*$. (Recall that we
 are assuming that $\advA$ always queries $\Horacle$ for the forgery message
 $M^*$.) To analyze this, let game $\G_0$ be equal to $\UFCMA_{\DS}^\advA$ except
-that it additionally includes a random choice of $i^* \getsr [1,q_h]$ and sets a
+that it additionally includes a random choice of $i^* \getsr [1,q]$ and sets a
 flag $\bad$ to true should $M^* \ne M_{i^*}$. Let
 game $\G_1$ be the same as $\G_0$ except that  it chooses a random index $i^*
-\getsr [1,q_h]$ and checks if $M^*$ is equal to the $i\thh$ random oracle
+\getsr [1,q]$ and checks if $M^*$ is equal to the $i\thh$ random oracle
 query. If not, it sets a flag $\bad$ to true and outputs $\false$, 
 Otherwise it checks if $\advA$'s output is a winning forgery, outputing
 $\true$ if so and $\false$ otherwise. Let $\good$ be the event that $\bad$ is
@@ -260,7 +260,7 @@ Then using this, we have that:
   &\ge \Prob{\G_0\Rightarrow\true\land\good}\\
   &= \Prob{\G_1\Rightarrow\true\land\good}\\
   &= \Prob{\G_1\Rightarrow\true}\cdot\Prob{\good}\\
-  &= \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q_h}
+  &= \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q}
 \end{align*}
 %Given that $\Horacle$ is modeled as a random oracle, this would seem
 %to correspond to having to 
