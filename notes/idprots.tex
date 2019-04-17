@@ -24,7 +24,7 @@ $\queried \gets \false$\\
 For $i = 1$ to $q_{id}$ do\\
 \myInd $R_i \getsr \IDcom(\pk)$\\
 \myInd $c_i \getsr \IDchalset$\\
-\myInd $z_i \getsr \IDresp(\sk,R,c)$\\
+\myInd $z_i \getsr \IDresp(\sk,R_i,c_i)$\\
 $z^* \getsr \advA^{\VerOracle}(\pk,(R_1,c_1,z_1),\ldots,(R_{q_{id}},c_{q_{id}},z_{q_{id}}))$\\
 Ret $\IDver(\pk,R^*,c^*,z^*)$\medskip
 
@@ -42,7 +42,7 @@ $\queried \gets \false$\\
 For $i = 1$ to $q_{id}$ do\\
 \myInd $z_i \getsr \Z_q$\\
 \myInd $c_i \getsr \Z_q$\\
-\myInd $R_i \getsr g^zX^{-c}$\\
+\myInd $R_i \getsr g^{z_i}X^{-c_i}$\\
 $\coins \getsr \CoinSpace_\advA$\\
 $z^* \gets \advA^{\VerOracle}(\pk,(R_1,c_1,z_1),\ldots,(R_{q_{id}},c_{q_{id}},z_{q_{id}}) \semi \coins)$\\
 $z^{**} \gets \advA^{\VerOracle}(\pk,(R_1,c_1,z_1),\ldots,(R_{q_{id}},c_{q_{id}},z_{q_{id}}) \semi \coins)$\\
@@ -91,6 +91,31 @@ Let $\calU$ be event that $f(\calX,\calY) = 1 \land f(\calX,\calY') = 1 \land
   & = \epsilon^2 - \frac{\epsilon}{|T|}
 \end{align*}
 \end{proof}
+
+\begin{proof}[Sketch]
+Let $\calU$ be event that $f(\calX,\calY) = 1 \land f(\calX,\calY') = 1 \land
+\calY \ne \calY'$. Then 
+\begin{align*}
+  \Prob{\calU} 
+  %& =\sum_{s \in S} \Prob{f(\calX,\calY) = 1 \land f(\calX,\calY') = 1 \land \calY \ne \calY' \land \calX = s}\\
+  & = \sum_{s \in S} \Prob{f(s,\calY) = 1 \land f(s,\calY') = 1 \land \calY \ne \calY' \land \calX = s}\\
+  & = \sum_{s \in S} \Prob{f(s,\calY) = 1 \land f(s,\calY') = 1 \land \calY \ne \calY'}\Prob{\calX = s}\\
+  & = \sum_{s \in S} \Prob{\calU_s} \Prob{\calX = s}\\
+  & = \sum_{s \in S} \left(\epsilon(s)^2 - \frac{\epsilon(s)}{|T|}\right) \Prob{\calX = s}\\
+  & = \Ex[\epsilon(\calX)^2] - \frac{\Ex[\epsilon(\calX)]}{|T|}\\
+  & \ge \Ex[\epsilon(\calX)]^2 - \frac{\Ex[\epsilon(\calX)]}{|T|}\\
+  & = \epsilon^2 - \frac{\epsilon}{|T|}
+\end{align*}
+
+Let $\epsilon(s) = \Pr[f(s,\calY) = 1]$. 
+Then $\Ex[\epsilon(\calX)] = \epsilon$. Let $N_s$ be the number of values
+$Y \in T$ such that $f(s,Y) = 1$. Let $\calU_s$ be the event that $f(s,\calY) =
+1 \land f(s,\calY') = 1 \land \calY \ne \calY'$. Then
+\bnm
+  \Prob{\calU_s} = \frac{N_s(N_s - 1)}{|T|^2} = \epsilon(s)^2 - \frac{\epsilon(s)}{|T|} 
+\enm
+\end{proof}
+
 
 
 
