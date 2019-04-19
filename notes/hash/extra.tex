@@ -1,0 +1,42 @@
+% stuff i removed from the notes but might be useful
+
+\begin{theorem*}
+Let $f$ be a compression function and $H$ be the MD hash function built from it. 
+Let $\advA$ be a $\CR_H$-adversary outputing messages eacah of length at most $\sigma$
+blocks after MD padding. Then we give an $\CR_f$-adversary $\advB$
+such that
+\bnm
+  \AdvCR{\advA}{H} \le \AdvCR{\advB}{f} \;.
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus at most $2\sigma$ computations of
+$f$.
+\end{theorem*}
+
+
+\fpage{.25}{
+\underline{$\CR^\advA_{H,\ic}$}\\[1pt]
+$E \getsr \blockciphers(k,n)$\\
+$(M,M') \getsr \advA^{\ic,\icInv}$\\
+If $M = M'$ then Ret $\false$\\
+Ret $H^\ic(M) = H^\ic(M')$\medskip
+
+\underline{$\ic(K,X)$}\\
+If $\TabE[K,X] \ne \bot$ then\\
+\myInd $Y \getsr \Range[K]$\\
+\myInd $\TabE[K,X] \getsr Y$\\
+\myInd $\TabD[K,Y] \getsr X$\\
+\myInd $\Domain[K] \getu X$\\
+\myInd $\Range[K] \getu Y$\\
+Ret $\TabE[K,X]$\medskip
+
+\underline{$\icInv(K,Y)$}\\
+If $\TabD[K,Y] \ne \bot$ then\\
+\myInd $X \getsr \Domain[K]$\\
+\myInd $\TabE[K,X] \gets Y$\\
+\myInd $\TabD[K,Y] \gets X$\\
+\myInd $\Domain[K] \getu X$\\
+\myInd $\Range[K] \getu Y$\\
+Ret $\TabD[K,Y]$
+}
+
+

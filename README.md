@@ -196,16 +196,16 @@ what we're hoping to cover.
 | Mar 13 | Hash functions 3 | [Slides](slides/hashfunctions-lec13.pptx) | |
 | Mar 18 | Public key encryption / RSA | [Slides](slides/pke.pptx)| |
 | Mar 20 | Public-key encryption / El Gamal  | [Slides](slides/pke2.pptx)  | |
-| Mar 25 | ECC |   | |
-| Mar 27 | Chosen-ciphertext attacks  |  | |
+| Mar 25 | ECC |  [Slides](slides/ecc.pptx) | |
+| Mar 27 | Chosen-ciphertext attacks  | [Slides](slides/pke-cca.pptx) | |
 | Apr 1  | No lecture (Spring Break) |  | |
 | Apr 3  | No lecture (Spring Break) |  | |
-| Apr 8  | Digital signatures | | |
-| Apr 10 | TLS 1.3  | | |
-| Apr 15 | Signal   | | |
-| Apr 17 | Group messaging | | |
-| Apr 22 | Identification protocols and Fiat-Shamir | | |
-| Apr 24 | Zero-knowledge proofs | | |
+| Apr 8  | RSA signatures | [Slides](slides/digsigs.pptx) | |
+| Apr 10 | RSA (part 2) and Schnorr signatures | [Slides](slides/digsigs2.pptx)| |
+| Apr 15 | Schnorr, ID protocols, Fiat-Shamir | [Slides](slides/idprots.pptx) | |
+| Apr 17 | Signatures wrap-up and PKI | [Slides](slides/digsigs3.pptx) | |
+| Apr 22 | Zero-knowledge proofs | | |
+| Apr 24 | TBA | | |
 | Apr 29 |  TBA | | |
 | May 1  | TBA | | |
 | May 6  | TBA |  | |

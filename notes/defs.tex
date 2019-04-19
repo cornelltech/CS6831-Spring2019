@@ -52,6 +52,7 @@
 \newtheorem{thm}{Theorem} %[section]
 \newtheorem*{theorem*}{Theorem}
 \newtheorem{lem}{Lemma}
+\newtheorem*{lemma*}{Lemma}
 
 \newtheorem{cor}[thm]{Corollary}
 \newtheorem{propo}[thm]{Proposition}
@@ -445,6 +446,7 @@
 \newcommand{\notcheated}{\mathsf{Honest}}
 \newcommand{\badtrue}{\bad\gets\true}
 \newcommand{\Good}{\mathsf{Good}}
+\newcommand{\good}{\mathsf{good}}
 \newcommand{\EvNbadA}{\overline{\mathsf{Bad}}_1}
 \newcommand{\EvbadA}{\mathsf{Bad}_1}
 \newcommand{\EvNbadB}{\overline{\mathsf{Bad}}_2}
@@ -755,7 +757,7 @@
  \newcommand{\Enc}{\procfont{Enc}}
 
  \newcommand{\Ectxtspace}{\calC}
- \newcommand{\coinspace}{\calR}
+% \newcommand{\coinspace}{\calR}
  \newcommand{\ctxtspacebar}{\overline{\calC}}
  \newcommand{\Frank}{\calF}
  \newcommand{\metadata}{\text{MD}}
@@ -955,7 +957,7 @@
 \newcommand{\encr}{{\enc}^{\$}}
 \newcommand{\dec}{{\sf dec}}
 \newcommand{\encsign}{{\cal ES}}
-\newcommand{\sign}{{\sf S}}
+%\newcommand{\sign}{{\sf S}}
 \newcommand{\mac}{{\sf Mac}}
 \newcommand{\verdecc}{{\cal VD}}
 \newcommand{\henc}{{\cal HE}}
@@ -1368,7 +1370,6 @@
 
 \newcommand{\AdvOr}{\calA_\textrm{OR}}
 \newcommand{\AdvCoins}{\calA_\textrm{\$\$}}
-\newcommand{\coins}{\omega}
 \newcommand{\Zp}{\mathbb{Z}_p}
 \newcommand{\bbG}{\mathbb{G}}
 \newcommand{\group}{\bbG}
@@ -2161,6 +2162,8 @@
 \newcommand{\RORCCA}{\textnormal{ROR-CCA}}
 \newcommand{\AdvRORCCA}[2]{\Adv^{\mathrm{ror\dash cca}}_{#1}(#2)}
 
+\newcommand{\LORCCA}{\textnormal{LOR-CCA}}
+
 % \newcommand{\INDSIM}{\textnormal{INDSIM}}
 \newcommand{\AdvINDSIM}[2]{\Adv^{\mathrm{ind\dash sim}}_{#1}(#2)}
 
@@ -2227,9 +2230,41 @@
 
 \newcommand{\DDH}{\textnormal{DDH}}
 
+\newcommand{\ICDH}{\textnormal{ICDH}}
+\newcommand{\DDHoracle}{\textnormal{DHCheck}}
+
 
 \newcommand{\RSAk}{\textnormal{RSA}\dash k}
 \newcommand{\AdvOWFRSA}[2]{\Adv^{\mathrm{owf}}_{#1}(#2)}
+
+
+\newcommand{\DS}{{\mathsf{DS}}}
+\newcommand{\sign}{{\mathsf{sign}}}
+
+\newcommand{\SignOracle}{\textnormal{Sign}}
+\newcommand{\HashSim}{\textnormal{HSim}}
+\newcommand{\SignSim}{\textnormal{SignSim}}
+
+
+\newcommand{\IDscheme}{\textsf{ID}}
+\newcommand{\IDkeygen}{\textsf{kg}}
+\newcommand{\IDkg}{\textsf{IDkg}}
+\newcommand{\IDcom}{P.com}
+\newcommand{\IDresp}{P.resp}
+\newcommand{\IDver}{V.ver}
+\newcommand{\IDchalset}{\calC}
+
+
+\newcommand{\IDPASS}{\textnormal{IDPASS}}
+
+\newcommand{\queried}{\textsf{queried}}
+
+\newcommand{\AdvIDPASS}[2]{\Adv^{\mathrm{idpass}}_{#1}(#2)}
+%\newcommand{\ver}{{\mathsf{ver}}}
+
+\newcommand{\coins}{\omega}
+\newcommand{\CoinSpace}{\Omega}
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"

@@ -6,6 +6,16 @@
 \def\submission{1}
 \input{defs}
 
+\usepackage{pgfplots}
+    \pgfplotsset{
+        compat=1.12,
+    }
+\usepackage{amsmath}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[n,advantage,operators,sets,adversary,landau,probability,notions,logic,
+ ff,mm,primitives,events,complexity,asymptotics,keys]{cryptocode}
 
 \addbibresource{notes.bib}
 
@@ -26,6 +36,8 @@
 \begin{document}
 
 \maketitle
+
+\tableofcontents
 
 
 \section*{Notes}
@@ -125,7 +137,15 @@
 \newpage
 \input{pke}
 \newpage
-\input{pke2}
+\input{ecc/ecc_main}
+\newpage
+\input{pke-cca}
+%\newpage
+%\input{pke2}
+\newpage
+\input{digsigs}
+\newpage
+\input{idprots}
 
 \printbibliography
 
