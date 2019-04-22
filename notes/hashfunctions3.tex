@@ -1,10 +1,10 @@
 \section{PRFs from Hash functions}
 
 \subsection{Other Hash based PRFs}
-The Merkle Damg{\aa}rd construction from the previous section is a type of Prefix MAC (since the key is prepended to the message). Although the construction is secure PRF in the random oracle model, we saw how it is susceptible to length extension attacks. Several alternatives have been proposed to counter these attacks. 
+The Merkle Damg{\aa}rd construction from the previous section is a type of Prefix MAC (since the key is prepended to the message). Although the construction is a secure PRF in the random oracle model, we saw how it is susceptible to length extension attacks. Several alternatives have been proposed to counter these attacks. We use $\hash^f$ to represent the Merkle Damg{\aa}rd construction with $f$ as the underlying compression function.  
 
 \paragraph{Suffix MAC:}
-$\hash^f(M \Vert K)$ - The key is appended to the end instead of the beginning. Now, for a length extension attack to succeed, the adversary must find a collision for hash output until the key is added. To elaborate, if the adversary finds messages $M_0$ and $M_1$ such that $\hash^f(M_0) = \hash^f(M_1)$ by an offline collision attack, then it can break security for the overall construction without ever needing the key. To prove \PRF-security, therefore, we require that $\hash$ be collision resistant.
+$\hash^f(M \Vert K)$ - The key is appended to the end instead of the beginning. Now, for a length extension attack to succeed, the adversary must find a collision for hash output of the message prefix until the key is added. To elaborate, if the adversary finds messages $M_0$ and $M_1$ such that $\hash^f(M_0) = \hash^f(M_1)$ by an offline collision attack, then it can break security for the overall construction without ever needing the key. To prove \PRF-security, therefore, we require that $\hash$ be collision resistant.
 
 
 \paragraph{Envelope MAC:} $\hash^f(K_1 \Vert M \Vert K_2)$ - A key $K_1$ is prepended and another key $K_2$ is appended to the input. The \PRF-security proof is similar to the one before except now collision resistance is no longer required.
@@ -15,7 +15,7 @@ $\hash^f(K_1 \Vert \hash^f(K_2 \Vert M))$ - The standard Prefix MAC construction
 
 \subsection{The HMAC Construction}
 
-$\HMAC$, a widely used MAC in practice is a close variant of the nested MAC. For $\HMAC$, The keys $K_1$ and $K_2$ are no longer picked independently but rather derived from some base key $K$. The keys are computed as $K_1 = f(\IV, K \oplus \ipad)$ and $K_2 = f(\IV, K \oplus \opad)$ where $\ipad$ (inner pad) and $\opad$ (outer pad) are constants. Figure \ref{fig: HMAC construction} shows both a shortened and an extended version of the $\HMAC$ construction
+$\HMAC$, a widely used MAC in practice is a close variant of the nested MAC. For $\HMAC$, The keys $K_1$ and $K_2$ are no longer picked independently but rather derived from some base key $K$. The keys are computed as $K_1 = f(\IV, K \oplus \ipad)$ and $K_2 = f(\IV, K \oplus \opad)$ where $\ipad$ (inner pad) and $\opad$ (outer pad) are constants. The usage of a single base key rather than two allows $\HMAC$ to be built using existing SHA hash functions in a black-box way. Figure \ref{fig: HMAC construction} shows both a shortened and an extended version of the $\HMAC$ construction
 
 \begin{figure}[h]
 \centering
@@ -146,7 +146,7 @@ If $f$ is $\RKAPRF$-secure, then the keys $K_1$ and $K_2$ are indistinguishable 
 \noindent Some subtleties like block padding have been ignored in the above sketch. A detailed proof can be found in \cite{Bellare1996}. A stronger result that does not rely on the collision resistance of $\hash$ (but instead on some weaker assumptions) is proved in \cite{Bellare2006}
 
 \subsection{The Indifferentiability Framework}
-Ideally, we want our hash functions to behave like random oracles, yet security analysis in the RO model is insufficient justification for instantiating constructions with real hash functions. Understanding security of real world constructions would be a lot easier if we had a general framework that accounted for structure-abusing attacks on hash functions. Coron et al. \cite{Coron2005} suggest use of the Indifferentiability franework introduced by Maurer et al. \cite{Maurer2004} in the context of hash functions. At a high level, we model the inner compression function $f$ itself as a random oracle for fixed-length inputs and attempt to prove that the overall construction is indistinguishable from a random oracle. Indifferentiability from a random oracle can be considered approximately as secure as a random oracle. 
+We've seen that security analysis in the RO model is insufficient justification for instantiating constructions with real hash functions. Understanding security of real world constructions would be a lot easier if we had a general framework that accounted for structure-abusing attacks on hash functions. Coron et al. \cite{Coron2005} suggest use of the Indifferentiability franework introduced by Maurer et al. \cite{Maurer2004} in the context of hash functions. At a high level, we model the inner compression function $f$ itself as a random oracle for fixed-length inputs and attempt to prove that the overall construction is indistinguishable from a random oracle. Indifferentiability from a random oracle can be considered approximately as secure as a random oracle. 
 
 Figure \ref{fig:Indiff Diagram} shows the schematic representation of the framework. As usual, $\advD$ tries to distinguish between the ideal world (with a random oracle) and the real world (with the construction $\hash^f$). In the real world, $\advD$ also gets access to the underlying function $f$. In the ideal world, since $\RO$ does not depend on $f$, a simulator $\simoracle$ tries to simulate the function $f$. $\advD$ gets access to this simulator in the ideal world. Figure \ref{fig:Indiff Game} describes the $\INDIFF$ game in detail.
 
