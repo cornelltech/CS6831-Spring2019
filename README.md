@@ -204,7 +204,7 @@ what we're hoping to cover.
 | Apr 10 | RSA (part 2) and Schnorr signatures | [Slides](slides/digsigs2.pptx)| |
 | Apr 15 | Schnorr, ID protocols, Fiat-Shamir | [Slides](slides/idprots.pptx) | |
 | Apr 17 | Signatures wrap-up and PKI | [Slides](slides/digsigs3.pptx) | |
-| Apr 22 | Zero-knowledge proofs | | |
+| Apr 22 | Zero-knowledge proofs | [Slides](slides/zk.pptx) | |
 | Apr 24 | TBA | | |
 | Apr 29 |  TBA | | |
 | May 1  | TBA | | |
