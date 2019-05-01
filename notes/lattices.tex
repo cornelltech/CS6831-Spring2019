@@ -1,0 +1,17 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Lattice-based Crypto and LWE}
+\label{sec:lattices}
+
+
+Given lattice basis $\textbf{B} = [\vecb_1,\ldots,\vecb_n] \in \mathbb{Z}^n$,
+and $r \in \mathbb{Q}$, determine whether $\lambda_1(\calL(\textbf{B})) \le r$
+or $\lambda_1(\calL(\textbf{B})) > \gamma \cdot r$.
+
+
+\begin{align*}
+  m' &= c_2 - c_1\vecs\\
+     &= \vecu^T\textnormal{pk} + m\lceil q/2\rceil -   \vecu^T\textbf{A}\vecs \\
+     &= \vecu^T\textbf{A}\vecs + \vecu^T\vece + m\lceil q/2\rceil -   \vecu^T\textbf{A}\vecs \\
+     &= \vecu^T\vece + m\lceil q/2\rceil
+\end{align*}
+
