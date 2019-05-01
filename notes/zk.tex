@@ -26,19 +26,19 @@ Return $\pi$
 \underline{$\NIZK1_{\Phi,\Simu}^\advA$}\\[1pt]
 $b \getsr \bits$\\
 $b' \getsr \advA^{\ProofOracle,\Horacle}$
-Return $(b = b')$\medskip
+Ret $(b = b')$\medskip
 
 \underline{$\ProofOracle(x,Y)$}\\[1pt]
 $\pi \getsr \Gen^\Horacle(x,Y)$\\
-Return $\pi$\medskip
+Ret $\pi$\medskip
 
 \underline{$\Horacle(M)$}\\[1pt]
 If $\TabH[M] = \bot$ then\\
 \myInd $\TabH[M] \getsr \bits^n$\\
-Return $\TabH[M]$
+Ret $\TabH[M]$
 }
 \fpage{.15}{
-\underline{$\NIZK1_{\Phi,\Simu}^\advA$}\\[1pt]
+\underline{$\NIZK0_{\Phi,\Simu}^\advA$}\\[1pt]
 $b \getsr \bits$\\
 $b' \getsr \advA^{\ProofOracle,\HashSim}$\\
 Return $(b = b')$\medskip
