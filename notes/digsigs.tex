@@ -336,13 +336,13 @@ Then using this, we have that:
 
 $(1)$ follows because $\G_0$ outputs \texttt{true} iff $\TabH[M^*] = (\sigma^*)^e \bmod N$.  Note that $\TabH[M^*] = Y$ (because $\G_0$ outputs false if $M_{i^*}\neq M^*$, and by construction of the hash oracle).  So, $Y=(\sigma^*)^e \bmod N$ for B's challenge in the OWF game, and $B$ outputs $(\sigma^*)$, winning the OWF game.
 
-$(2)$ follows because $G_2, G_1$ differ only in the output of $\TabH[M^{M^*}]$ (as above, in both, either game returning true implies $M_{i^*} = M^*$).  But, in one case, a point sampled from $\calZ_N$ is returned, and in another, $Y$ is returned, which is a point sampled from $\calZ_N$ by definition of the challenge provided $B$ in the OWF game.  It is thus impossible for this difference in identically distributed random choice to affect the operation of $A$.
+$(2)$ follows because $G_2, G_1$ differ only in the output of $\TabH[M_{i^*}]$ (as above, in both, either game returning true implies $M_{i^*} = M^*$).  But, in one case, a point sampled from $\calZ_N$ is returned, and in another, $Y$ is returned, which is a point sampled from $\calZ_N$ by definition of the challenge provided $B$ in the OWF game.  It is thus impossible for this difference in identically distributed random choice to affect the operation of $A$.
 
 $(3)$ follows from basic probability, and $(4)$ follows from our variant of the fundamental lemma of game playing, above.  $(5)$ follows as the probability that the good flag is set in $G_1$ is exactly equal to the probability that $M^* = M_{i^*}$, which is by definition the probability that the $i^*$th query of $q_h$ total queries to the hash oracle has as input $M^*$.  Because $i$ is independently uniformly sampled, this probability is equal for every choice of $i$, independent of all other values. $(6)$ follows as Lemma 1 states that $M^*$ will be exactly one of the queries to the hash oracle (in this case equal to the number of total queries, $q$, as $q_s=0$), making this probability exactly equal to $\frac{1}{q}$.  Note that concretely here, $q=q_h+1$ by Lemma 1.
 
 \textbf{Generalization of toy example to full proof}  We now must do a generalization of the above to cases where $q_s \geq 1$, that is, our black-box $\UFCMA_\DS$ adversary makes at least one signing query.  In these cases, we face a substantive challenge: because the hash function in our full domain RSA construction is used by the signing routine, it is not the case that sign function outputs are independent of the outputs of our hash function.  We therefore cannot simply return random points for both the sign and hash function, as this breaks the structure of signatures; for example, any adversary that runs \texttt{ver} on outputs of \texttt{sign} would receive outputs of $1$ with a valid signature and hash function, and $0$ if we return random points, altering its execution and therefore output with overwhelming probability.
 
-We therefore must program the signature oracle to return points which constitute valid signatures for points on which the hash oracle has already been queried (by Lemma 1, we can assume this is always the case).  So, as desired, we have that $\AdvOWF{\RSAk}{\advB_{toy}} \ge \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q}$, completing the proof.
+We therefore must program the signature oracle to return points which constitute valid signatures for points on which the hash oracle has already been queried (by Lemma 1, we can assume this is always the case). $\HashSim$, instead of returning a random string, first chooses a corresponding signature at random for the message $M$ queried. It then returns the signature raised to the $e$th power. In this way, any queries made to $\SignSim$ will always return a valid signature for the corresponding $\HashSim$ output, unless $i=i^*$. If $\advA$ queries $\SignSim$ on the $i^*$th message, we just accept that we will fail to invert $Y$. The rest of the arguments from the toy example still hold, but now we have $q=q_h+q_s+1$. So, as desired, we have that $\AdvOWF{\RSAk}{\advB} \ge \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q}$, completing the proof.
 
 
 
@@ -444,30 +444,14 @@ Ret $\sigma_i$
 \label{fig:fulldomainsignproof}
 \end{figure}
 
-\textbf{TODO Lucy; describe/check Figure~\ref{fig:fulldomainsignproof} and merge with the toy proof; the proof should be mainly unchanged.}\\
-- the bound above with $\Prob{\bad_0}$ doesn't work b/c probability is high (bad0 bounded by $1-\frac{1}{q}$)\\
-- Instead do $\Prob{\G_0\Rightarrow\true \land \good_0}=\Prob{\G_0\Rightarrow\true \land \good_0}$\\
-\begin{align*}
-\AdvOWF{\RSAk}{\advB} &= \Prob{\G_0\Rightarrow\true}\\
-&\geq \Prob{\G_0\Rightarrow\true \land \good_0}\\
-&= \Prob{\G_1\Rightarrow\true \land \good_1}\\
-&= \Prob{\G_1\Rightarrow\true}\cdot \Prob{\good_1}\\
-&= \AdvUFCMA{\DS}{\advA}\cdot\frac{1}{q}
-\end{align*}
-- $q=q_h+q_s+1$\\
-- G0 to G1 if we don't get to the place where the code deviates\\
-- event that G1 outputs true is independent of G1 because of the way you change the game after bad is set\\
-- choice of $i^*$ has no bearing on the output (?)
 \end{proof}
 
-Concrete security implications (50:00)
-We can actually get a better bound, 
+\paragraph{Concrete security implications of FDH.} 
+We can get a better bound for the $\UFCMA$ security of the FDH signature scheme by embedding the challenge $Y$ for the OWF in multiple $\TabH[M]$ values. We do this by picking random $r_i$ values and assigning $Y_i=Y\cdot r_i^e\mod N$. Since we expect to lose the game if adversary $\advA$ queries the $\SignSim$ oracle on any messages corresponding to these programmed $Y_i$s, there is a balance between choosing more values to program and having a larger chance of automatically losing the game. As Coron originally proved in~\cite{coron2000exact} and as described by Boneh and Shoup in~\cite{BonehShoupBook}, we can find the optimal parameters and achieve a bound of
 \bnm
-\AdvUFCMA{\DS}{\advA}\leq 2.72\cdot(q_s+1)\cdot \AdvOWF{\RSAk}{\advB'}
+\AdvUFCMA{\DS}{\advA}\leq 2.72\cdot(q_s+1)\cdot \AdvOWF{\RSAk}{\advB'}\,.
 \enm
-reference Boneh-Shoup/Coron. embed OWF challenge $Y$ in multiple H[M] values. $Y_i=Y\cdot r_i^e\mod N$
-
-DL sigs starting 1:00:30
+The reduction no longer relies on the number of hash oracle queries made, which makes the bound tighter. 
 \subsection{Questions}
 
 \begin{enumerate}
