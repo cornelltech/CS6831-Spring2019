@@ -1,0 +1,89 @@
+\section{Zero-Knowledge and Proofs of Knowledge}
+\label{sec:zknowledge}
+Identity protocols provide proof about the ownership of a private key, without revealing that private key.
+We can generalize this notion to proving knowledge of an arbitrary secret without revealing the secret as \emph{zero-knowledge (ZK) proofs}. 
+The notion of zero-knowledge was first introduced by Goldwasser et al.~\cite{goldwasser1989knowledge}
+
+For the formal definition of a ZK proof, we follow Boneh-Shoup's treatment~\cite{BonehShoupBook} and define an effective relation as a binary relation $\calR \subseteq \calX \times \calY$  where $\calR, \calX,\calY$ are sets.
+(We assume the are efficiently recognizable, meaning one can determine if a value is a member of the set efficiently.)
+Elements of $\calY$ are called \emph{statements} and elements of $\calX$ are called \emph{witnesses}.
+
+We can define Sigma protocols, and thus interactive zero-knowledge proofs, relative to relations.
+
+\begin{figure}[h]
+\centering
+
+\begin{tikzpicture}
+    \node[draw, rectangle] (P) {Prover};
+    \node[below=5cm of P] (P2) {};
+
+    \node[draw, rectangle, right=5cm of P] (V) {Verifier};
+    \node[below=5cm of V] (V2) {};
+
+    \draw[-] (P) -- (P2);
+    \draw[-] (V) -- (V2);
+
+\end{tikzpicture}
+\end{figure}
+
+\subsection{Properties of Zero-Knowledge Proofs}
+
+\subsection{Non-Interactive Zero-Knowledge Proofs}
+\begin{figure}
+\centering
+
+\fpage{.25}{
+\underline{$\NIZK_{\Phi,\Simu}^\advA$}\\[1pt]
+$b \getsr \bits$\\
+$b' \getsr \advA^{\ProofOracle}$\\
+Return $(b = b')$\medskip
+
+\underline{$\ProofOracle(x,Y)$}\\[1pt]
+If $b = 1$ then\\
+\myInd $\pi \getsr \Gen(x,Y)$\\
+If $b = 0$ then \\
+\myInd $\pi \getsr \Simu(Y)$\\
+Return $\pi$
+}
+\fpage{.15}{
+\underline{$\NIZK1_{\Phi,\Simu}^\advA$}\\[1pt]
+$b \getsr \bits$\\
+$b' \getsr \advA^{\ProofOracle,\Horacle}$
+Ret $(b = b')$\medskip
+
+\underline{$\ProofOracle(x,Y)$}\\[1pt]
+$\pi \getsr \Gen^\Horacle(x,Y)$\\
+Ret $\pi$\medskip
+
+\underline{$\Horacle(M)$}\\[1pt]
+If $\TabH[M] = \bot$ then\\
+\myInd $\TabH[M] \getsr \bits^n$\\
+Ret $\TabH[M]$
+}
+\fpage{.15}{
+\underline{$\NIZK0_{\Phi,\Simu}^\advA$}\\[1pt]
+$b \getsr \bits$\\
+$b' \getsr \advA^{\ProofOracle,\HashSim}$\\
+Return $(b = b')$\medskip
+
+\underline{$\ProofOracle(x,Y)$}\\[1pt]
+$\pi \getsr \Simu_P(Y)$\\
+Return $\pi$\medskip
+
+\underline{$\HashSim(M)$}\\[1pt]
+Ret $\Simu_H(M)$
+}
+
+\caption{Definition of the Non-Interactive Zero-Knowledge Game}
+    \label{fig:nizk}
+\end{figure}
+
+So far, we have shown the basic intuition behind showing zero-knowledge in an interactive setting.
+Informally speaking in interactive settings the verifier can ask ``questions'' about the proof and gets answers in form of witnesses from the prover.
+In an non-interactive setting, the prover has to provide answer to all possible ``questions'' a priori.
+
+
+Figure \ref{fig:nizk} outlines the basic games for the non-interactive zero-knowledge proof.
+
+
+
