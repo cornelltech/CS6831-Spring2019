@@ -9,7 +9,7 @@ In the symmetric key setting, we assume that two parties exchanging messages hav
 
 In this section, we will go over one method to construct a secure key exchange protocol. The Diffie-Hellman key exchange protocol was created by Whitfield Diffie and Martin Hellman. This protocol does not confirm to either party sharing the secret of the identity of the other, therefore making this an \textit{anonymous} protocol. Before we describe the protocol, we will first go over some prerequisite algebra and number theory.
 
-Let $p$ be a large prime number. We fix the group $\group = \Z_p^*=\{1,2,3,\ldots,p-1\}$, with group operation multiplication mod $p$. Recall that $\Z_p^*$ is the set of nonzero elements of $\Z_p$. We then know that $\group$ is \textit{cyclic}. This means that one can provide a group member $g \in \group$, called the \textit{generator}, such that $\group = \{g^0, g^1, g^2, \ldots, g^{p-1}\}$. 
+Let $p$ be a large prime number. We fix the group $\group = \Z_p^*=\{1,2,3,\ldots,p-1\}$, with group operation multiplication mod $p$. Recall that $\Z_p^*$ is the set of nonzero elements of $\Z_p$. We then know that $\group$ is \textit{cyclic}. This means that one can provide a group member $g \in \group$, called the \textit{generator}, such that $\group = \{g^0, g^1, g^2, \ldots, g^{p-1}\}$. For generator $g$ of cyclic group $\group$, note that all elements $e\in\Z_{|\group|}$ form a unique element $g^e$ in $\group$. Furthermore, a \textit{subgroup} $H$ of $\group$ under operation $\odot$ is defined as a subset of $\group$ that also forms a group under the operation $\odot$. 
 
 \begin{example}
 	Let $p=7$. Is 2 or 3 a generator for $\Z_7^*$?
@@ -28,41 +28,7 @@ Let $p$ be a large prime number. We fix the group $\group = \Z_p^*=\{1,2,3,\ldot
 	\end{center}
 \end{example}
 
-\begin{figure}
-	\center
-	\begin{tikzpicture}
-		\node (rect1) [draw]  {
-			\begin{minipage}[t][4cm]{2cm}
-				{\centering\underline{\textbf{Alice}} \\}
-				$x \getsr \Z_{|\group|}$ \\
-				$X \gets g^x$
-			\end{minipage}
-		};
-		\node (rect2) [draw, right of=rect1, node distance=6cm] {
-			\begin{minipage}[t][4cm]{2cm}
-				{\centering\underline{\textbf{Bob}} \\}
-				$y \getsr \Z_{|\group|}$ \\
-				$Y \gets g^y$
-			\end{minipage}
-		};
-		\node (group1) [above of=rect1, node distance=3cm] {$\group,g$};
-		\node (group2) [above of=rect2, node distance=3cm] {$\group,g$};
-		\path[->,>=stealth'] (group1) edge (rect1);
-		\path[->,>=stealth'] (group2) edge (rect2);
-		
-		\path[->,>=stealth'] (rect1.10) edge node[anchor=south] {$X$} ( rect2.west|-rect1.10); 
-		\path[<-,>=stealth'] (rect1.-40) edge node[anchor=south] {$Y$} (rect2.west|-rect1.-40);
-
-		\node (key1) at (0,-1.75) {$K \gets \hash(Y^x)$};
-		\node (key2) at (6,-1.75) {$K \gets \hash(X^y)$};
-	\end{tikzpicture}
-	\caption{The Diffie-Hellman anonymous key exchange protocol for cyclic group $\group$ with generator $g$.}
-	\label{fig:DHKE}
-\end{figure}
-
-\scribenote{The notes fix G but then the protocol shown generalizes G. In the protocol, should I just use $\Z_p^*$?}
-
-\paragraph{Diffie-Hellman key exchange.} We now describe the details of the Diffie-Hellman anonymous key exchange protocol. We assume both parties have access to public values $\group$ and $g\in\group$. It executes as follows, as shown in \figref{fig:DHKE}:
+\paragraph{Diffie-Hellman key exchange.} We now describe the details of the Diffie-Hellman anonymous key exchange protocol. We assume both parties have access to public values group $\group$ and generator $g\in\group$. It executes as follows, as shown in \figref{fig:DHKE}:
 \begin{enumerate}
 	\item Alice chooses $x$ uniformly at random from $\Z_{|\group|}$, computes $X \gets g^x$, and sends $X$ to Bob.
 	
@@ -78,30 +44,43 @@ The secret key $K$ shared by Alice and Bob must be the same since
 	Y^x = g^{yx} = g^{xy} = X^y.
 \end{equation*}
 
-\paragraph{Security of Diffie-Hellman key exchange.} Notice that if an adversary could easily compute $x$ given $X \gets g^x$, then the adversary could certainly compute $K$, rendering this protocol insecure. The function that calculates this value is called the \textbf{discrete logarithm function}, usually denoted as $\dlog$, and is the inverse of the exponentiation function. Thus, for Diffie-Hellman key exchange to have any chance of being secure, we must find a group in which it is difficult to compute $\dlog$. In particular, for $p$ at least 2048-bits and $q = |\group|$ at least 256-bits, where $p$ and $q$ are both primes, the discrete logarithm function is believed to be hard to compute in the order $q$ subgroup of $Z_p^*$ \cite{BonehShoupBook}. This is called the \textbf{discrete logarithm assumption}.
+\begin{figure}[H]
+	\center
+	\begin{tikzpicture}
+	\node (rect1) [draw]  {
+		\begin{minipage}[t][4cm]{2cm}
+		{\centering\underline{\textbf{Alice}} \\}
+		$x \getsr \Z_{|\group|}$ \\
+		$X \gets g^x$
+		\end{minipage}
+	};
+	\node (rect2) [draw, right of=rect1, node distance=6cm] {
+		\begin{minipage}[t][4cm]{2cm}
+		{\centering\underline{\textbf{Bob}} \\}
+		$y \getsr \Z_{|\group|}$ \\
+		$Y \gets g^y$
+		\end{minipage}
+	};
+	\node (group1) [above of=rect1, node distance=3cm] {$\group,g$};
+	\node (group2) [above of=rect2, node distance=3cm] {$\group,g$};
+	\path[->,>=stealth'] (group1) edge (rect1);
+	\path[->,>=stealth'] (group2) edge (rect2);
+	
+	\path[->,>=stealth'] (rect1.10) edge node[anchor=south] {$X$} ( rect2.west|-rect1.10); 
+	\path[<-,>=stealth'] (rect1.-40) edge node[anchor=south] {$Y$} (rect2.west|-rect1.-40);
+	
+	\node (key1) at (0,-1.75) {$K \gets \hash(Y^x)$};
+	\node (key2) at (6,-1.75) {$K \gets \hash(X^y)$};
+	\end{tikzpicture}
+	\caption{The Diffie-Hellman anonymous key exchange protocol for cyclic group $\group$ with generator $g$.}
+	\label{fig:DHKE}
+\end{figure}
 
-However, a group that only meets the discrete logarithm assumption on its own is not sufficient to guarantee the security of the Diffie-Hellman key exchange. In fact, this protocol is only secure if and only if the \textbf{computational Diffie-Hellman assumption} holds, which says that given $g^\alpha, g^\beta \in \group$, where $\alpha \getsr \Z_{|\group|}$ and $\beta \getsr \Z_{|\group|}$, it is hard to compute $g^{\alpha\beta} \in \group$ \cite{BonehShoupBook}. We will now take a more formal look at the discrete logarithm assumption, the computational Diffie-Hellman assumption, and other related assumptions. 
+\paragraph{Security of Diffie-Hellman key exchange.} Notice that if an adversary could easily compute $x$ given $X \gets g^x$, then the adversary could certainly compute $K$, rendering this protocol insecure. The function that calculates this value is called the \textbf{discrete logarithm function}. Thus, for Diffie-Hellman key exchange to have any chance of being secure, we at least must find a group in which it is difficult to compute the discrete logarithm. In the next section, we will formalize the discrete logarithm and other related assumptions.
 
 \subsection{The Discrete Logarithm and Related Assumptions}
 
-\begin{figure}
-	\center
-	\begin{tabular}{|c|c|c|}
-		\hline
-		Problem & Given & Compute \\
-		\hline \hline
-		Discrete logarithm (DL) & $g, g^x$ & $x$ \\
-		\hline
-		Computational Diffie-Hellman (CDH) & $g,g^x,g^y$ & $g^{xy}$ \\
-		\hline
-		Decisional Diffie-Hellman (DDH) & $g, g^x, g^y, g^z$ & Is $z \equiv xy\ (\bmod \ |\group|)$? \\
-		\hline
-	\end{tabular}
-	\caption{A summary of the discrete logarithm related problems over a cyclic group $\group$ with generator $g$ from this section. For each row, we state the problem, the values given to the adversary, and what the adversary must provide to solve the problem.}
-	\label{fig:DL}
-\end{figure}
-
-\paragraph{The Discrete Logarithm.} For $X \in \group$, the discrete logarithm function $\dlog(X)$ finds the unique value $x \in \Z_{|\group|}$ such that $g^x = X$. We show game $\DL_{\group, g}$, where given $X = g^x$ adversary $\advA$ must find $x$. 
+\paragraph{The Discrete Logarithm.} For group $\group$, generator $g\in\group$, and $X\in\group$, the discrete logarithm function $\dlog(X)$ finds the unique value $x \in \Z_{|\group|}$ such that $g^x = X$. We show game $\DL_{\group, g}$ where given $X = g^x$, adversary $\advA$ must find $x$. 
 
 \begin{center}
 	\fpage{.18}{
@@ -133,6 +112,8 @@ $\advA'$ simply brute-force searches through every possible value to find the co
 \begin{definition}
 	The \textbf{discrete logarithm (DL) assumption} holds for $\group$ if $\AdvDL{\group, g}{\advA}$ is negligible for all efficient adversaries $\advA$.
 \end{definition}
+
+As one example, for $p$ at least 2048-bits and $q = |\group|$ at least 256-bits, where $p$ and $q$ are both primes, the discrete logarithm function is believed to be hard to compute in the order $q$ subgroup of $Z_p^*$ \cite{BonehShoupBook}.
 
 \paragraph{Computational Diffie-Hellman.} A related problem to the discrete logarithm problem is the computational Diffie-Hellman problem, which says that given $g^x, g^y \in \group$, where $x \getsr \Z_{|\group|}$ and $y \getsr \Z_{|\group|}$, it is hard to compute $g^{xy} \in \group$ \cite{BonehShoupBook}. We formalize this with game $\CDH_{\group, g}$ shown below.  
 
@@ -198,9 +179,28 @@ The decisional Diffie-Hellman assumption for group $\group$ tells us that the DD
 
 We summarize the three problems mentioned in this section in \figref{fig:DL}. 
 
+\begin{figure}[H]
+	\center
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Problem & Given & Compute \\
+		\hline \hline
+		Discrete logarithm (DL) & $g, g^x$ & $x$ \\
+		\hline
+		Computational Diffie-Hellman (CDH) & $g,g^x,g^y$ & $g^{xy}$ \\
+		\hline
+		Decisional Diffie-Hellman (DDH) & $g, g^x, g^y, g^z$ & Is $z \equiv xy\ (\bmod \ |\group|)$? \\
+		\hline
+	\end{tabular}
+	\caption{A summary of the discrete logarithm related problems over a cyclic group $\group$ with generator $g$ from this section. For each row, we state the name of the problem, the values given to the adversary, and what the adversary must provide to solve the problem.}
+	\label{fig:DL}
+\end{figure}
+
+\paragraph{More on the Security of Diffie-Hellman Key Exchange.} We noted previously that the discrete logarithm assumption must hold for any group $\group$ used in Diffie-Hellman key exchange. However, a group that only meets the discrete logarithm assumption on its own is not sufficient to guarantee the security of the Diffie-Hellman key exchange. In fact, this protocol is only secure if and only if the computational Diffie-Hellman assumption holds.  
+
 \subsection{ElGamal Encryption}
 
-\begin{figure}
+\begin{figure}[H]
 	\center
 	\hfpages{.2}{
 		\underline{$\enc(X,M)$:}\\
@@ -243,7 +243,7 @@ We will now go over a well-known public key encryption scheme called \textbf{ElG
 \begin{equation*}
 	C_2 \cdot C_1^{-x} = g^{xy} \cdot M \cdot (g^y)^{-x} = M
 \end{equation*}
-which gives us the original message back as desired. 
+which gives us the original message back as desired. The pseudocode is provided in \figref{fig:elgamal}.
 
 The ElGamal scheme can be proven IND-CPA secure if DDH holds in $\group$, which we show with the following theorem. 
 
@@ -264,31 +264,36 @@ The ElGamal scheme can be proven IND-CPA secure if DDH holds in $\group$, which 
 	\begin{center}
 		\fpage{.20}{
 			\underline{Adversary $\advB(X,Y,Z)$}\\
-			$b \getsr \bits$\\
-			$b' \getsr \advA^\EncSim(g,X)$\\
-			If $(b'=b)$ then return 1 \\
+			$r \getsr \bits$\\
+			$r' \getsr \advA^\EncSim(g,X)$\\
+			If $(r'=r)$ then return 1 \\
 			Else return 0 \medskip
 			
 			\underline{$\EncSim(M_0,M_1)$}\\
 			$C_1 \gets Y$\\
-			$C_2 \gets Z\cdot M_b$\\
+			$C_2 \gets Z\cdot M_r$\\
 			Ret $(C_1,C_2)$
 		}
 	\end{center}
 	
-	It takes inputs $X,Y,Z$ and must determine which value of $Z$ it was given. Recall that $X = g^x$ and $Y = g^y$. $\advB$ first chooses a bit $b$ at random. It then runs adversary $\advA$ with a simulation of its encryption oracle, called $\EncSim$, and gives $\advA$ both $g$ and $X$, which acts as the public key. If $\advA$ returns the correct bit, then $\advB$ returns 1; otherwise, it returns 0. We now have that
+	It takes inputs $X,Y,Z$ and must determine which value of $Z$ it was given. Recall that $X = g^x$ and $Y = g^y$. $\advB$ first chooses a bit $r$ at random. It then runs adversary $\advA$ with a simulation of its encryption oracle, called $\EncSim$, and gives $\advA$ both $g$ and $X$, which acts as the public key. If $\advA$ returns the correct bit, then $\advB$ returns 1; otherwise, it returns 0. We now have that
 	\begin{align*}
 		\AdvDDH{\group,g}{\advB} &= 2 \cdot \Prob{\DDH_{\group, g}^\advB\Rightarrow\true} - 1 \\
 		&=
 		\begin{aligned}
-			2 \cdot (&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1}\cdot\Prob{b=1} + \\
-			&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0}\cdot\Prob{b=0}) - 1 .
+			2 \cdot (&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \wedge b=1} + \\
+			&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \wedge b=0}) - 1
+		\end{aligned} \\
+		&=
+		\begin{aligned}
+			2 \cdot (&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \mid b=1}\cdot\Prob{b=1} + \\
+			&\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \mid b=0}\cdot\Prob{b=0}) - 1 .
 		\end{aligned}
 	\end{align*} 
 	
-	To find $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1}$, first notice that when $b=1$, adversary $\advB$ gets $Z = g^{xy}$. This means encryption during $\EncSim$ has the same output distribution as $\EncOracle$ in game $G_0$. Furthermore, in this case game $\DDH_{\group, g}$ returns $\true$ when $\advB$ returns 1, which occurs when $b'=b$. We know that $b'=b$ when $\advA$ successfully determines the correct message encrypted. This happens with the same probability as $\advA$ winning in game $G_0$ and thus $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=1} = \Prob{G_0 \Rightarrow\true}$. 
+	To find $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \mid b=1}$, first notice that when $b=1$, adversary $\advB$ gets $Z = g^{xy}$. This means encryption during $\EncSim$ has the same output distribution as $\EncOracle$ in game $G_0$. Furthermore, in this case game $\DDH_{\group, g}$ returns $\true$ when $\advB$ returns 1, which occurs when $r'=r$. We know that $r'=r$ when $\advA$ successfully determines the correct message encrypted. This happens with the same probability as $\advA$ winning in game $G_0$ and thus $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \mid b=1} = \Prob{G_0 \Rightarrow\true}$. 
 	
-	Likewise, to find $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0}$, we again notice that when $b=0$, adversary $\advB$ gets $Z = g^z$. This now means that $\EncSim$ has the same output distribution as $\EncOracle$ in game $G_1$. $\DDH_{\group, g}$ returns $\true$ when $\advB$ returns 1, which occurs when $b'\neq b$. We know that $b' \neq b$ when $\advA$ fails to determine the correct message encrypted. This happens exactly when $\advA$ does not win in game $G_1$ and thus $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \ | \ b=0} = 1 - \Prob{G_1 \Rightarrow\true}$. 
+	Likewise, to find $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \mid b=0}$, we again notice that when $b=0$, adversary $\advB$ gets $Z = g^z$. This now means that $\EncSim$ has the same output distribution as $\EncOracle$ in game $G_1$. $\DDH_{\group, g}$ returns $\true$ when $\advB$ returns 1, which occurs when $r'\neq r$. We know that $r' \neq r$ when $\advA$ fails to determine the correct message encrypted. This happens exactly when $\advA$ does not win in game $G_1$ and thus $\Prob{\DDH_{\group, g}^\advB\Rightarrow\true \mid b=0} = 1 - \Prob{G_1 \Rightarrow\true}$. 
 	
 	We now put this together to get
 	\begin{align*}

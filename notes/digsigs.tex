@@ -2,19 +2,48 @@
 \section{Digital Signatures}
 \label{sec:pke}
 
-A digital signature scheme $\DS = (\kg,\sign,\ver)$ is a triple of
-algorithms. Key generation is randomized and outputs a key pair $(\pk,\sk)$,
-where $\pk$ is called the public or verification key and $\sk$ is called the secret or
-signing key.
-Signing takes as input a secret key $\sk$ and a message $M$ and outputs a
-signature, usually denoted $\sigma$.
-Verification takes as input a public key $\pk$, message $M$, and signature
-$\sigma$ and outputs a
-bit.
+\subsection{Motivation}
+
+First, we motivate the need for a new asymmetric primitive, digital signatures, required to ensure message authenticity.
 
 
+\begin{figure}[h]
+\centering
+\scalebox{0.8}{\input{digsigs/mitm_diffie_helman}}
+  \caption{Illustration of a Man-in-the-Middle attack on Diffie-Helman key exchange (left), and a solution deployed in TLS using digital signatures (right).  $\{\}$ indicates an asymmetric encryption operation under the specified public/secret keys.  MS is the final master shared secret.}
+\label{fig:mitmdiffie}
+\end{figure}
 
-\fpage{.20}{
+Consider the use of a key exchange algorithm such as Diffie-Helman over a channel with no guarantee of authenticity, like the Internet.  Recall that Diffie-Helman involves selection of a random group element $x, y$ from ${Z}_{|G|}$ by a client and server respectively, then exchanging $g$ raised to each private value and exchanging these values as $X$ and $Y$, respectively.  They then raise the received values to their private exponents, computing $X^y$ and $Y^x$ as their shared secret.  This works because $Y^x=g^{yx}=g^{xy}=X^y$.  But note this is not effective against passive attackers: as shown in Figure~\ref{fig:mitmdiffie}, an active \emph{Man-in-the-Middle} adversary in the middle of a communication channel can simply perform independent key exchange with both sides, picking their own $x$ and $y$ values, and tampering with and decrypting messages in the middle.  The malicious man in the middle then simply reencrypts and forwards all messages from the client to the server, violating any confidentiality provided by further encryptions.
+
+Note that this problem is not limited to Diffie-Helman based protocols; in any protocol that exchanges secrets, an active adversary can man-in-the-middle attack a session in progress.  Because there is no way to check that the received values are actually sent by the intended server, there is no way for the client to ensure the integrity of the data used to compute its secret values (in the Diffie-Helman protocol, $Y$).
+
+We thus motivate and explore an asymmetric variant of the message integrity constructs we have explored earlier in the notes.  Here, data will be \emph{signed} by a secret key, and can be \emph{verified} by the corresponding public key.  Assuming we have such a primitive, the Diffie-Helman protocol can be modified as shown in the right side of Figure~\ref{fig:mitmdiffie}, taken from the deployed TLS key exchange handshake.  In this protocol, the server presents the client with a certificate CERT, that signs the server's public key with the private key of a known authority, hardcoded on a client device.  This binds the secret key $sk_s$ to the identity the user expects of the server.  This secret key is then used to sign all protocol parameters, including nonces and the pre-secret value $X$, binding these values to the identity of the server.  The final master secret is then generated with the exchanged Diffie-Helman secrets, as well as nonce values to prevent replay attacks.
+
+In practice, even such certificate checks may not guarantee security in the presence of implementation failures.  One example is the well known iOS ``goto fail" exploit, present in the processing of the above protocol.  The following code was present in the verification of certificates in the server key exchange:
+
+\begin{verbatim}
+if ((err = SSLFreeBuffer(&hashCtx)) != 0)
+    goto fail;
+...
+if ((err = SSLHashSHA1.update(&hashCtx, &signedParams)) != 0)
+    goto fail;
+    goto fail;  /* MISTAKE! THIS LINE SHOULD NOT BE HERE */
+if ((err = SSLHashSHA1.final(&hashCtx, &hashOut)) != 0)
+    goto fail;
+
+err = sslRawVerify(...);
+\end{verbatim}
+
+Note the second goto fail line present in the above code.  Because of C's scoping rules, and because ``if" blocks with no braces only automatically include the first line typed after them, the second mistake line was out of scope of the previous if statement.  This means it runs unconditionally, whether or not an error was encountered.  Worse still, the \texttt{fail} subsection of code expected the \texttt{err} label to be set to a non-zero value; after all, all if clauses check for and ensure this is the case.  However, because this was being called unconditionally, it would be called if even no error exists and \texttt{err} \emph{was} set to 0.  If \texttt{err} is set to 0 (should never happen in programmer expectations), the fail handler allows a connection to go through, bypassing further checks of the certificate.
+
+So, even invalid certificates would immediately jump to fail and succeed, assuming they did not trigger the SHA1 error check or any previous error checks above the jump to fail.  Indeed this was the case, and allowed an attacker to inject false certificates into TLS exchanges with iOS devices to fool them into accepting invalid server keys.  We leave the analysis of concrete attacks an adversary could perform with this bug in their arsenal to the reader, but note that any theoretical key exchange guarantees are only as good as their implementation.
+
+\subsection{Security Definitions}
+
+\begin{figure}[h]
+\centering
+\fpage{.2}{
 		\underline{$\UFCMA_\DS^\advA$}\\
     $(\pk,\sk) \getsr \kg$\\
     $(M^*,\sigma^*) \getsr \advA^\SignOracle(\pk)$\\
@@ -26,16 +55,113 @@ bit.
     $\calM \gets \calM \cup \{M\}$\\
     $\sigma \getsr \sign(\sk,M)$\\
     Ret $\sigma$
-	}
+}
+\fpage{0.35}{\scalebox{0.5}{\input{digsigs/digsigs}}}
 
 \bnm
   \AdvUFCMA{\DS}{\advA} = \Prob{\UFCMA_{\DS}^\advA\Rightarrow\true}
 \enm
 
+  \caption{Our desired asymmetric signature primitive allows for message authentication using a public key.  The security game is shown to the left, with the operation of the \texttt{kg}, \texttt{sign}, and \texttt{ver} primitives shown on the right.  $\sigma$ is referred to as the signature.  The sign operation is often randomized.  }
+\label{fig:digsigvisual}
+\end{figure}
+
+Figure~\ref{fig:digsigvisual} shows the UF-CMA security game and a visual representation of the operation of our desired digital signature primitives.  An encryption key consists of a key generation routing, which generates a randomized secret and public key, and a signing routine that outputs a signature for a message given the secret key.
+
+Formally, a digital signature scheme $\DS = (\kg,\sign,\ver)$ is a triple of
+algorithms. Key generation is randomized and outputs a key pair $(\pk,\sk)$,
+where $\pk$ is called the public or verification key and $\sk$ is called the secret or
+signing key.
+Signing takes as input a secret key $\sk$ and a message $M$ and outputs a
+signature, usually denoted $\sigma$.
+Verification takes as input a public key $\pk$, message $M$, and signature
+$\sigma$ and outputs a
+bit.
+
+The advantage of an adversary against $\UFCMA_{\DS}$ security is defined as the probability it can generate a signature accepted by \texttt{ver} that was not generated by a signing oracle to which it has access.  Unlike in the message integrity $\UFCMA$ setting, we give the adversary access to the public key, as this key is public knowledge.  This implies the adversary can also run \texttt{ver} to check the validity of signatures.
+
+We will now take show that one strawman plaintext RSA-based digital signature scheme fails to meet $\UFCMA_{\DS}$ security, then informally argue that another RSA-based scheme that is widely used in practice, PKCS v1.5, also fails to meet $\UFCMA_{\DS}$ security; the full proof is left as an exercise to the reader.  We then complete our analysis by proving $\UFCMA_{\DS}$ security for the ``full domain hash" RSA scheme.
+
+\subsection{Straw-Man: Plaintext RSA}
 
 
-Let $\DS$ be the full domain hash (FDH) digital signature scheme. 
+\begin{figure}[h]
+\centering
+\fpage{.3}{
+		\underline{$\kg$}\\
+		Generate RSA (sk, pk) $((N, d), (N, e))$ \\
+    Ret $((N,d), (N, e))$\\ \\
+		\underline{$\sign((N, d), M)$}\\
+    Ret $M^d\mod N$\\ \\
+		\underline{$\ver((N, e), M, \sigma)$}\\
+    Ret $\sigma^e\mod N = M$
+}
+\fpage{.25}{
+		\underline{$\advA^{\SignOracle}(\pk=(N, e))$}\\
+		$M^* \getsr Z^*_N$ \\
+		$R \getsr Z^*_N$ \\
+		$\sigma^* \gets \Sign(R^e M^*\mod N)$ \\
+		Ret $(M^*, (\sigma^* R^{-1})\mod N)$
+}
+\bnm
+  \AdvUFCMA{\DS}{\advA^\SignOracle} = \Prob{\UFCMA_{\DS}^{\advA^\SignOracle}\Rightarrow\true} \approx 1
+\enm
 
+  \caption{The plaintext RSA operation (left) uses the same key format and general structure as RSA encryption.  The adversary for this scheme (right) breaks $\UFCMA_{\DS}$ security with advantage of approximately 1.}
+\label{fig:plaintextrsa}
+\end{figure}
+
+Figure~\ref{fig:plaintextrsa} shows a natural adaptation of plaintext (textbook) RSA to digital signatures.  The sign routine raises the message $M$ to the secret exponent $d$; for verification, the signature is raised to the public exponent $e$, taking advantage of the property that $m^{ed}\mod N=m\mod N$ (also used in RSA decryption to invert the RSA permutation without revealing the secret value $d$) for correctness.
+
+However, the given adversary breaks $\UFCMA_{\DS}$ security with advantage of approximately 1, as we now argue.  Note that $\sigma^* = (R^e M^*)^d\mod N$ (by definition of sign) $ = (R^{ed} M^{*d})\mod N = (R^{ed}\mod N) (M^{*d}\mod N) = (R\mod N) (M^{*d}\mod N)$ (by RSA permutation) $ = \sigma$.
+
+Note that the signature that our adversary returns for $M^*$ is $(\sigma R^{-1})\mod N$.  So, by the above, this is equal to $(R^{-1} ((R\mod N) (M^{*d}\mod N))\mod N = M^{*d}\mod N$, the exact signature generated by \texttt{sign} for $M^*$ by construction.
+
+Note that our adversary generated a valid signature for $M^*$ making a single signing oracle query to $R^e M^*$.  Because $R$ is sampled at random from $\Z^*_N$, the probability that the adversary has queried the oracle on $M^* = $Pr$[R^e M^*=M^*] = \frac{1}{|\Z^*_N|}$.  Hence, our $A^\Sign$ wins the UF-CMA game with advantage $1 - \frac{1}{|\Z^*_N|} \approx 1$ for sufficiently large $N$.
+
+Note that the above argument does not depend on a random choice of $M*$, and indeed applies to any $M^*$, which could be passed into our adversary as input.  This makes our attack a \emph{universal} forgery against RSA; that is, $\forall$ messages $M^*$, our adversary can provide a forged signature $\sigma^*$ without querying the real signature routine on $M^*$ with non-negligible advantage.  A weaker kind of forgery, \emph{existential forgery}, exists in a scheme if $\exists M^*$ such that an adversary can generate a forged signature $\sigma^*$ without querying the real signature routine on $M^*$ with non-negligible advantage.  Note that the existence of a universal forgery attack implies an existential forgery attack but not vice-versa, making universal forgery a stronger form of forgery than existential forgery.
+
+\subsection{Insecurity in Practice: PKCSv1.5}
+
+
+\begin{figure}[h]
+\centering
+\fpage{.25}{
+		\underline{$\sign((N, d), M)$}\\
+		$Y = 00 || 01 || FF^p || 00 || H(M)$
+    Ret $Y^d\mod N$
+
+}
+\fpage{.45}{
+		\underline{$\ver((N, e), M)$}\\
+		$Y = \sigma^e\mod N$ \\
+		Let $aa || bb || cc || dd || h = Y$ \\
+		If $(aa \neq 00)$ or $(bb \neq 01)$ or $(cc \neq FF^p)$ or $(dd \neq 00)$: \\
+		\myInd Ret error // Vulnerable to padding oracle attacks \\
+		Ret $H(m) = h$
+
+}
+
+  \caption{The PKCS\#1 v1.5 signing construction uses a hash function to prevent the predictable algebraic manipulation of a message to which our plain-text straw man scheme is vulnerable.  In this case, let $N$ have $n$ bytes and the the output of $H$ have $m$ bytes; then, $p=n - m - 3$, providing a total output length of $n$ bytes.}
+\label{fig:pkcs15sign}
+\end{figure}
+
+
+
+Figure~\ref{fig:pkcs15sign} shows a construction deployed in practice for RSA-based signing, PKCSv1.5.  In this scheme, the general structure of our plaintext RSA signing scheme is preserved, but the message is padded with additional data, and a hash of the message is included for exponentiation with the private RSA exponent rather than the full message.  This hash appears to protect against the form of attack we have seen above.
+
+Intuitively, this makes malleability attacks like the form we have seen above more difficult; even if an adversary could use the techniques we show to generate a valid $\sigma$ for some $x=H(M')$ given a signature $\sigma^*$ for $H(M^*)$, they would be unlikely to generate a signature that verifies for a known message, as they would need to provide some $M'$ to a verification oracle along with $\sigma$ such that $H(M')=x$, inverting the hash function used for signing.  Use of a preimage resistant hash function therefore poses a barrier to an adversary's forgery attempts; they can generate a signature that is valid for \emph{some} message, without the ability to produce the message for which that signature is valid.  We formalize this intuition in the proof of Full-Domain RSA that follows.
+
+The padding in the scheme also appears to provide additional protections: If, for example, an adversary changes bits in the padding section of signed values, the mangled padding should produce an error and fail to verify, further restricting the adversary's ability to produce valid signature values for some message without querying the signing oracle.  However, as previously explored in the notes, red flags should be raised about the use of padding in a context able to generate padding-specific errors; in fact, because the padding scheme is similar to that in RSA PKCS\#1 v1.5 encryption, the same attack is usable to extract key material in our signing scheme, violating $\UFCMA_{\DS}$ security.  The proof is left as an exercise to the reader.
+
+We now move to a formal proof of $\UFCMA_{\DS}$ security for a hash-based RSA construction that \emph{does} provide such security.  We use a full domain hash to avoid such padding leakage issues, and to simplify our reasoning about the security of the scheme.
+
+\subsection{A Secure Scheme: Full Domain RSA}
+
+
+We now introduce the full domain hash (FDH) RSA scheme, denoted $\DS$.  Figure~\ref{fig:fulldomrsa} shows the operation of this scheme, a natural extension of plaintext RSA that simply hashes the message before exponentiating with a secret exponent.  Note that we model the hash function as a random oracle, which masks some subtle technical issues surrounding use of a hash with RSA; because $H(M)$ needs to be raised to the $d$ (mod $N$), $H(M)$ must output an element of the RSA group that can be exponentiated in the group.  So, the hash function used depends on the choice of $d$, complicating analysis.  We ignore these details in our consideration of the protocol, as they can be solved in practice by using a fixed output length hash that is indifferentiable from random oracles using existing hash functions, and mapping the output of the function to the relevant RSA group.
+
+We now analyze the $\UFCMA_\DS$ security of our scheme.  We do so by reduction to RSA, showing specifically that for any adversary $A$ breaking the $\UFCMA_\DS$ of full domain RSA, we can construct an adversary $B$ for the RSA game with almost the same advantage.  Formally, let $q_h$ be the number of hash oracle queries performed by $A$ and $q_s$ be the number of signing oracle queries performed by $A$:
 
 \begin{theorem*}
 Let $\DS$ be the FDH scheme using $\RSAk$ and $\Horacle\Colon\msgspace\rightarrow\Z_N^*$ modeled as
@@ -50,27 +176,38 @@ Adversary~$\advB$ runs in time that of $\advA$ plus $\bigO(q_s+q_h)$.
 
 
 \begin{proof}
-To start we make some simplifying assumptions about $\advA$. First, whenever it
-makes a query to $\SignOracle$ on a message $M$ it has previously made a query
-$\Horacle(M)$. Second, when it outputs a forgery attmept $(M^*,\sigma^*)$ it has
-previously queried $M^*$. And, as we normally assume, it does not repeat a query
-to $\Horacle$.  Should $\advA$ not abide by these restrictions, we can easily
-build an adversary $\advA'$ from $\advA$ that does so, at cost at most an extra
-$q_s + 1$ queries to $\Horacle$.
+To start we make some simplifying assumptions about $\advA$, and justify that these assumptions are without loss.
 
-Now, to build some intuition, let's first consider the case that $q_s = 0$, that is, 
-we are arguing about unforgeability in a no-message attack. 
+\textbf{Lemma 1} Let $A$ be any adversary that does not match our assumptions.  We will show that there exists some $A'$ such that $A'$ has the same advantage as $A$, and runs in at most $q_s+1$ additional oracle queries.  Let $M*$ be the message on which $A$ outputs a valid forgery, as in the game definition.
+
+Our simplifications are as follows:
+\begin{itemize}
+	\item Whenever $A$ makes a query to $\SignOracle$ on a message $M$, it has previously made a query
+$\Horacle(M)$.  If this assumption is not met, we transform $A$ to an equivalent $A'$ that queries $\Horacle(M)$ before $\Signoracle(M)$ for every query to the sign oracle, discarding the result.  Note that $A$ and $A'$ have identical output for all inputs, as our spurious oracle calls are discarded and do not affect the output subsequent calls to $\Horacle$ or $\Signoracle$ by inspection.  $A'$ runs in at most $q_s$ additional oracle queries by construction.
+	\item $A$ always queries $\Horacle(M^*)$.  If not, at the end of executing $A$, $A'$ inserts and discards a synthetic query to $\Horacle(M^*)$. As in the above, spurious calls are disregarded and the advantage for $A, A'$ remains identical.  $A'$ runs in at most $1$ additional oracle query by construction.
+	\item $A$ does not query $\Signoracle(M^*)$.  If instead $A$ does query $\Signoracle(M^*)$, we simply abort $A'$.  Note that if $A$ queries $\Signoracle(M^*)$, it succeeds with probability $0$, as by construction of the game $M*$ is in the set $\calM$ and has been signed by the oracle.  In this case, $A'$ fails (succeeds with probability $0$), meaning the advantage of $A'$ is exactly equal to that of $A$.  $A'$ makes one fewer oracle query than $A$ by construction.
+	\item $A$ does not query $\Horacle$ or $\Signoracle$ twice on the same $M^*$.  If this is not the case, $A'$ can simply memoize all the deterministic calls to $\Horacle$ and $\Signoracle$, acting on the same oracle outputs as $A$ and thus yielding identical executions for all inputs without the need to repeat calls.  $A'$ makes fewer oracle queries than $A$ by construction.
+\end{itemize}
+
+So, we can consider only $A$ that meet our assumptions without loss of generality, as if such an $A$ exists, there exists an $A'$ that runs in at most $1+q_s$ additional $\Horacle$ oracle queries with the same advantage.  Lemma 1 holds.
+
+\textbf{Toy example - No-message attack} Now, to build some intuition, let's first consider the case that $q_s = 0$, that is, 
+we are arguing about unforgeability in a no-message attack where no legitimate signatures are produced by the signing oracle for the adversary.  Our key challenge is to construct such an adversary $B$ for RSA OWF, we must use an adversary for $\UFCMA_{\DS}$ as a black box.  Figure~\ref{fulldomaintoy} shows such an adversary, as well as the games required to prove security.  Our general proof will proceed by choosing a point $Y$ as the output of a simulated hash oracle, where $Y$ represents the point the adversary of an RSA OWF game needs to invert as a challenge.  Because our hash function is a random oracle, to recover the original signed message, our $\UFCMA_{\DS}$ adversary will need to invert the hash function on some queried point.  Specifically, they must do this on the point corresponding to the hash of $M^*$, the challenge for which they provide a valid signature; because our hash function is a random oracle, they must do this to get any information about the output of the hash function on $M^*$, required by construction to generate a valid signature (if no information about $H(M^*)$ is known, every possible output signature is equally likely by the RSA permutation's properties as a permutation).
+
+Such an adversary can, however, query the hash oracle on multiple points, and it is not clear for which point to provide them with the OWF challenge $Y$.  
 %Assume that $\advA$
 %queries $\Horacle(M^*)$ where $M^*$ is the output message for its forgery. This
 %is without loss. 
-Then in this case we can 
+Our solution is to 
 guess which random oracle query corresponds to the solution, and program its
 output to be equal be the OWF challenge $Y$.  In more detail, we set our forgery
-adversary $\advB$ to be:
+adversary $\advB$ to be as shown in Figure~\ref{fig:fulldomaintoy}.  Let $i^*$ be our guess for which index represents a query to $M^*$, and $i$ be the index of the next oracle query to be performed.
 %Intuitively, to forge against FDH one needs to invert RSA on $\Horacle(M)$ for
 %some $M$. Then we can build an inverter $\advB$ that works as follows. 
 
-\fpage{.25}{
+\begin{figure}
+\centering
+\fpage{.22}{
 \underline{$\UFCMA_{\DS}$}\\
 $((N,e),(N,d)) \getsr \kg$\\
 $(M^*,\sigma^*) \getsr \advA^{\Horacle,\SignOracle}((N,e))$\\
@@ -87,8 +224,7 @@ $\calM \gets \calM \cup \{M\}$\\
 $X \getsr \Horacle(M)$\\
 Ret $X^d \bmod N$
 }
-
-\fpage{.25}{
+\fpage{.22}{
 \underline{$\G_0$ \;\;\; \fbox{$\G_1$}}\\
 $((N,e),(N,d)) \getsr \kg$\\
 $i^* \getsr [1,q]$\\
@@ -107,7 +243,7 @@ If $i = i^*$ then\\
 $\TabH[M_i] \getsr \Z_N^*$\\
 Ret $\TabH[M_i]$
 }
-\fpage{.25}{
+\fpage{.22}{
 \underline{$\G_2$}\\
 $((N,e),(N,d)) \getsr \kg$\\
 $i^* \getsr [1,q]$\\
@@ -115,7 +251,7 @@ $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
 \myInd $\badtrue$\\
-\myInd \fbox{Ret $\false$}\\
+\myInd Ret $\false$\\
 Ret $\left(\TabH[M^*] = (\sigma^*)^e \bmod N\right)$\medskip
 
 \underline{$\HashSim(M)$}\\
@@ -126,8 +262,7 @@ If $i = i^*$ then\\
 $\TabH[M_i] \getsr \Z_N^*$\\
 Ret $\TabH[M_i]$
 }
-
-\fpage{.25}{
+\fpage{.22}{
 \underline{$\advB_{toy}((N,e),Y)$}\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
 Ret $\sigma^*$\medskip
@@ -135,9 +270,70 @@ Ret $\sigma^*$\medskip
 \underline{$\HashSim(M)$}\\
 If $i = i^*$ then\\
 \myInd Ret $Y$\\
+$X \getsr \Z_N^*$\\
+Ret $X$
 }
+  \caption{Toy example of full-domain RSA hash signing with no signing queries.}
+\label{fig:fulldomaintoy}
+\end{figure}
 
 
+Intuitively $\advB$ wins as long as $\advA$ wins and $i^*$ is the correct guess
+of which hash query by $\advA$ corresponds to the winning $M^*$. (Recall that we
+are assuming that $\advA$ always queries $\Horacle$ for the forgery message
+$M^*$.) To analyze this, let game $\G_0$ be equal to $\UFCMA_{\DS}^\advA$ except
+that it additionally includes a random choice of $i^* \getsr [1,q]$ and sets a
+flag $\bad$ to true should $M^* \ne M_{i^*}$. Let
+game $\G_1$ be the same as $\G_0$ except that  it chooses a random index $i^*
+\getsr [1,q]$ and checks if $M^*$ is equal to the $i\thh$ random oracle
+query. If not, it sets a flag $\bad$ to true and outputs $\false$, 
+Otherwise it checks if $\advA$'s output is a winning forgery, outputing
+$\true$ if so and $\false$ otherwise. Let $\good$ be the event that $\bad$ is
+not set in game $\G_0$, and we let $\good$ be the same event for $\G_1$ (a
+slight abuse of notation). Then we have that both games are
+identical-until-$\bad$ and a variant of the fundamental lemma of game playing
+says that:
+\bnm
+  \Prob{\G_0 \Rightarrow\true \land\good} = \Prob{\G_1\Rightarrow\true \land
+  \good} \;.
+\enm
+Then using this, we have that:
+\iffalse
+\begin{align*}
+\AdvOWF{\RSAk}{\advB_{toy}} 
+%  &= \Prob{\G_0\Rightarrow\true} (1)
+  &\ge \Prob{\G_0\Rightarrow\true\land\good} (2)\\
+  &= \Prob{\G_1\Rightarrow\true\land\good} (3)\\
+  &= \Prob{\G_1\Rightarrow\true}\cdot\Prob{\good} (4)\\
+  &= \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q_h} (5)
+\end{align*}
+\fi
+
+\begin{align*}
+\AdvOWF{\RSAk}{\advB_{toy}} 
+  &= \Prob{\G_2\Rightarrow\true} (1) \\
+  &= \Prob{\G_1\Rightarrow\true} (2)
+  \ge \Prob{\G_1\Rightarrow\true\land\good} (3)\\
+  &= \Prob{\G_0\Rightarrow\true\land\good} (4)
+  = \Prob{\G_0\Rightarrow\true}\cdot\Prob{\good} (5)\\
+  &= \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q} (6)
+\end{align*}
+
+
+$(1)$ follows because $\G_0$ outputs \texttt{true} iff $\TabH[M^*] = (\sigma^*)^e \bmod N$.  Note that $\TabH[M^*] = Y$ (because $\G_0$ outputs false if $M_{i^*}\neq M^*$, and by construction of the hash oracle).  So, $Y=(\sigma^*)^e \bmod N$ for B's challenge in the OWF game, and $B$ outputs $(\sigma^*)$, winning the OWF game.
+
+$(2)$ follows because $G_2, G_1$ differ only in the output of $\TabH[M^{M^*}]$ (as above, in both, either game returning true implies $M_{i^*} = M^*$).  But, in one case, a point sampled from $\calZ_N$ is returned, and in another, $Y$ is returned, which is a point sampled from $\calZ_N$ by definition of the challenge provided $B$ in the OWF game.  It is thus impossible for this difference in identically distributed random choice to affect the operation of $A$.
+
+$(3)$ follows from basic probability, and $(4)$ follows from our variant of the fundamental lemma of game playing, above.  $(5)$ follows as the probability that the good flag is set in $G_1$ is exactly equal to the probability that $M^* = M_{i^*}$, which is by definition the probability that the $i^*$th query of $q_h$ total queries to the hash oracle has as input $M^*$.  Because $i$ is independently uniformly sampled, this probability is equal for every choice of $i$, independent of all other values. $(6)$ follows as Lemma 1 states that $M^*$ will be exactly one of the queries to the hash oracle (in this case equal to the number of total queries, $q$, as $q_s=0$), making this probability exactly equal to $\frac{1}{q}$.  Note that concretely here, $q=q_h+1$ by Lemma 1.
+
+\textbf{Generalization of toy example to full proof}  We now must do a generalization of the above to cases where $q_s \geq 1$, that is, our black-box $\UFCMA_\DS$ adversary makes at least one signing query.  In these cases, we face a substantive challenge: because the hash function in our full domain RSA construction is used by the signing routine, it is not the case that sign function outputs are independent of the outputs of our hash function.  We therefore cannot simply return random points for both the sign and hash function, as this breaks the structure of signatures; for example, any adversary that runs \texttt{ver} on outputs of \texttt{sign} would receive outputs of $1$ with a valid signature and hash function, and $0$ if we return random points, altering its execution and therefore output with overwhelming probability.
+
+We therefore must program the signature oracle to return points which constitute valid signatures for points on which the hash oracle has already been queried (by Lemma 1, we can assume this is always the case).  So, as desired, we have that $\AdvOWF{\RSAk}{\advB_{toy}} \ge \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q}$, completing the proof.
+
+
+
+\begin{figure}
+\centering
 \fpage{.30}{
 \underline{$\advB((N,e),Y)$}\\
 $i^* \getsr [1,q]$\\
@@ -230,42 +426,19 @@ Ret $\sigma_i$
       &= \AdvOWF{\RSAk}{\advB} + \Prob{\bad_0}
 \end{align*}
 
-\begin{align*}
-\AdvOWF{\RSAk}{\advB_{toy}} = \AdvUFCMA{\DS}{\advA}
-\end{align*}
+  \caption{Extension of our toy example to a full proof, simulating signing oracle points.}
+\label{fig:fulldomainsignproof}
+\end{figure}
 
-Intuitively $\advB$ wins as long as $\advA$ wins and $i^*$ is the correct guess
-of which hash query by $\advA$ corresponds to the winning $M^*$. (Recall that we
-are assuming that $\advA$ always queries $\Horacle$ for the forgery message
-$M^*$.) To analyze this, let game $\G_0$ be equal to $\UFCMA_{\DS}^\advA$ except
-that it additionally includes a random choice of $i^* \getsr [1,q]$ and sets a
-flag $\bad$ to true should $M^* \ne M_{i^*}$. Let
-game $\G_1$ be the same as $\G_0$ except that  it chooses a random index $i^*
-\getsr [1,q]$ and checks if $M^*$ is equal to the $i\thh$ random oracle
-query. If not, it sets a flag $\bad$ to true and outputs $\false$, 
-Otherwise it checks if $\advA$'s output is a winning forgery, outputing
-$\true$ if so and $\false$ otherwise. Let $\good$ be the event that $\bad$ is
-not set in game $\G_0$, and we let $\good$ be the same event for $\G_1$ (a
-slight abuse of notation). Then we have that both games are
-identical-until-$\bad$ and a variant of the fundamental lemma of game playing
-says that:
-\bnm
-  \Prob{\G_0 \Rightarrow\true \land\good} = \Prob{\G_1\Rightarrow\true \land
-  \good} \;.
-\enm
-Then using this, we have that:
-\begin{align*}
-\AdvOWF{\RSAk}{\advB} 
-  &= \Prob{\G_0\Rightarrow\true}
-  &\ge \Prob{\G_0\Rightarrow\true\land\good}\\
-  &= \Prob{\G_1\Rightarrow\true\land\good}\\
-  &= \Prob{\G_1\Rightarrow\true}\cdot\Prob{\good}\\
-  &= \AdvUFCMA{\DS}{\advA}\cdotsm\frac{1}{q}
-\end{align*}
-%Given that $\Horacle$ is modeled as a random oracle, this would seem
-%to correspond to having to 
-%We must create an adversary $\advB$ that inverts RSA .
+\textbf{TODO Lucy; describe/check Figure~\ref{fig:fulldomainsignproof} and merge with the toy proof; the proof should be mainly unchanged.}
 
 \end{proof}
 
 
+\subsection{Questions}
+
+\begin{enumerate}
+\item You are the hacker that has discovered the \texttt{goto fail} vulnerability!  Consider a server $S$ and a client $C$ performing the key exchange in Figure~\ref{fig:mitmdiffie}, where the client certificate check unconditionally returns true.  Provide a concrete man-in-the-middle attack on the resulting protocol, and argue that the protocol completes successfully on both the server and client side while leaking messages to an adversary; if this is not possible, provide clear intuition for why not.
+\item Our full-domain hash proof of RSA involves choosing a random point in the hashing oracle to puncture and return our desired RSA point $Y$.  What if instead of selecting such a point randomly, the first call to the oracle was used?  Does the argument in the proof hold?  Provide a reason the proof holds or counterexample of an adversary for which the proof fails to hold.
+\item Figure~\ref{fig:pkcs15sign} shows the PKCS\#1 v1.5 RSA-based signing scheme.  Argue that the scheme is vulnerable to padding oracle attacks.
+\end{enumerate}
