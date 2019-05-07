@@ -9,6 +9,7 @@ For the formal definition of a ZK proof, we follow Boneh-Shoup's treatment~\cite
 Elements of $\calY$ are called \emph{statements} and elements of $\calX$ are called \emph{witnesses}.
 
 To demonstrate that identity protocols are zero-knowledge proofs of knowledge, we define the protocol from the previous section relative to relations.
+A \emph{proof of knowledge} are particular ZK proof, where the verifier learns nothing about the witness except that the provided statement is true.
 Figure \ref{fig:sigmaid} outlines the resulting protocol, which is semantically identical to the identity protocol but relies on notation based on relations.
 Here, $Y$ takes the role of the public key and $x$ the role of the secret key.
 
@@ -56,6 +57,7 @@ In particular, this scheme supports encoding any linear programming problem, whi
 \end{equation*}
 
 Here, $x_1, \dots, x_n$ are the witnesses. The statements are encoded by the $u_j$ and $g_{ij}$ values.
+The values $R$, $c$, and $z$ define the communication-specific \emph{transcript}.
 We can then adapt this protocol to different use-cases by adjusting $m$ and $n$. Some examples are listed in Table \ref{tab:sigmaexamples}.
 
 \begin{table}[h]
@@ -121,18 +123,18 @@ In the following we show that verifying equation holds for a correct proof.
 \end{align*}
 
 \subsubsection{Application: Providing Encrypted Message Equality}
-Say we want to prove that two ciphertexts contain same message, for example to show 
-The following outlines the same message encrypted with two different keys using the ElGamal scheme.
+Suppose we want to prove that we encrypted the same message with two distinct public keys.
+In particular, we show how to show message equality under ElGamal, without revealing the message itself or the randomness chosen during encryption.
 
 \begin{align*}
 {enc}({pk}_1, M) = (g^{r_1}, pk_1^{r_1} *M) \\
 {enc}({pk}_2, M) = (g^{r_2}, {pk}_2^{r_2} * M) \\
 \end{align*}
 
-The proof is then generated using the following relation $\calR$.
+The proof is then generated using the following relation $\calR$, where $r_1$ and $r_2$ are the chosen randomness for ElGamal, and $pk_1$ and $pk_2$ are the different public keys.
 
 \begin{align*}
-    \calR = \left\{ ( \underbrace{(r_1, r_2, M)}_{\text{Witnesses}}, \underbrace{(R_1, {pk}_1, C_1, R_2, {pk}_2, C_2)}_{\text{Statements}} ) : R_1 = g^{r_1}, C_1 = {pk}_1^{r_1} *M, R_2 = g^{r_2}, C_2 = {pk}_2^{r_2} * M \right\}
+    \calR = \left\{ ( \underbrace{(r_1, r_2, M)}_{\text{Witness}}, \underbrace{(R_1, {pk}_1, C_1, R_2, {pk}_2, C_2)}_{\text{Statement}} ) : R_1 = g^{r_1}, C_1 = {pk}_1^{r_1} *M, R_2 = g^{r_2}, C_2 = {pk}_2^{r_2} * M \right\}
 \end{align*}
 
 We can then verify the relation using the generalized Sigma equation from above.
@@ -148,13 +150,38 @@ We further define the following properties for such proofs.
 \paragraph{Completeness} For any element $x \in \calL$ we can generate a valid ZK proof.
 We define a ZK proof as valid if it is accepted by a verifier with high probability in polynomial time.
 
-\paragraph{Soundness} We cannot generate a valid ZK proof for any element $x' \not \in \calL$. 
+\paragraph{Soundness} An adversary cannot generate a valid ZK proof for any element $x' \not \in \calL$ in polynomial time.
 
 \paragraph{Zero-Knowledge} The proof reveals no other information about $x$.
 
 \scribenote{Do we need to define "information" or "knowledge" here?}
 
-\subsection{Honest-Verifier Zero-Knowledge Proofs}
+There exist different variations of these properties. We will describe two of those in detail: knowledge soundness and honest-verifier zero-knowledge.
+
+\subsubsection*{Knowledge Soundness for Sigma Protocols}
+We define \emph{knowledge soundness} as the property that an entity can only generate a valid statement for a witness, if they know the witness.
+
+For Sigma protocols in particular, we can show that a prover can derive its witness by communicating with itself.
+Assume we have some extractor function that does not have direct access $w$ but can invoke the prover as a black box (including rewinding the prover's state).
+We can then show that this extractor can compute the witness $w$ from two transcripts about some statement $Y$, such that $(w, Y) \in \calR$.
+To do this, the extractor rewinds the communication after the first transcript $(R,c,z)$ such that for the second transcript $(R', c', z')$ it holds that $R = R'$.
+
+\begin{align*}
+    g^z = R * g^{xc} \Leftrightarrow R = g^{z-xc} \\
+    g^{z'} = R' * g^{x'c'} \Leftrightarrow R' = g^{z'-xc'} \\
+\end{align*}
+
+Because $R=R'$ we can solve $z-xc = z'-xc'$ for $x$ to retrieve the witness. The same approach can also be applied to the generalized Sigma protocol.
+
+\subsubsection{Honest-Verifier Zero-Knowledge for Sigma Protocols}
+We define \emph{honest-verifier zero-knowledge (HVZK)} as the property that no information aside from $x \in \calL$ is leaked to an honest verifier.
+To prove the property for Sigma protocols we construct a simulator $S$ that has black-box access to the verifier $V$.
+We then show that $S$ can a transcript that is different from the previously seen transcript(s) but will be accepted by $V$.
+The intuition behind this proof is that, if we can generate (computationally) valid transcript without talking to the prover directly, no other information about $w$ is revealed.
+
+Because the verifier is honest we can assume that $c$ in the original transcript $(R,c,z)$ is chosen uniformly at random.
+The goal for $S$ is then to generate a new transcript $(R', c, z')$, where $R' \neq R$ and $z \neq z'$.
+To achieve this we can apply a similar approach as previously. We know $c$, $R$, and $z$. We then set $z' \getsr \calZ$ and solve for $R'$.
 
 \subsection{Non-Interactive Zero-Knowledge Proofs}
 \begin{figure}
