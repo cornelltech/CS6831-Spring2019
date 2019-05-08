@@ -2,11 +2,11 @@
 \label{sec:zknowledge}
 Identity protocols provide proof about the ownership of a private key, without revealing that private key.
 We can generalize this notion to proving knowledge of an arbitrary secret without revealing the secret as \emph{zero-knowledge (ZK) proofs}. 
-The notion of zero-knowledge was first introduced by Goldwasser et al.~\cite{goldwasser1989knowledge}
+The notion of zero-knowledge was first introduced by Goldwasser et al.~\cite{goldwasser1989knowledge}.
+On a high level, in ZK protocols a \emph{verifier} interacts with \emph{prover}, who wants to show that some \emph{statement} $S$ holds about a private $x$, called a \emph{witness}. 
 
 For the formal definition of a ZK proof, we follow Boneh-Shoup's treatment~\cite{BonehShoupBook} and define an effective relation as a binary relation $\calR \subseteq \calX \times \calY$  where $\calR, \calX,\calY$ are sets.
-(We assume the are efficiently recognizable, meaning one can determine if a value is a member of the set efficiently.)
-Elements of $\calY$ are called \emph{statements} and elements of $\calX$ are called \emph{witnesses}.
+We assume they are efficiently recognizable, meaning one can determine if a value is a member of the set efficiently.
 
 To demonstrate that identity protocols are zero-knowledge proofs of knowledge, we define the protocol from the previous section relative to relations.
 A \emph{proof of knowledge} are particular ZK proof, where the verifier learns nothing about the witness except that the provided statement is true.
@@ -50,12 +50,10 @@ Here, $Y$ takes the role of the public key and $x$ the role of the secret key.
 
 So far, we showed how to provide zero-knowledge proofs for simple binary relationships.
 To support more complex applications, we now generalize the Sigma protocol to prove predicates of the following form.
-In particular, this scheme supports encoding any linear programming problem, which, in turn, means it can encode any problem in NP.
 
 \begin{equation*}
     \phi(x_1, \dots, x_n) = \left\{ u_1 = \prod_{j=1}^{n} g_{1j}^{x_j} \land \dots \land u_m  = \prod_{j=1}^{n} g_{mj}^{x_j}\right\}
 \end{equation*}
-
 Here, $x_1, \dots, x_n$ are the witnesses. The statements are encoded by the $u_j$ and $g_{ij}$ values.
 The values $R$, $c$, and $z$ define the communication-specific \emph{transcript}.
 We can then adapt this protocol to different use-cases by adjusting $m$ and $n$. Some examples are listed in Table \ref{tab:sigmaexamples}.
@@ -74,9 +72,6 @@ We can then adapt this protocol to different use-cases by adjusting $m$ and $n$.
 \caption{Examples of the applications for the generalized sigma protocol}
 \label{tab:sigmaexamples}
 \end{table}
-
-Figure \ref{fig:sigmageneral} shows how this generalization applies to the communication between prover and verifier.
-
 
 \begin{figure}[h]
 \centering
@@ -104,8 +99,8 @@ Figure \ref{fig:sigmageneral} shows how this generalization applies to the commu
     \draw[-] (V) -- (V2);
 
     \draw[->] (a.center) -- (b.center) node [midway, above] {$R_1, \dots, R_m$};
-    \draw[->] (c.center) -- (d.center) node [midway, label=$c$] {};
-    \draw[->] (e.center) -- (f.center) node [midway, label=$z$] {};
+    \draw[->] (c.center) -- (d.center) node [midway, above] {$c$};
+    \draw[->] (e.center) -- (f.center) node [midway, above] {$z_1, \dots, z_n $};
 
 \end{tikzpicture}
 
@@ -113,7 +108,14 @@ Figure \ref{fig:sigmageneral} shows how this generalization applies to the commu
 \label{fig:sigmageneral}
 \end{figure}
 
-In the following we show that verifying equation holds for a correct proof.
+Figure \ref{fig:sigmageneral} shows how this generalization applies to the communication between prover and verifier.
+In particular the public and private keys are extended to vectors of size $m$ and $n$.
+The prover then generates a randomness vector $r_1, \dots, r_n$ in order to generate $m$ distinct $R_i = \prod_{j=1}^n g_{ij}^{r_j}$.
+Like before, the verifier then generates a single integer challenge $c \getsr \Z_q$.
+From this the prover generates a vector of $n$ values $z_j = r_j + x_j*c$.
+
+The verifier then check for correctness by validating that $\prod_{j=1}^{n} g_{ij}^{z_j} = R_i * u_i^c $ holds for $i=1$ to $m$. 
+The following shows that, if the prover is correct and honest, this check holds.
 
 \begin{align*}
     \prod_{j=1}^{n} g_{ij}^{z_j} = R_i * u_i^c && \\
@@ -184,60 +186,16 @@ The goal for $S$ is then to generate a new transcript $(R', c, z')$, where $R' \
 To achieve this we can apply a similar approach as previously. We know $c$, $R$, and $z$. We then set $z' \getsr \calZ$ and solve for $R'$.
 
 \subsection{Non-Interactive Zero-Knowledge Proofs}
-\begin{figure}
-\centering
+Until now we discussed zero-knowledge proofs in an interactive setting.
+Informally speaking, in interactive settings the verifier can ask ``questions'' about the proof and gets answers in form of witnesses from the prover.
+In an non-interactive setting, the prover has to provide answers to all possible ``questions'' a priori.
 
-\fpage{.25}{
-\underline{$\NIZK_{\Phi,\Simu}^\advA$}\\[1pt]
-$b \getsr \bits$\\
-$b' \getsr \advA^{\ProofOracle}$\\
-Return $(b = b')$\medskip
+For the protocol from above, a straightforward way to construct \emph{non-interactive zero-knowledge (NIZK) proofs} is Fiat-Shamir, which was introduced in Section \ref{sec:idprots}.
+Let us recall that this construction removes the step in the proof where the verifier provides a random challenge to the prover by introducing a random oracle, which can be implemented using a cryptographic hash function.
 
-\underline{$\ProofOracle(x,Y)$}\\[1pt]
-If $b = 1$ then\\
-\myInd $\pi \getsr \Gen(x,Y)$\\
-If $b = 0$ then \\
-\myInd $\pi \getsr \Simu(Y)$\\
-Return $\pi$
-}
-\fpage{.15}{
-\underline{$\NIZK1_{\Phi,\Simu}^\advA$}\\[1pt]
-$b \getsr \bits$\\
-$b' \getsr \advA^{\ProofOracle,\Horacle}$
-Ret $(b = b')$\medskip
-
-\underline{$\ProofOracle(x,Y)$}\\[1pt]
-$\pi \getsr \Gen^\Horacle(x,Y)$\\
-Ret $\pi$\medskip
-
-\underline{$\Horacle(M)$}\\[1pt]
-If $\TabH[M] = \bot$ then\\
-\myInd $\TabH[M] \getsr \bits^n$\\
-Ret $\TabH[M]$
-}
-\fpage{.15}{
-\underline{$\NIZK0_{\Phi,\Simu}^\advA$}\\[1pt]
-$b \getsr \bits$\\
-$b' \getsr \advA^{\ProofOracle,\HashSim}$\\
-Return $(b = b')$\medskip
-
-\underline{$\ProofOracle(x,Y)$}\\[1pt]
-$\pi \getsr \Simu_P(Y)$\\
-Return $\pi$\medskip
-
-\underline{$\HashSim(M)$}\\[1pt]
-Ret $\Simu_H(M)$
-}
-
-\caption{Definition of the Non-Interactive Zero-Knowledge Game}
-    \label{fig:nizk}
-\end{figure}
-
-So far, we have shown the basic intuition behind showing zero-knowledge in an interactive setting.
-Informally speaking in interactive settings the verifier can ask ``questions'' about the proof and gets answers in form of witnesses from the prover.
-In an non-interactive setting, the prover has to provide answer to all possible ``questions'' a priori.
-
-Figure \ref{fig:nizk} outlines the basic games for the \emph{non-interactive zero-knowledge (NIZK) proof}.
-Here, we want to ensure that a real NIZK proof is indistinguishable from a simulated proof.
-
+While this sounds promising, not all protocols that are in the random oracle model can be implemented securely using a CHF~\cite{canetti2004random}.
+To overcome this limitation, Groth et al.~\cite{groth2006perfect} demonstrated how to build efficient NIKZ proofs by converting expressed into a logic circuit.
+This scheme was then improved modifying the circuit such that the prover merely has to show that there exists a valid assignment to the circuit~\cite{groth10shortpairing}.
+Finally, zk-SNARKs demonstrate how to build circuits that can prove correctness of arbitrary programs in constant size~\cite{ben2014succinct}.
+\scribenote{More detail needed? Mention zk-STARKS?}
 
