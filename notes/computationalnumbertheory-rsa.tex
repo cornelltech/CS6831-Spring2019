@@ -1,0 +1,842 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Public Key Cryptography}
+\label{sec:pkc}
+
+
+
+\subsection{Motivation}
+So far, we have focused our study on symmetric primitives. That is, primitives where two (or multiple) parties agree on a shared key, which is used for both encryption and decryption, or correspondingly, creating tags and verifying them, etc. While we have made much progress on such techniques in terms of security and efficiency, the fact that keys are shared raises several problems. 
+
+For one, everyone who has the same key can read all messages encrypted using it. For instance, if Alice creates a secret key, shares it with both Bob and Marley, then uses a symmetric encryption scheme to encrypt messages to both Bob and Marley with the same key, Alice and Bob's communication is not private from Marley and vice versa for Alice and Marley's. This means, she now has to create, and store high entropy keys for every person she wants to communicate with. 
+
+The above scenario doesn't even consider the fact that the keys need to be shared with every person in a secure way. This completely rules out communication with new entities only via the internet. Or even changing compromised shared keys. 
+
+Later, we will study digital signatures which allow a user Alice, to cryptographically sign a document in a way that is verifiable by anyone. Non-digital signatures are verified by looking at previously known signatures of Alice, which are presumably hard to copy. However, symmetric keys are easy to copy once known, so they cannot be used in this scenario either.
+
+These kinds of issues motivate the need for a system in which Alice can have a secret known only to her, and corresponding public data, which allows other users to send her messages which only she can decrypt. Or, to verify her cryptographic signature but not forge it. In this sense, these primitives fall under \emph{asymmetric} cryptography. 
+
+\subsection{Background on Computational Number Theory}
+\subsubsection{Basic Definitions}
+Asymmetric cryptography is based on underlying problems believed to be computationally hard -- particularly interesting ones being number theoretic. Before we can dive into asymmetric primitives, we will need to define the pre-requisite number theory concepts. 
+
+\begin{defn}[Group]
+A group is a set $G$ along with an operation $*: G\times G\to G$ such that:
+\begin{itemize}
+\item (Closure) Given $a, b\in G$, $a*b\in G$.
+\item (Associativity) For all $a, b, c \in G$ $a*(b*c) = (a*b)*c$.
+\item (Identity) There exists an element, let us call it $e\in G$, such that, for all $a\in G$ $e*a = a = a*e$.
+\item (Inverses) For all $a\in G$, there exists an element, let us denote it $a^{-1}\in G$, such that $a*a^{-1} = e$, where $e$ is the identity.
+\end{itemize}
+\end{defn} 
+
+While one can denote the group from the definition $(G, *)$, in situations where the operation is understood from context, we will just denote it as $G$ and call it the \emph{group} G. Also, we denote 
+\[
+a^k = \underbrace{a* ...* a}_{\text{$k$ times}} 
+\]
+for any group element where $*$ is the group operation.
+
+A group $(G, *)$ such that for all $a, b\in G$, $a*b = b*a$, is called a \emph{commutative} or an \emph{abelian} group.
+
+\begin{remark}
+It is a useful first exercise to prove that the identity of the group is unique (only one identity), and that the inverse of any element is also unique. More formally:
+\begin{itemize}
+\item If $f*a = a*f$ for all $a\in G$, and $e$ is the identity of $G$. Then, $e = f$.
+\item If $a*b = e$ and $a*c = e$, then, $b = c$.
+\end{itemize}
+\end{remark}
+
+If you have not encountered this definition before, it would be useful to verify some examples of groups, such as $(\Z, +)$ (where $\Z$ denotes the set of integers), $(\mathbb{Q} \setminus \{0\}, \times)$ (where $\mathbb{Q}$ is the set of rational numbers), the groups defined below and see how they fit the definition.
+
+Next, we define a specific type of group we will be interested in and show examples which will be needed to learn about the RSA and El Gamal crypto-systems. 
+
+For a positive number $N$, let $gcd(i, N)$ denote the greatest common divisor of $i, N$. We also denote the remainder when $a$ is divided by $N$ as $a\mod \, N$, and we say 
+\[
+a\equiv  b \mod N \text{ if } (a \mod N) = (b\mod N).
+\]
+\begin{remark}
+Each time we mention remainder, we mean a positive remainder. One can alternatively frame the other definition as $a \equiv b \mod N$ whenever $N$ divides $a - b$.
+\end{remark}
+Note that for the usual addition and multiplication in $\Z$, 
+\[
+(a\times b)\mod N = (a\mod N)\times (b \mod N)\mod N
+\]
+and the same for addition. For example, if $N = 5$, $12\times 13 = 156 \equiv 1 \mod N$, and $12 \equiv 2 \mod 5$, $13\equiv 3 \mod 5$ and $2\times 3 = 6 \equiv 1 \mod 5$. You can see that the same holds for addition.
+
+\begin{defn}[Multiplicative group of integers modulo $N$]
+Given a positive integer $N$, the set $\Z^*_{N} = \{i : \, gcd(i, N) = 1 \text{ and } 1\leq i < N\}$ along with the operation $*$ defined as $a*b = a\times b\mod N$ where $\times$ is the usual integer multiplication. We call $N$ the modulus.
+\end{defn}
+
+Moving forward, we will just refer to the multiplicative group of integers modulo $N$ as just $\Z^*_N$. 
+\begin{defn}[Euler Totient Function]
+The Euler Totient function, denoted $\phi(N)$ is the size of $Z^*_N$.
+\end{defn}
+
+In particular, when we consider $Z^*_p$ for prime $p$, the number of integers co-prime to it and less than it are $p - 1$, and hence $\phi (p) = p-1$. In the case of an integer $N=pq$ for primes $p$ and $q$, $\phi(N) = (p-1)(q-1)$.
+
+\begin{thm}[Euler's Theorem]\label{euler}
+Given any element $a\in \Z_N^*$, $a^{\phi(N)} \equiv 1\mod N$.
+\end{thm}
+We omit the proof for space reasons and urge the reader to attempt it or refer to an online source, such as Wikipedia.
+
+\subsubsection{Computational Tools}
+In order to make use of any of these number theoretic structures, we need efficient algorithms to compute the basic operations. We measure these values for computation in $\Z^*_N$ in terms of the bit length of $N$ (the modulus). The worst case running times of known algorithms are given in Table \ref{table:znAlgs}. 
+\begin{remark}
+Note that there are some recent works with faster algorithms but we will not be covering them here.
+\end{remark}
+\begin{table}[H]
+\centering
+\begin{tabular}{c | c}
+\textbf{Algorithm} & \textbf{Running Time} ($n = \log N$) \\ \hline
+Modular Multiplication $(ab \mod N)$ & $\bigO(n^2)$ \\
+Modular Exponentiation $(a^i \mod N)$ & $\bigO(n^3)$ \\
+Modular Inverses $(a^{-1}\mod N)$ & $\bigO(n^2)$
+\end{tabular}
+\caption{Algorithmic Complexity for Operations in $\Z_N^*$}
+\label{table:znAlgs}
+\end{table}
+
+\newcommand{\euc}{\textnormal{EUC}\,}
+\newcommand{\eeuc}{\textnormal{EX-EUC}\,}
+
+In order to get the remainder of a number $c$ modulo $N$, we can use the simple division algorithm from grade school. The Extended Euclidean Algorithm (\eeuc) is used to find the inverse of an element in $\Z^*_N$ -- if you have not seen this algorithm before, it is worthwhile to look it up and think about why it works to find an inverse.  In the worst case, both these algorithms run in $\bigO(|a|\times |b|)$ where $a$ and $b$ are the inputs (can you show why?). In the case of an RSA modulus $N$, this means the worst case time for these operations is $\bigO(n^2)$ where $n = |N| = \log N$. 
+
+%\begin{algorithm}[H]
+%\begin{algorithmic}[1]
+%  \scriptsize
+%  \State If $b = 0$, return $a, 0$.
+%  \State $q \longleftarrow a/b$ and $r \longleftarrow a - bq$ where $a/b$ is integer division.
+%  \State \euc()
+%\end{algorithmic}
+%\caption{\euc$(a, b)$}
+%\label{alg:euclidean}
+%\end{algorithm}
+%
+%\begin{algorithm}[H]
+%\begin{algorithmic}[1]
+%  \scriptsize
+%  \State If $b == 0$, return $1, 0$
+%\end{algorithmic}\ForAll
+%\caption{\eeuc$(a, b)$}
+%\label{alg:exteuclidean}
+%\end{algorithm}
+
+%\begin{figure}[h]
+%	Algorithm \euc$(a, b)$
+%	\centering
+%	\begin{verbatim}
+%		If $b == 0$, return $1, 0$ 
+%		Else
+%			wehforw
+%		End
+%	\end{verbatim}
+%	\caption{The exhaustive key search attack.}
+%	\label{fig:euclidean}
+%\end{figure} 
+
+
+Multiplication in $\Z_N^*$ is done as we learnt in grade school, and then we get the remainder with respect to $N$ which results in the running time shown in Table \ref{table:znAlgs}. 
+
+\newcommand{\fpow}{\textnormal{FAST-POW}\,}
+
+The most interesting operation in $\Z_N^*$ is actually exponentiation. To do it naively as we learnt in school would mean in the worst case, this would take exponential time in $n$.  However, if instead, we observe that a number $x$ in binary form $b_n...b_1$ is actually 
+\[
+x = 2^{n-1}b_n + ...  + 2^0 b_1
+\] 
+then we find that \fpow, described in Algorithm \ref{alg:fastpow} correctly implements $a^x\mod N$ for $a\in \Z_N^*$.
+
+\begin{algorithm}[H]
+\begin{algorithmic}[1]
+  \scriptsize
+  \State If $x < 0$, $a\longleftarrow a^{-1}$ and $x \longleftarrow -n$.
+  \State Let $b_{k}...b_0$ be the binary representation of $x$ and $g \longleftarrow 1$.
+  \ForAll{$i = k ... 0$}
+  	\State $g \longleftarrow g^2$
+	\State If $b_i = 1$, $g \longleftarrow g\times a\mod N$.
+  \EndFor
+  \State \textbf{return} $g$
+\end{algorithmic}
+\caption{\fpow$(a, x)$}
+\label{alg:fastpow}
+\end{algorithm}
+
+A way to see that Algorithm \ref{alg:fastpow} indeed returns the correct value of $a^x\mod N$, is as follows. Define the sequence 
+\[
+f_j = \sum_{i = j}^{k} 2^{i - j} b_i.
+\]
+Then, 
+\[
+f_{j-1} = \sum_{i = (j-1)}^{k} 2^{i - j + 1} b_i = 2\sum_{i = j}^{k} 2^{i - j} b_i + b_{j-1}.
+\]
+Observe that, $x = f_0$ and hence, at the $i$th iteration in the for loop, we are computing $a^{f_i}$, down to $a^{f_0}$ in the last iteration. We leave it as an exercise to show that this algorithm indeed completes in $\bigO(n^3)$ time.
+
+
+Now that we have all these handy tools, let us revert to the cryptography world and use them to define public key encryption schemes.
+
+\subsection{Public Key Encryption}
+A PKE scheme $\AEnc = (\kg,\enc,\dec)$ is a triple of
+algorithms. Key generation ($\kg$) is randomized and outputs a key pair $(\pk,\sk)$.
+Encryption ($\enc$) takes as input a public key $\pk$ and message $M$ and outputs a ciphertext.
+Decryption ($\dec$) takes as input a secret key $\sk$ and ciphertext $C$ and outputs a
+message or a distinguished error symbol $\bot$. 
+
+An ideal candidate for such a scheme would consist of a \emph{trapdoor} function along with a corresponding $\kg$. If $f$ is a trapdoor function, then there exist efficient algorithms to compute $f_{\pk}(\cdot)$ and $g_{\pk}(\cdot, \cdot)$, such that $g_{\pk}(f_{\pk}(x), \sk) = x$. However, there does not exist (or is assumed not to exist) an algorithm to invert $f_{\pk}$ without the corresponding $\sk$.
+\subsection{Constructing RSA}
+We first start with a claim, which will help us construct key pairs:
+\begin{claim}
+Let $N = pq$, for some primes $p$ and $q$. Given $d, e$, such that $d = e^{-1} \mod \phi(N)$, i.e. $de\equiv 1\mod \phi(N)$, then $(a^e)^d \equiv a\mod N$ for all $a\in \Z^*_N$. 
+\end{claim}
+\begin{proof}
+Recall, that Theorem \ref{euler} (Euler's theorem) states that $a^{\phi(N)}\equiv 1 \mod N$. Hence, $a^{de} = a^{k\phi(N) + 1}$, for some $k\in Z$ and so, $a^{de} = a^{k\phi(N)}\times a \equiv 1\times a \equiv a \mod N$. 
+\end{proof}
+
+This shows, that given our $\bigO(n^3)$ algorithm, given such an $N = pq$ and $d, e$, it is possible to compute $f_{N, e} = a^e$ in $\bigO(n^3)$ time. Further, if it is hard to find $c^{1/e}$ for $c\in Z^*_N$, then it is hard to invert $f_{N, e}$. On the other hand, as we have shown, it is easy (in $\bigO(n^3)$ time) to find $f^{-1}_{N, e}(c)$ when $d = e^{-1}$ is known.  Hence, we have defined the RSA trapdoor function.
+
+Finally, we can realize a Public Key Encryption scheme, with $\kg$ being the process of generating two primes $p, q$, $N = pq$ and some $e$ and $d = e^{-1}\mod N$, $\pk = (N, e)$ and $\sk = (p, q, e)$ (which can be used to compute $N$, $\phi(N)$ and $d$). Given a message $M\in Z^{*}_N$, $\enc$ computes $C = M^e\mod N$ and $\dec$ computes $C^d\mod N$.
+
+\subsubsection{Generating Primes for RSA and Other Such Cryptosystems}
+
+As we will see later, RSA and other cryptosystems require the ability to generate large primes. Fortunately, the prime number theorem tells us that primes are distributed such that given any large integer $N$, the probability that a random number less than $N$ is prime is $1/\log(N)$. Stated differently, the prime number theorem says that given a number $N$, it is prime with probability $1/\log(N)$. In fact, it is well known that if we want to find an $n$ bit prime, in expectation, we can test polynomially in $n$ many $n$-bit integers to find one.
+
+Given a prime $p$, we know $\phi(p) = p - 1$, so for any prime $p$, $a^{p-1} \equiv 1\mod p$ for any $a < p$. And, in fact, a small number of such \emph{witnesses} of primality would suffice. However, R.D. Carmichael \cite{carmichael1910note} found that there were composites which had no witness of non-primality which are known as pseudoprimes. Others \cite{alfordinfinite} later showed that there are infinitely many such numbers, hence ruling out such a test.
+
+Other tests include Miller-Rabin, which has a much lower probability of returning true on non-primes. The Miller-Rabin Primality test is based on the following property of primes:
+\begin{claim}
+Given an odd prime, $p$, write $p-1 = 2^k q$ for odd $q$.
+If $gcd(a, p) = 1$. Then either $a^q \equiv 1 \mod p$, or one of $a^q, a^{2q},..., a^{2^{(k-1)}q}\equiv -1 \mod p$.
+\end{claim}
+\begin{proof}
+With the same notation as in the statement, if $a^q \equiv 1\mod p$, we are done. On the other hand, if not, then there must be some element $w$ on the list $a^q, a^{2q},..., a^{2{(k-1)}q}$ such that $w\not\equiv 1\mod p$ and $w^2\equiv 1\mod p$, so it must be that $w\equiv -1\mod p$, since these values are a sequence of squares. 
+\end{proof}
+
+\begin{remark}
+On the other hand, for an odd composite number $c$, it turns out that at least $\frac{3}{4}$ of the positive integers $< c$ do not satisfy the above property. For more details, we defer to other sources, such as Hoffstein et al \cite{hoffstein2008introduction}.
+\end{remark}
+
+Hence, checking $t$ numbers less than any candidate prime $p$ ensures with probability at least $1-\left(\frac{1}{4}\right)^t$ that $p$ is prime, if it none of the tested numbers fail to satisfy the above property. We can choose $t$ appropriately to get very small failure probability. Finally, we can combine the prime number theorem with Miller-Rabin and/or other primality tests to get efficient algorithms for $\kg$.
+
+Note that recent work by Abrecht et al. \cite{albrecht2018prime} has shown flaws in many current implementations of primality testing which lend themselves to returning pseudoprimes or numbers which make it hard to efficiently find witnesses of compositeness.
+
+\subsubsection{A Brief Overview of Attacks on `Naive' RSA}
+Now that we have defined RSA and can generate primes, we must be ready to use it and all our woes must have disappeared! Unfortunately, RSA as we have defined it, i.e. with $\pk = \langle N, e\rangle$ and $\sk =\langle p, q, d \rangle$, has various issues that make it hard to use securely in practice. Here we discuss some of the attacks on this `naive' RSA. Due to the fact that the underlying mathematics for some of these attacks is out of scope for this text, we will only go into the details of a few of them and include a (partial) list below. More details and pointers to original sources can be found in \cite{boneh1999twenty}.
+
+The following failures were found in various parts of RSA:
+\begin{itemize}
+\item As we have shown, if $\phi(N)$ is known, it is easy to get the private key. This quickly rules out shared modulus.
+\item Due to the property of \emph{malleability}, if an RSA key is used for signatures, and Eve asks Bob to sign a nonce for some protocol, she may use it to get his signature for something else. In particular, if Eve wants Bob to sign $M$, she can pick a random $r$, and get Bob to sign the ``nonce'' $r^e M\mod N$. Now, Bob sends Eve $Sig = (r^e M)^d$ and Eve computes $Sig/r = M^d$ to obtain a false signature.
+\item If a small private exponent is used, i.e. $d<1/3 N^{1/4}$, due to a certain approximation relation, $d$ can be recovered in linear-time. It was found later, that any $d<N^{0.292}$ is also susceptible to attacks.
+\item Low public exponents also cause vulnerabilities. This is primarily due to a theorem by Coppersmith which shows an algorithm for efficiently solving monic polynomials. Due to this theorem, for instance, ciphertexts of messages which are polynomially related can be used to recover the messages themselves. More concretely, this attack renders many simple padding schemes vulnerable to full ciphertext recovery. This theorem also helps to prove that partial private keys can lead to recovery of full keys. 
+\item We have already seen how deterministic encryption is not secure. In order to prevent this, padding was proposed and included in an old standard known as Public Key Cryptography Standard 1 (PKCS 1). The padding they preposed was to include $16$ bits containing ``02'' at the start of a message to indicate padding, then a random pad not containing ``00" and then 16 bits containing ``00'' to indicate the end of the padding as shown below.
+\begin{table}[H]
+\centering
+\begin{tabular}{| c | c | c | c |}\hline
+02 & Random & 00 & Message \\ \hline
+\end{tabular}
+\end{table}
+\end{itemize}
+Now, suppose Bob's machine returns an error if a ciphertext was improperly formatted and nothing otherwise. Bleichenbacher mounted an attack on this scheme, where he was able to efficiently decrypt a ciphertext $C$ given only the above functionality. Here's how it started: given a ciphertext $C$, pick random $r$ and send Bob $rC\mod N$ until Bob doesn't return an error, indicating that the first sixteen bits of $rC$ are ``02''. Using this functionality alone, Bleichenbacher showed how to decrypt the entire ciphertext.  
+
+\vspace{0.25cm}
+\noindent\textsc{\textbf{Chinese Remainder Theorem}}
+
+
+Now that low public and private exponents have been ruled out, we would now be left without efficient ways of decrypting on small devices. A solution to this lies in using the Chinese Remainder Theorem (CRT).
+\begin{thm}[Chinese Remainder Theorem]
+Given a set $m_1, ..., m_n$ of pairwise relatively prime integers, i.e. $gcd(m_i, m_j) = 1$ whenever $i\neq j$, and a set of congruences: $x \equiv r_i \mod m_i$, we can find a unique solution $x = R\mod (m_1\times ...\times m_n)$, which satisfies each of these congruences. That is to say, there exists $0\leq R < (m_1\times ...\times m_n)$ such that $R\equiv r_j \mod m_j$ for each $j$ and if $R'$ is also a solution, then, $R'\equiv R\mod (m_1\times ...\times m_n)$. 
+\end{thm}
+\begin{proof}
+The theorem is clearly true when $n = 1$, i.e. we only consider one $m_i$. Now, suppose that we can find a solution to the congruences from the theorem statement whenever we have up to $k$ different congruences. That is, suppose that whenever $m_1, ..., m_n$ are integers such that $gcd(m_i, m_j) = 1$ whenever $i\neq j$ and $n\leq k$, there exists a solution $R$ to the congruences $x \equiv r_1 \mod m_1$, ..., $x\equiv r_n \mod m_n$. 
+
+Now consider the set $m_1, ..., m_k, m_{k+1}$ of pairwise co-prime integers as well as the congruences $x \equiv r_1 \mod m_1$, ..., $x\equiv r_{k+1} \mod m_{k+1}$. We know from our assumption, that there exists a solution $R_k$ to the first $k$ congruences. Now suppose we write a solution $x = R_k + (m_1\times ... \times m_k)y$ to $x \equiv r_{k+1}\mod m_{k+1}$. So, 
+\[
+R_k + (m_1\times ... \times m_k)y \equiv r_{k+1}\mod m_{k+1}
+\]
+and hence
+\[
+(m_1\times ... \times m_k)y \equiv r_{k+1} - R_k\mod m_{k+1}.
+\]
+But, recall that the integers co-prime to $m_{k+1}$ form a group, and hence, we can find an inverse, $w = (m_1\times ... \times m_k)^{-1}$ in $Z_{m_{k+1}}^*$ and hence, by multiplying $w$ on both sides of the congruence, we get 
+\[
+y \equiv w(r_{k+1} - R_k)\mod m_{k+1}.
+\]
+Denote, $w(r_{k+1} - R_k)$ as $z$. Finally, we replace $y$ above, to get the value of $x$, and $x \equiv r_{k+1}\mod m_{k+1}$ but also, $x \equiv r_i\mod m_i$ by the assumption above.
+
+To show uniqueness, suppose not, i.e. there exists a solution $R'\not\equiv R\mod m_1, ..., m_{k+1}$. However, clearly $R\equiv r_i \mod m_i$, so $R'\not\equiv r_i \mod m_i$ and is not a solution. 
+\end{proof}
+
+The process we just used in the proof also gives us an efficient algorithm for finding solutions.
+
+Now, in RSA, if we want to compute $M = C^d \mod N$, where $N = pq$ for primes $p$ and $q$, we know that this value must satisfy the congruences $M = C^{d}\mod p$ and $M = C^d\mod q$. We can also reduce the exponents further, and denote $d_p = d \mod \phi(p)$ and $d_q\mod \phi(q)$ to obtain the congrences $M \equiv C^{d_p}\mod p$ and $M \equiv C^{d_q}\mod q$ and hence using the Chinese Remainder Theorem, we can obtain $M\equiv C^d\mod N$. In fact, it is possible to find $d$ such that $d\mod \phi(p)$ and $d\mod \phi(q)$ are small but $d\mod \phi(N)$ is not. 
+ 
+In the exercises, we ask you to construct a few attacks using the Chinese Remainder Theorem.
+
+
+\vspace{0.25cm}
+\noindent\textsc{\textbf{Side-Channel Attacks and the Montgomery Ladder}}
+
+
+\newcommand{\mont}{\textnormal{MONTGOMERY}\,}
+
+Recall that when a user Bob gets a ciphertext, he can use \fpow to obtain the plaintext. Note that \fpow has one extra multiplication step whenever a bit of the secret exponent $d$ is non-zero. This means that an adversary $\advA$, given a decryption oracle, can recover the bits of the key using the time taken to decrypt each of different messages. Intuitively, this is how the attack would work: start from the most significant bit and offline, measure what the time taken for the first iteration in the for-loop in Algorithm \ref{alg:fastpow} if the first bit were $1$. It is the case that if the time taken for the first iteration computation offline was higher than the expected value, then the total time for the decryption of that chosen ciphertext would be higher than the expected value. Conversely, if it is lower than the expected value, then the total time to decrypt would be lower than the expected value. With a guess for the most significant bit, the same strategy can be employed moving to less significant bits. A more formal treatment can be found in \cite{boneh1999twenty}.
+
+So what does one do instead? On one hand, it would seem as though the way to work-around this issue is to add in extra computation. On the other hand, the folks working on Elliptic Curve Cryptography lent us a useful tool called the Montgomery Ladder, which was later adapted for general commutative groups by Joye et. al \cite{joye2002montgomery}. Again, given $a\in \Z_N^*$, and $x$, we would like to compute $a^x$ more efficiently than the naive approach. So we rewrite 
+\[
+x = 2^{k}b_k + ...  + 2^0 b_0
+\] 
+and define the sequence 
+\[
+f_j = \sum_{i = j}^{k} 2^{i - j} b_i.
+\]
+Then, if $g_j = f_j + 1$:
+\[
+f_{j-1} = 2 f_j + b_{j-1} = f_j + g_j + b_{j - 1} - 1 = 2 g_j + b_{j - 1} - 2
+\]
+and:
+\[
+(f_{j-1}, g_{j-1}) = 
+\begin{cases}
+(2f_j,  f_j + g_j) \text{ if } b_{j - 1} = 0\\
+(f_j + g_j, 2g_j) \text{ if } b_{j - 1} = 1.
+\end{cases}
+\]
+This results in Algorithm \ref{alg:montgomery}.
+\begin{algorithm}[H]
+\begin{algorithmic}[1]
+  \scriptsize
+  \State If $x < 0$, $a\longleftarrow a^{-1}$ and $x \longleftarrow -x$.
+  \State Let $b_{k}...b_0$ be the binary representation of $x$ and $g_0 \longleftarrow 1$ and $g_1 \longleftarrow a$.
+  \ForAll{$i = k ... 0$}
+  	\State If $b_i = 0$, $g_1 \longleftarrow g_0g_1$, $g_0 \longleftarrow g_0^2$
+	\State If $b_i = 1$, $g_0 \longleftarrow g_0 g_1$, $g_1 \longleftarrow g_1^2$.
+  \EndFor
+  \State \textbf{return} {$g_0$}
+\end{algorithmic}
+\caption{\mont$(a, x)$}
+\label{alg:montgomery}
+\end{algorithm}
+
+While by itself, this algorithm is somewhat slower in expectation that \fpow, it lends itself to parallelization which makes it significantly faster than \fpow and its variants. And since each step consists of the same set of operations, the above side-channel attack is mitigated. See \cite{joye2002montgomery} for other benefits of this approach.
+
+
+\vspace{0.25cm}
+\noindent\textsc{\textbf{RSA and Factoring}}
+
+We know that if a fast algorithm for integer factoring can be found, the hardness of RSA no longer holds. Much work has been done in this area and thus far, the best candidate has been something known as a number field sieve.  See Table \ref{table:factoringAlgs} for a comparison of the efficiency of the various algorithms.  Again, due to the involved mathematics that goes into showing details, we will limit ourselves to a high level picture of these algorithms. 
+
+As one would expect, the naive algorithm for factoring a number $N$ involves checking the divisibility of $N$ with each $i<\sqrt{N}$.
+\begin{table}[H]
+\centering
+\begin{tabular}{c | c}
+\textbf{Algorithm} & \textbf{Running Time} ($n = \log N$) \\ \hline
+Naive & $\bigO(e^{0.5\log\, n})$ \\
+Quadratic Sieve & $\bigO\left(e^{c (\log N)^{0.5}(\log \log N)^{0.5}}\right)$ \\
+Number Field Sieve & $\bigO\left(e^{c (\log N)^{1/3}(\log \log N)^{2/3}}\right)$
+\end{tabular}
+\caption{Algorithmic Complexity for Operations in $\Z_N^*$}
+\label{table:factoringAlgs}
+\end{table}
+
+The sieves start with the following very simple equation:
+\[
+(a+b)(a-b) = a^2 - b^2.
+\]
+Which means, to find factors $p$ and $q$ of $N$, we want to find $a$ and $b$ such that 
+\[
+N + a^2 = b^2
+\]
+and then factors of $N$ would be $a+b$ and $b - a$. Of course by itself, this may be difficult, so instead, we loosen the requirement to finding $a$ and $b$ such that
+\[
+kN + a^2 = b^2
+\]
+for some integer $k$. In this case, it is likely, that $b^2 - a^2$ has a non-trivial common factor with $N$. In other words, we are looking for two integers, $a$ and $b$, such that 
+\[
+a^2\equiv b^2 \mod N.
+\]
+This yields the following steps:
+\begin{itemize}
+\item Find many values $a_i, ..., a_n$, such that $c_i = a_i^2\mod N$ factors as a product of small primes. This is so that it's more efficient to find the corresponding values for $b_i$, using linear algebra for the powers.
+\item Find a subset of $c_i$'s so that the power of every prime is even. That is, let $a = a_{i_1}^2\times ...\times a_{i_k}^2\equiv c_{i_1}\times ...\times c_{i_k} \equiv b^2\mod N$.
+\item Now, $a^2\equiv b^2\mod N$, and we can use the above identity.
+\end{itemize}
+The quadratic number sieve makes the first step significantly faster by using a procedure similar to what we learnt in grade school, to find primes (also known as the Sieve of Eratosthenes, an ancient Greek technique), where we go through a list up to some number and cancel out values which are divisible by some small prime. At the same time, a number field (another algebraic structure similar to a group), lends itself to more general techniques, allowing for even more efficient methods for this first step.
+
+These techniques are not included in much detail here but an interested reader is encouraged to consult a number theory source. See \cite{hoffstein2008introduction} for a discussion, for instance. Hoffstein et al also note that 
+the fastest known method for factoring large numbers $N$ up to about $2^{350}$ is the quadratic number sieve and that for larger number, say larger than $2^{450}$, number field sieve wins out.
+
+
+
+
+
+
+\subsection{Security and Definitions for RSA}
+As we have seen, there are various issues with naive RSA, so we set out to create a different protocol, derived from RSA and to define its security.
+
+Consider the following encryption scheme:
+
+Let $\SEscheme = (\kgSym,\encSym,\decSym)$ be a one-time secure symmetric encryption scheme where $\kgSym$ outputs random $n$-bit string. Let $H: \mathcal{M}\to \{0, 1\}^n$ be a hash function with a suitable message space. Also, let $\pk = (N, e)$ and $\sk = (N, d)$ be the usual RSA parameters. Let $\enc$ and $\dec$ be defined as follows:
+\begin{center}
+\hfpages{.2}{
+		\underline{$\enc((N,e),M)$:}\\
+    $R \getsr \Z^*_N$\\
+    $C_1 \gets R^e \bmod N$\\
+    $K \gets H(R)$\\
+    $C_2 \getsr \encSym(K,M)$\\
+		Ret $(C_1,C_2)$
+  }{
+	  \underline{$\dec((N,d),(C_1,C_2))$:}\\
+    $R \gets C_1^d \bmod N$\\
+    $K \gets H(R)$\\
+    $M \gets \decSym(K,C_2)$\\
+		Ret $M$
+	}
+\end{center}
+We will now define $\INDCPA$ security for a public key encryption scheme and show how the above scheme realizes it. Define the $\INDCPA$ game as follows, for an adversary $\advA$, which can make at most $q$ queries to the $\EncOracle$ oracle:
+\begin{center}
+\fpage{.20}{
+		\underline{$\INDCPA_\AEnc^\advA$}\\
+    $(\pk,\sk) \getsr \kg$\\
+    $b \getsr \bits$\\
+    $b' \getsr \advA^\EncOracle(\pk)$\\
+		Ret $b = b'$\medskip
+
+    \underline{$\EncOracle(M_0,M_1)$}\\
+    If $|M_0| \ne |M_1|$ then\\
+    \myInd Ret $\bot$\\
+    $C \getsr \enc(\pk,M_b)$\\
+    Ret $C$
+	}
+\end{center}
+As in the case of symmetric encryption, we define
+\bnm
+  \AdvINDCPA{\AEnc}{\advA} =  2\cdot \Pr[\INDCPA_\AEnc^\advA \implies \true] - 1.
+\enm
+Correspondingly, we can also define $\INDCPA0_\AEnc^\advA$ and $\INDCPA1_\AEnc^\advA$ and then define:
+ \bnm
+  \AdvINDCPA{\AEnc}{\advA} = | \Pr[\INDCPA1_\AEnc^\advA \implies 1] - \Pr[\INDCPA0_\AEnc^\advA \implies 1] |.  
+\enm \\
+
+\noindent To make things easier moving forward, we prove the following result:
+\begin{thm}
+Let $\AEnc$ be a PKE scheme. Let $\advA$ be an $\INDCPA_\AEnc$-adversary making at
+most $q$ queries. We give an $\INDCPA_\AEnc$-adversary $\advB$ making one query
+such that
+\bnm
+  \AdvINDCPA{\AEnc}{\advA} \le q\cdotsm\AdvINDCPA{\AEnc}{\advB}
+\enm
+Adversary~$\advB$ runs in time that of $\advA$ plus the time to perform $(q-1)$
+encryptions under $\AEnc$.
+\end{thm}
+\begin{proof}
+We will use a hybrid approach to prove this theorem. We define the games $G_{i^*}$ for $i^*\in \{0, ..., q\}$ such that:
+\begin{itemize}
+\item $G_0$ has an encryption oracle that replies to all queries with encryptions of $M_1$,\\
+\vdots
+\item $G_k$ has an encryption oracle that replies to the first $k$ queries with encryptions of $M_1$ and the remaining queries with encryptions of $M_0$ \\
+\vdots 
+\item $G_q$ has an encryption oracle that replies to all queries with the encryptions of $M_0$.
+\end{itemize}
+Hence, 
+\begin{align*}
+G_0 &= \INDCPA1_{\AEnc}\\
+G_q &= \INDCPA0_{\AEnc}.
+\end{align*}
+Below is a description of $G_{i^*}$:
+\begin{center}
+\fpage{.20}{
+		\underline{$\G_{i^*}$}\\
+    $b \getsr \bits$\\
+    $(\pk,\sk) \getsr \kg$\\
+    $i \gets 1$\\
+    $b' \getsr \advA^\EncSim(\pk)$\\
+		Ret $b'$\medskip
+
+    \underline{$\EncSim(M_0,M_1)$}\\
+    If $|M_0| \ne |M_1|$ then\\
+    \myInd Ret $\bot$\\
+    If $i > i^*$ then\\ 
+    \myInd $C \getsr \enc(\pk,M_0)$\\
+    Else\\
+    \myInd $C \getsr \enc(\pk,M_1)$\\
+    $i \gets i + 1$\\
+    Ret $C$
+	}
+\end{center}
+
+Recall that for $i^* = 0$ and $i^*=q$, we get exactly the games $\INDCPA0^\advA$ and $\INDCPA1^{\advA}$ respectively, so we can write:
+\begin{align*}
+\AdvINDCPA{\AEnc}{\advA} 
+  &= \left|\Prob{\G_0\Rightarrow1} - \Prob{\G_q\Rightarrow1}\right|%\\
+%  &= \left|\sum_{i=1}^q \Prob{\G_{i-1}\Rightarrow1} - \Prob{\G_i\Rightarrow1}\right| \, \, \text{(we can do this since the values cancel out)}%\\
+%  &= \left|\sum_{i=1}^q 
+  %    \Prob{\INDCPA1^{\advB_i}_\AEnc\Rightarrow 1}
+   %   - \Prob{\INDCPA0^{\advB_i}_\AEnc\Rightarrow 1}\right|
+\end{align*}
+Now, consider the following hybrid $\advB_{i*}^\EncOracle$ which can run a simulator $\EncSim$ as well. This means that $\advB_{i^*}$ is a single-query $\INDCPA$ adversary that ``switches'' between $G_{i^*-1}$ and $G_{i^*}$.
+\begin{center}
+\fpage{.20}{
+		\underline{$\advB_{i^*}^\EncOracle(\pk)$}\\
+    $i \gets 1$\\
+    $b' \getsr \advA^\EncSim(\pk)$\\
+		Ret $b'$\medskip
+
+    \underline{$\EncSim(M_0,M_1)$}\\
+    If $|M_0| \ne |M_1|$ then\\
+    \myInd Ret $\bot$\\
+    If $i > i^*$ then\\ 
+    \myInd $C \getsr \enc(\pk,M_1)$\\
+    Else if $i = i^*$ then\\
+    \myInd $C \gets \EncOracle(M_0,M_1)$\\
+    Else\\
+    \myInd $C \getsr \enc(\pk,M_0)$\\
+    $i \gets i + 1$\\
+    Ret $C$
+	}
+\end{center}
+
+Suppose $\advB$ chooses uniformly at random which $\advB_{i^*}$ world to be in. That is, $\advB$ runs the game:
+\begin{center}
+\fpage{.20}{
+		\underline{$\advB^\EncOracle(\pk)$}\\
+    $i^* \getsr \{0, ..., q - 1\}$\\
+    $b' \getsr \advB_{i^*}^\EncSim(\pk)$\\
+		Ret $b'$\medskip
+	}
+\end{center}
+Then,
+\begin{align*}
+  \AdvINDCPA{\AEnc}{\advB}
+    &= \left| \Prob{\INDCPA1^\advB\Rightarrow1} - \Prob{\INDCPA0^\advB\Rightarrow1} \right|\\
+    &= \frac{1}{q} \left|
+    \sum_{i^*=1}^q\CondProb{\INDCPA1^{\advB_j}\Rightarrow1}{j= i^*} -
+    \CondProb{\INDCPA0^{\advB_j}\Rightarrow1}{j=i^*} \right| \\
+    & \text{\hspace{2cm} (since $\advB$ picks $j$ uniformly at random)}\\
+    &= \frac{1}{q} \left|
+    \sum_{i^*=1}^q\Prob{\INDCPA1^{\advB_{i^*}}\Rightarrow1} - \Prob{\INDCPA0^{\advB_{i^*}}\Rightarrow1} \right|\\
+%\end{align*}
+%  
+%
+%\begin{align*}
+%\AdvINDCPA{\AEnc}{\advB} 
+  &= \frac{1}{q}\sum_{i=0}^{q-1} \left|\Prob{\G_i\Rightarrow1} - \Prob{\G_{i+1}\Rightarrow1}\right|\\
+  &\geq \frac{1}{q}\left|\Prob{\G_0\Rightarrow1} - \Prob{\G_q\Rightarrow1}\right| \, \, \text{(triangle inequality)} \\
+  &= \frac{1}{q} \AdvINDCPA{\AEnc}{\advA}.
+\end{align*}
+\end{proof}
+
+Next, let us define a security game for an RSA based scheme with a $k$ bit security parameter $\RSAk$. Intuitively, the security of RSA is based on difficulty of inversion, so we define the security as the security of a one-way function, where the adversary knows the public parameters:
+\begin{center}
+\fpage{.20}{
+		\underline{$\OWF_{\RSAk}$}\\
+    $((N,e),(N,d))\getsr \kg(\mathbb{1}^k)$\\
+    $R \getsr \Z_N^*$\\
+    $Y \gets R^e \bmod N$\\
+    $X' \getsr \advA(Y, (N, e))$\\
+		Ret $(X' = X)$
+	}
+\end{center}
+\bnm
+  \AdvOWFRSA{\RSAk}{\advA} = \Prob{\OWF_{\RSAk}^\advA\Rightarrow\true}
+\enm
+
+Finally, we show:
+\newcommand{\INDROR}{\textnormal{IND-ROR}\xspace}
+\begin{thm}
+Let $\RSAk$ be the RSA-based scheme using
+security parameter $k$, hash function
+$\Horacle\Colon\msgspace\rightarrow\bits^n$ modeled as a random oracle, and
+symmetric encryption scheme $\SEscheme$. Let $\advA$ be
+an $\INDCPA_{\RSAk}$-adversary making at most $q$ queries to
+$\Horacle$. Then we give an
+$\OWF_{\RSAk}$-adversary $\advB$ and $\INDROR_\SEscheme$-adversary
+$\advC$ such that
+\bnm
+  \AdvINDCPA{\RSAk,\Horacle}{\advA} \le
+      2\cdotsm\AdvOWF{\RSAk}{\advB} +  
+        2\cdotsm\AdvROR{\SEscheme}{\advC}  \;.
+\enm
+Adversaries $\advB,\advC$ run in time that of $\advA$ plus 
+the time to simulate $q$ random oracle queries. Adversary $\advC$ makes a single encryption query.
+\end{thm}
+
+\begin{proof}
+Below is a set of games we will use to prove this theorem. First, note that $\G_0$ simulates exactly, the $\INDCPA$ security game and so, 
+\begin{align*}
+\AdvINDCPA{\RSAk,\Horacle}{\advA} &= 2\cdotsm \Prob{\G_0\Rightarrow \true}  - 1.
+\end{align*}
+Next, observe that $\G_1$ is just $\G_0$ but with the order of generating the symmetric encryption key re-written, so it remains
+\begin{align*}
+\AdvINDCPA{\RSAk,\Horacle}{\advA} &= 2\cdotsm \Prob{\G_1\Rightarrow \true}  - 1.
+\end{align*}
+\begin{center}
+\hfpagesss{.20}{.20}{.20}{
+\underline{$\G_0$}\\
+$b \getsr \bits$\\
+$((N,e),(N,d)) \getsr \kg(k)$\\
+$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
+Ret $b'=b$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+$R \getsr \Z^*_N$\\
+$C_1 \gets R^e \bmod N$\\
+$K \gets \Horacle(R)$\\
+$C_2 \getsr \encSym(K,M_b)$\\
+Ret $(C_1,C_2)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$  then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}{
+\underline{\fbox{$\G_1$}\;\;\; $\G_2$}\\
+$b \getsr \bits$\\
+$((N,e),(N,d)) \getsr \kg(k)$\\
+$R \getsr \Z^*_N$\\
+$C_1 \gets R^e \bmod N$\\
+$K \getsr \bits^n$\\
+$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
+Ret $b'=b$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+$C_2 \getsr \encSym(K,M_b)$\\
+Ret $(C_1,C_2)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $X = R$ then\\
+\myInd $\badtrue$\\
+\myInd \fbox{$\TabH[X] \gets K$}\\
+If $\TabH[X] = \bot$  then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}{
+\underline{$\G_3$}\\ %\;\;\; \fbox{$\G_4$}}\\
+$b \getsr \bits$\\
+$((N,e),(N,d)) \getsr \kg(k)$\\
+$R \getsr \Z^*_N$\\
+$C_1 \gets R^e \bmod N$\\
+$K \getsr \bits^n$\\
+$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
+Ret $b'=b$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+%$C_2 \getsr \encSym(K,M)$\\
+$C_2 \getsr \bits^{\ctxtlen(M_0)}$\\
+Ret $(C_1,C_2)$\medskip
+
+\underline{$\Horacle(X)$}\\
+If $\TabH[X] = \bot$  then\\
+\myInd $\TabH[X] \getsr \bits^n$\\
+Ret $\TabH[X]$
+}
+
+\end{center}
+
+Now, between $\G_1$ and $\G_2$, the only difference is when $\badtrue$. This happens whenever $\advA$ queries the oracle with $R$ as input. Given a challenge RSA ciphertext $C_1 = R^e$, an $\OWF_{\RSAk}$ adversary $\advB$ (as defined above), can attempt to obtain $R$ by running $\advA$ as a subroutine. In order to do this, $\advB$ runs $\advA$ with input $C_1$ and for any query $u$ made by $\advA$, $\advB$ checks if $u^e = C_1$. Since RSA is one to one, a winning value $u$ must be equal to $R$. Given the description of the random oracle, this means that the cases where $\badtrue$ and the cases where $\advB$ inverts an RSA instance are equivalent. Hence $\badtrue$ whenever $\advB$ succeeds and by the fundamental lemma of game playing:
+\begin{align*}
+|\Prob{\G_1 \implies \true} - \Prob{\G_2\implies \true}| &\leq \AdvOWF{\RSAk}{\advB}
+\end{align*}
+and so, by triangle inequality:
+\[
+\Prob{\G_1 \implies \true} \le \AdvOWF{\RSAk}{\advB} + \Prob{\G_2 \implies \true}.
+\]
+Also note that $\advA$ is allowed to make up to $q$ queries to $\Horacle$, so the run time of $\advB$ is that of $\advA$ with simulating $q$ queries to $\Horacle$.
+
+The only difference between the encryption schemes in $G_2$ and $G_3$ is that the encryption is real in $\G_2$ and random in $\G_3$. Suppose an $\INDROR$ adversary $\advC$, is given an encryption oracle $\EncOracle$. $\advC$ runs $\advA$ by running $\kg(k)$, getting a random $R$ and setting $C_1 = R^e$. $\advC$ also selects a bit $b$. Then $\advC$ gives $\advA$ an encryption oracle $\EncOracle'(\cdot, \cdot)$ defined below:
+\begin{center}
+\fpage{.20}{
+	\underline{$\EncOracle'(M_0, M_1)$}\\
+	$C_2\getsr \EncOracle(M_{b})$\\
+	Ret $C_2$
+}
+\end{center}
+Finally, $\advC$ gets $b' = \advA^{\EncOracle}(N, e)$ and returns $b = b'$. Therefore, $\advC$  simulates $\G_2$ when it's in the real world and $\G_3$ when it's in the random world. This results in%Hence, any $\INDROR$ adversary $\advC$ can
+\[
+|\Prob{\G_3 \implies \true} - \Prob{\G_2\implies \true}| \leq \AdvROR{\SEscheme}{\advC}.
+\]
+Since the adversary is in the random world in $\G_3$,
+\[
+\Prob{\G_3 \implies \true} = \frac{1}{2}.
+\]
+So,
+\[
+\Prob{\G_2 \implies \true} \le \frac{1}{2} + \AdvROR{\SEscheme}{\advC}.
+\]
+And hence,
+\[
+\Prob{\G_1 \implies \true} \le \AdvOWF{\RSAk}{\advB} +\AdvROR{\SEscheme}{\advC} +  \frac{1}{2}.
+\]
+so,
+\begin{align*}
+\AdvINDCPA{\RSAk,\Horacle}{\advA} &= 2\Prob{\G_1\implies \true}  - 1\\
+							 &\le 2\left(\AdvOWF{\RSAk}{\advB} +\AdvROR{\SEscheme}{\advC} +  \frac{1}{2}\right) - 1\\
+							 &\le 2\cdotsm\AdvOWF{\RSAk}{\advB} +2\cdotsm\AdvROR{\SEscheme}{\advC}
+\end{align*}
+Note that $\advC$ only runs $\advA$ once, and hence its runtime is that of $\advA$ without any random oracle queries.
+\end{proof}
+
+
+\section*{Exercises}
+
+\begin{enumerate}[label=\textbf{Exercise \thesection.\arabic*}, wide=0pt]
+  \item While we haven't yet covered digital signatures, you have likely heard of the concept. What you really need to know is that to sign a message $M$ using RSA, a signer, Bob with $\pk = (N, e)$ and $\sk = (p, q, d)$ where $N = pq$, computes 
+  \[
+  S = M^d \mod N
+  \]
+  and a verifier, Eve, checks if $S^e = M\mod N$. In order to speed up this computation, sometimes the Chinese Remainder Theorem is used. To do this, Bob computes
+  \[
+  S_p = M^{d\mod (p-1)} \mod p \text{ and } S_q = M^{d\mod (q-1)} \mod q
+  \]
+  and then 
+  \[
+  S = aS_p + bS_q \mod N.
+  \]
+  where $a \equiv 1\mod p$ and $b \equiv 1 \mod q$, $a \equiv 0\mod q$ and $b \equiv 0 \mod p$.
+  Mount an attack against this signature scheme, if you know that one of the computations for $S_p$ or $S_q$ fails with a non-negligible probability $\pi(n)$ in $n = \log N$ (the length of $N$). 
+  \item Suppose Bob publishes $2$ public keys $(N, e_0)$ and $(N, e_1)$ and Alice, wanting to be extra sure that Bob gets her message $M$, sends him $M^{e_0}\mod N$ and $M^{e_1}\mod N$. Bob decrypts whichever message he receives first and returns it. If a second message with the same plaintext but different key arrives later, he ignores it. In other words, describe the scheme as:
+  \begin{center}
+\hfpages{.25}{
+		\underline{$\enc((N, e_0), (N, e_1),M)$:}\\
+    $C_0 \gets M^{e_0} \bmod N$\\
+    $C_1 \gets M^{e_1} \bmod N$\\
+    		Ret $(C_0,C_1)$
+  }{
+	 \underline{$\dec((N,d_1), (N, d_2),(C_0,C_1))$:}\\
+    	$b \getsr \bits$\\	  
+    	$M \gets C_b^{d_b} \mod N$\\
+	Ret $M$
+	}
+\end{center} 
+Is this scheme $\INDCPA$ secure? If so, show a reduction to the RSA assumption. If not, then provide an attack.
+  
+\end{enumerate}
+
+
+%
+%
+%
+%
+
+%
+%
+%\hfpages{.15}{
+%\underline{$\enc(X,M)$}\\
+%$r \getsr \Z_{|G|}$\\
+%$C_0 \gets g^r$\\
+%$C_1 \gets X^r \cdot M$\\
+%Ret $(C_0,C_1)$
+%}{
+%\underline{$\dec(x,(C_1,C_2))$}\\
+%$M \gets C_2 \cdotsm C_1^{-x}$\\
+%Ret $M$
+%}
+%
+%
+%\fpage{.20}{
+%\underline{$\DDH_{G,g}^\advB$}\\
+%$b \getsr \bits$\\
+%$x,y,z \getsr \Z_{|G|}$\\
+%$Z_0 \gets g^z$\\
+%$Z_1 \gets g^{xy}$\\
+%$b' \getsr \advB(g,g^x,g^y,Z_b)$\\
+%Ret $(b' = b)$
+%}
+%
+%\begin{theorem}
+%Let $\AEnc$ be the El Gamal scheme over group $G$ with generator $g$. 
+%Let $\advA$ be an $\INDCPA_\AEnc$-adversary. Then we give a $\DDH_{G,g}$ 
+%adversary $\advB$ such that 
+%\bnm
+%  \AdvINDCPA{\AEnc}{\advA} \le 2\cdotsm \AdvDDH{G,g}{\advB} \;.
+%\enm
+%Adversary $\advB$ runs in time that of $\advA$. 
+%\end{theorem}
+%
+%
+%\fpage{.20}{
+%\underline{$G_0$ \;\;\; \fbox{$G_1$}}\\
+%$b \getsr \bits$\\
+%$x \getsr \Z_{|G|}$\\
+%$X \gets g^x$\\
+%$b' \getsr \advA^\EncOracle(g,X)$\\
+%Ret $(b' = b)$\medskip
+%
+%\underline{$\EncOracle(M_0,M_1)$}\\
+%$C_1 \gets g^y$\\
+%$Z \gets g^{xy}$\\
+%\fbox{$z \getsr \Z_{|G|}$ \;;\; $Z \gets g^z$}\\
+%$C_2 \gets Z\cdot M_b$\\
+%Ret $(C_1,C_2)$
+%}
+%
+%\fpage{.20}{
+%\underline{Adversary $\advB(X,Y,Z)$}\\
+%$b \getsr \bits$\\
+%$b' \getsr \advA^\EncSim(g,X)$\\
+%Ret $(b' = b)$\medskip
+%
+%\underline{$\EncSim(M_0,M_1)$}\\
+%$C_1 \gets Y$\\
+%$C_2 \gets Z\cdot M_b$\\
+%Ret $(C_1,C_2)$
+%}
+%
+%
+%\begin{align*}
+%  \AdvINDCPA{\AEnc}{\advA} 
+%    &= 2\cdotsm\Prob{\INDCPA_{\AEnc}^\advA\Rightarrow\true} - 1\\
+%    &= 2\cdotsm\Prob{G_0\Rightarrow\true} - 1\\
+%    &= 2\cdotsm\left(\Prob{G_1\Rightarrow\true} + \AdvDDH{G,g}{\advB})\right) - 1\\
+%    &= 2\cdotsm\left(\frac{1}{2}+ \AdvDDH{G,g}{\advB})\right) - 1
+%\end{align*}
+%
+%
+%
+%\bnm
+%J_p(a) = \left\{ \begin{array}{rl} 
+%            1 & \textnormal{if $a$ is square mod $p$}\\
+%            0 & \textnormal{if $a \bmod p = 0$}\\
+%            -1 & \textnormal{otherwise}
+%      \end{array}\right.
+%\enm
+%
+%
+%\fpage{.20}{
+%\underline{Adversary $\advB(X,Y,Z)$}\\
+%If $J_p(X) = 1$ or $J_p(Y) = 1$ then\\
+%\myInd $s \gets 1$\\
+%Else \\
+%\myInd $s \gets -1$\\
+%If $J_p(Z) = s$ then\\
+%\myInd Ret 1
+%Ret 0
+%}
+
+
+
+
+
+%\begin{itemize}
+%\item Definition for modular arithmetic
+%\item Definition of a group and an example -- defining $\Z^{*}_N$.
+%\item Algorithms in $\Z^{*}_N$
+%	\begin{itemize}
+%	\item Discuss add, multiply and exp
+%	\item Naive exponentiation and past power
+%	\end{itemize}
+%\end{itemize}
+%
+%\begin{itemize}
+%\item Definition as a set of three algorithms
+%\item Naive RSA and discussion of related topics:
+%	\begin{itemize}
+%		\item How does it work and what is the underlying math?
+%		\item Primality testing 
+%		\item $e = 65,537$ usually and a reference for the attacks on $e=3$
+%		\item Side channel attacks on fast power.
+%		\item Montgomery ladder alg from https://cr.yp.to/bib/2003/joye-ladder.pdf
+%	\scribenote{Should I use a different version?}
+%	\end{itemize}
+%\item RSA with hashing to generate one time key for symmetric encryption \scribenote{Why don't we use normal RSA? Is it because that restricts message length? TODO: figure this out}
+%\item Adversarial model: $\INDCPA$.
+%\item Theorem: Single query $\INDCPA$ implies multi-query $\INDCPA$.
+%\item Theorem: Show RSA with hashing is single query $\INDCPA$ secure. Complete proof with the 4 games and the algebra for the proof.
+%\end{itemize}
+
