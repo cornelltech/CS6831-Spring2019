@@ -1,0 +1,201 @@
+\section{Zero-Knowledge and Proofs of Knowledge}
+\label{sec:zknowledge}
+Identity protocols provide proof about the ownership of a private key, without revealing that private key.
+We can generalize this notion to proving knowledge of an arbitrary secret without revealing the secret as \emph{zero-knowledge (ZK) proofs}. 
+The notion of zero-knowledge was first introduced by Goldwasser et al.~\cite{goldwasser1989knowledge}.
+On a high level, in ZK protocols a \emph{verifier} interacts with \emph{prover}, who wants to show that some \emph{statement} $S$ holds about a private $x$, called a \emph{witness}. 
+
+For the formal definition of a ZK proof, we follow Boneh-Shoup's treatment~\cite{BonehShoupBook} and define an effective relation as a binary relation $\calR \subseteq \calX \times \calY$  where $\calR, \calX,\calY$ are sets.
+We assume they are efficiently recognizable, meaning one can determine if a value is a member of the set efficiently.
+
+To demonstrate that identity protocols are zero-knowledge proofs of knowledge, we define the protocol from the previous section relative to relations.
+A \emph{proof of knowledge} are particular ZK proof, where the verifier learns nothing about the witness except that the provided statement is true.
+Figure \ref{fig:sigmaid} outlines the resulting protocol, which is semantically identical to the identity protocol but relies on notation based on relations.
+Here, $Y$ takes the role of the public key and $x$ the role of the secret key.
+
+\begin{figure}[h]
+\centering
+
+\begin{tikzpicture}
+    \node[draw, rectangle] (P) {Prover};
+    \node[below=4cm of P] (P2) {};
+    \node[right=5cm of P, draw, rectangle] (V) {Verifier};
+    \node[below=4cm of V] (V2) {};
+
+    \node[below=1cm of P] (a) {};
+    \node[below=1.5cm of V] (b) {};
+    \node[below=2cm of V] (c) {};
+    \node[below=2.5cm of P] (d) {};
+    \node[below=3cm of P] (e) {};
+    \node[below=3.5cm of V] (f) {};
+
+    \node[left=0.2cm of a] (genR) { $R \getsr P.com(Y)$ };
+    \node[right=0.2cm of c] (genc) { $c \getsr C$ };
+    \node[left=0.2cm of e] (genz) { $z \gets P.resp(x,R,c)$ };
+    \node[right=0.2cm of f] (verify) { $b \gets V.ver(Y,R,c,z)$ };
+
+    \draw[-] (P) -- (P2);
+    \draw[-] (V) -- (V2);
+
+    \draw[->] (a.center) -- (b.center) node [midway, above] {$R$};
+    \draw[->] (c.center) -- (d.center) node [midway, above] {$c$};
+    \draw[->] (e.center) -- (f.center) node [midway, above] {$z$};
+\end{tikzpicture}
+
+\caption{The identity protocol adapted to the zero-knowledge terminology}
+\label{fig:sigmaid}
+\end{figure}
+
+\subsection{Sigma protocol for generalized linear relationships}
+
+So far, we showed how to provide zero-knowledge proofs for simple binary relationships.
+To support more complex applications, we now generalize the Sigma protocol to prove predicates of the following form.
+
+\begin{equation*}
+    \phi(x_1, \dots, x_n) = \left\{ u_1 = \prod_{j=1}^{n} g_{1j}^{x_j} \land \dots \land u_m  = \prod_{j=1}^{n} g_{mj}^{x_j}\right\}
+\end{equation*}
+Here, $x_1, \dots, x_n$ are the witnesses. The statements are encoded by the $u_j$ and $g_{ij}$ values.
+The values $R$, $c$, and $z$ define the communication-specific \emph{transcript}.
+We can then adapt this protocol to different use-cases by adjusting $m$ and $n$. Some examples are listed in Table \ref{tab:sigmaexamples}.
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|}
+\hline
+    \textbf{Name} & \textbf{Description} & \textbf{Formula} \\
+\hline
+    Schnorr        & Digital Signatures & $n=1$, $m=1$, $\phi(x) = \left\{ u = g^x \right\}$ \\
+    Chaum-Pederson & Prove that X,Y,Z is a DH triple &  $n=1$, $m=2$, $\phi(x) = \left\{ X = g^x \land Z = Y^x\right\}$ \\
+    Okamoto        & Prove ``representation'' of dlog &  $n=2$, $m=1$, $\phi(x_1, x_2) = \left\{ u = g^{x_1} h^{x_2} \right\} $ \\
+\hline
+\end{tabular}
+
+\caption{Examples of the applications for the generalized sigma protocol}
+\label{tab:sigmaexamples}
+\end{table}
+
+\begin{figure}[h]
+\centering
+
+\begin{tikzpicture}
+    \node[draw, rectangle, align=center] (P) {\textbf{Prover} \\ (knows $x_1, \dots, x_n$)};
+    \node[below=4cm of P] (P2) {};
+    \node[right=5cm of P, draw, rectangle, align=center] (V) {\textbf{Verifier} \\ (knows $u_1, \dots, u_m$) };
+    \node[below=4cm of V] (V2) {};
+
+    \node[below=1cm of P] (a) {};
+    \node[below=1.5cm of V] (b) {};
+    \node[below=2cm of V] (c) {};
+    \node[below=2.5cm of P] (d) {};
+    \node[below=3cm of P] (e) {};
+    \node[below=3.5cm of V] (f) {};
+
+    \node[left=0.2cm of a, align=right] (genR) { $r_1, \dots, r_n \getsr \Z_q$ \\ $R_i \gets \prod_{j=1}^n g_{ij}^{r_j}$ };
+    \node[right=0.2cm of c] (genc) { $c \getsr \Z_q$ };
+    \node[left=0.2cm of e, align=right] (genz) { $z_j \gets r_j + x_jc$ \\ for $j=1$ to $n$ };
+    \node[right=0.2cm of f, align=center] (verify) { Check that for $i=1$ to $m$\\
+    $\prod_{j=1}^{n} g_{ij}^{z_j} = R_i * u_i^c $ };
+
+    \draw[-] (P) -- (P2);
+    \draw[-] (V) -- (V2);
+
+    \draw[->] (a.center) -- (b.center) node [midway, above] {$R_1, \dots, R_m$};
+    \draw[->] (c.center) -- (d.center) node [midway, above] {$c$};
+    \draw[->] (e.center) -- (f.center) node [midway, above] {$z_1, \dots, z_n $};
+
+\end{tikzpicture}
+
+\caption{Sigma protocol for generalized interactive zero-knowledge proofs}
+\label{fig:sigmageneral}
+\end{figure}
+
+Figure \ref{fig:sigmageneral} shows how this generalization applies to the communication between prover and verifier.
+In particular the public and private keys are extended to vectors of size $m$ and $n$.
+The prover then generates a randomness vector $r_1, \dots, r_n$ in order to generate $m$ distinct $R_i = \prod_{j=1}^n g_{ij}^{r_j}$.
+Like before, the verifier then generates a single integer challenge $c \getsr \Z_q$.
+From this the prover generates a vector of $n$ values $z_j = r_j + x_j*c$.
+
+The verifier then check for correctness by validating that $\prod_{j=1}^{n} g_{ij}^{z_j} = R_i * u_i^c $ holds for $i=1$ to $m$. 
+The following shows that, if the prover is correct and honest, this check holds.
+
+\begin{align*}
+    \prod_{j=1}^{n} g_{ij}^{z_j} = R_i * u_i^c && \\
+    \Leftrightarrow \prod_{j=1}^{n} g_{ij}^{r_j} * g_{ij}^{x_j*c} = R_i * u_i^c \\
+    \Leftrightarrow R_i * \prod_{j=1}^{n} (g_{ij}^{x_j})^c = R_i * u_i^c \\
+    \Leftrightarrow R_i * u_i^c = R_i * u_i^c  \qed \\
+\end{align*}
+
+\subsubsection{Application: Providing Encrypted Message Equality}
+Suppose we want to prove that we encrypted the same message with two distinct public keys.
+In particular, we show how to show message equality under ElGamal, without revealing the message itself or the randomness chosen during encryption.
+
+\begin{align*}
+{enc}({pk}_1, M) = (g^{r_1}, pk_1^{r_1} *M) \\
+{enc}({pk}_2, M) = (g^{r_2}, {pk}_2^{r_2} * M) \\
+\end{align*}
+
+The proof is then generated using the following relation $\calR$, where $r_1$ and $r_2$ are the chosen randomness for ElGamal, and $pk_1$ and $pk_2$ are the different public keys.
+
+\begin{align*}
+    \calR = \left\{ ( \underbrace{(r_1, r_2, M)}_{\text{Witness}}, \underbrace{(R_1, {pk}_1, C_1, R_2, {pk}_2, C_2)}_{\text{Statement}} ) : R_1 = g^{r_1}, C_1 = {pk}_1^{r_1} *M, R_2 = g^{r_2}, C_2 = {pk}_2^{r_2} * M \right\}
+\end{align*}
+
+We can then verify the relation using the generalized Sigma equation from above.
+
+\begin{align*}
+    \phi(r_1, r_2) = \left\{ R_1 = g^{r_1} \land R_2 = g^{r_2} \land C_1 / C_2 = pk_1^{r_1} pk_2^{-r_2} \right\}
+\end{align*}
+
+\subsection{Properties of Zero-Knowledge Proofs}
+All zero-knowledge proofs can be described as a proof that for some $x$ it holds that $x \in \calL$, where is a language ($\calL = \{0,1\}^{*}$~\cite{goldwasser1989knowledge}).
+We further define the following properties for such proofs.
+
+\paragraph{Completeness} For any element $x \in \calL$ we can generate a valid ZK proof.
+We define a ZK proof as valid if it is accepted by a verifier with high probability in polynomial time.
+
+\paragraph{Soundness} An adversary cannot generate a valid ZK proof for any element $x' \not \in \calL$ in polynomial time.
+
+\paragraph{Zero-Knowledge} The proof reveals no other information about $x$.
+
+\scribenote{Do we need to define "information" or "knowledge" here?}
+
+There exist different variations of these properties. We will describe two of those in detail: knowledge soundness and honest-verifier zero-knowledge.
+
+\subsubsection*{Knowledge Soundness for Sigma Protocols}
+We define \emph{knowledge soundness} as the property that an entity can only generate a valid statement for a witness, if they know the witness.
+
+For Sigma protocols in particular, we can show that a prover can derive its witness by communicating with itself.
+Assume we have some extractor function that does not have direct access $w$ but can invoke the prover as a black box (including rewinding the prover's state).
+We can then show that this extractor can compute the witness $w$ from two transcripts about some statement $Y$, such that $(w, Y) \in \calR$.
+To do this, the extractor rewinds the communication after the first transcript $(R,c,z)$ such that for the second transcript $(R', c', z')$ it holds that $R = R'$.
+
+\begin{align*}
+    g^z = R * g^{xc} \Leftrightarrow R = g^{z-xc} \\
+    g^{z'} = R' * g^{x'c'} \Leftrightarrow R' = g^{z'-xc'} \\
+\end{align*}
+
+Because $R=R'$ we can solve $z-xc = z'-xc'$ for $x$ to retrieve the witness. The same approach can also be applied to the generalized Sigma protocol.
+
+\subsubsection{Honest-Verifier Zero-Knowledge for Sigma Protocols}
+We define \emph{honest-verifier zero-knowledge (HVZK)} as the property that no information aside from $x \in \calL$ is leaked to an honest verifier.
+To prove the property for Sigma protocols we construct a simulator $S$ that has black-box access to the verifier $V$.
+We then show that $S$ can a transcript that is different from the previously seen transcript(s) but will be accepted by $V$.
+The intuition behind this proof is that, if we can generate (computationally) valid transcript without talking to the prover directly, no other information about $w$ is revealed.
+
+Because the verifier is honest we can assume that $c$ in the original transcript $(R,c,z)$ is chosen uniformly at random.
+The goal for $S$ is then to generate a new transcript $(R', c, z')$, where $R' \neq R$ and $z \neq z'$.
+To achieve this we can apply a similar approach as previously. We know $c$, $R$, and $z$. We then set $z' \getsr \calZ$ and solve for $R'$.
+
+\subsection{Non-Interactive Zero-Knowledge Proofs}
+Until now we discussed zero-knowledge proofs in an interactive setting.
+Informally speaking, in interactive settings the verifier can ask ``questions'' about the proof and gets answers in form of witnesses from the prover.
+In an non-interactive setting, the prover has to provide answers to all possible ``questions'' a priori.
+
+For the protocol from above, a straightforward way to construct \emph{non-interactive zero-knowledge (NIZK) proofs} is Fiat-Shamir, which was introduced in Section \ref{sec:idprots}.
+Let us recall that this construction removes the step in the proof where the verifier provides a random challenge to the prover by introducing a random oracle, which can be implemented using a cryptographic hash function.
+
+While this sounds promising, not all protocols that are in the random oracle model can be implemented securely using a CHF~\cite{canetti2004random}.
+To overcome this limitation, Groth et al.~\cite{groth2006perfect} demonstrated how to build efficient NIKZ proofs by converting expressed into a logic circuit.
+This scheme was then improved modifying the circuit such that the prover merely has to show that there exists a valid assignment to the circuit~\cite{groth10shortpairing}.
+Finally, zk-SNARKs demonstrate how to build circuits that can prove correctness of arbitrary programs in constant size~\cite{ben2014succinct}.
+\scribenote{More detail needed? Mention zk-STARKS?}
+
