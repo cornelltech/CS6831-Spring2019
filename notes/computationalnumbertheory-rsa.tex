@@ -638,7 +638,16 @@ and so, by triangle inequality:
 \Prob{\G_1 \implies \true} \le \AdvOWF{\RSAk}{\advB} + \Prob{\G_2 \implies \true}.
 \]
 Also note that $\advA$ is allowed to make up to $q$ queries to $\Horacle$, so the run time of $\advB$ is that of $\advA$ with simulating $q$ queries to $\Horacle$.
-The only difference between the encryption schemes in $G_2$ and $G_3$ is that the encryption is real in $\G_2$ and random in $\G_3$. Suppose an $\INDROR$ adversary $\advC$, given a challenge message $M$ runs $\advA$ by running $\kg(k)$, getting a random $R$ and setting $C_1 = R^e$. $\advC$ also selects a bit $b_0$ and sets $M_{b_0} = M$, $M_{b_1} = 0^n$ (where $b_1$ is the bit other than $b_0$). Finally, $\advC$ gets $b' = \advA^{\EncOracle}(N, e)$ and returns $b = b'$. Therefore, $\G_2$ simulates the real world and $\G_3$ the random world and%Hence, any $\INDROR$ adversary $\advC$ can
+
+The only difference between the encryption schemes in $G_2$ and $G_3$ is that the encryption is real in $\G_2$ and random in $\G_3$. Suppose an $\INDROR$ adversary $\advC$, is given an encryption oracle $\EncOracle$. $\advC$ runs $\advA$ by running $\kg(k)$, getting a random $R$ and setting $C_1 = R^e$. $\advC$ also selects a bit $b$. Then $\advC$ gives $\advA$ an encryption oracle $\EncOracle'(\cdot, \cdot)$ defined below:
+\begin{center}
+\fpage{.20}{
+	\underline{$\EncOracle'(M_0, M_1)$}\\
+	$C_2\getsr \EncOracle(M_{b})$\\
+	Ret $C_2$
+}
+\end{center}
+Finally, $\advC$ gets $b' = \advA^{\EncOracle}(N, e)$ and returns $b = b'$. Therefore, $\advC$  simulates $\G_2$ when it's in the real world and $\G_3$ when it's in the random world. This results in%Hence, any $\INDROR$ adversary $\advC$ can
 \[
 |\Prob{\G_3 \implies \true} - \Prob{\G_2\implies \true}| \leq \AdvROR{\SEscheme}{\advC}.
 \]
