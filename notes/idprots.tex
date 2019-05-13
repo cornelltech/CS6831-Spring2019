@@ -13,6 +13,53 @@ challenge $c \in \IDchalset$, and outputs a response~$z$. The verification
 algorithm $\IDver$ is deterministic, takes as input a public key $\pk$, 
 commitment $R$, challenge $c$, and response $z$, and outputs a bit.  
 
+
+
+
+
+
+\subsection{Sigma Protocol and Schnorr Signatures}
+% For our purposes, an identification protocol is a tuple of algorithms
+% $(\IDkeygen,\IDcom,\IDresp,\IDver)$ and a set $\IDchalset$ called the challenge space. 
+Consider the following identification protocol, which is a variant of Schnorr Signatures: Let $G$ be group of prime order $q$.  Let $g$ be a generator. $sk = x$ chosen randomly from $\Z_q$. $pk = X = g^x$.\\
+
+\fpage{.40}{
+\underline{$\text{Sign}(x, M)$}\\[1pt]
+$r \getsr \Z_q$\\
+$R = g^r ; c = H(M || R); z = r + cx $ mod $q$\\
+$\queried \gets \false$\\
+Ret $(R,z)$\medskip
+
+\underline{$\VerOracle(X, M, (R,z))$}\\[1pt]
+$c = H(M || R)$\\
+If $g^z = RX^c$ then Ret $1$\\
+Ret $0$
+}\\
+
+Note that the mod $q$ step is not strictly necessary for computing $z$, as it is a prime order group, 
+and the verification algorithm does not depend on knowing $x$. 
+Does this protocol have correctness? 
+$g^z = g^{r + cx} = g^rg^{xc} = RX^c$. Having seen this identification protocol, let us return to the topic of proving the security of Schnorr signatures. 
+We have a group of prime order $q$. Let $g$ be a generator $sk = x$ chosen randomly from $\Z_q$. We sign two messages $M\neq M'$ with the same randomness $r$: $\text{Sign}(x,M)\rightarrow(R,z) = (R, r+cx \mod q)$ and $\text{Sign}(x,M')\rightarrow(R,z') = (R, r+c'x \mod q)$. But there is a key fragility issue with this protocol: re-using the same randomness allows us to easily recover the secret key $x$ by solving two linear equations of $M\neq M'$ for $x$. Everything else is public, so $x$ will be the only unknown to solve for in the system of equations:
+$x = \frac{(z=z')}{(c-c')}=\frac{(z-z')}{H(M||R)-H(M'||R)}$.
+
+We can distill a core security analysis from this fragility issue: the intuition is that the forger can be turned into DL solver by getting the forget to twice forge on the same $R$, but a slightly different $c$ value (in order to ensure that we do not divide by zero when solving for $x$). Re-run the adversary twice to cause a discrete log solution from any given good UF-CMA adversary; by the usual contrapositive, if DL holds, we expect that we cannot forge.
+
+There are closely related primitives in identification protocols. One example is the Schnorr sigma protocol, which is a 3-round protocol. The idea is that you have a \emph{prover}, a client that wants to convince a \emph{verifier} that they have a secret key $x$. Ostensibly this is named as such because a capital sigma looks like a depiction of a three-round protocol. If the client doesn't know $x$, they shouldn't be able to answer the challenge correctly.
+More formally:
+The prover wants to prove that they have $sk = x$ associated to public key $X = gx$. Sigma protocols are class of 3-round protocols: (1) the prover sends a commitment (\IDcom) to the verifier; (2) the verifier replies with a challenge (\IDver); (3) the prover sends a response to the challenge (\IDresp). Schnorr's protocol is just one example, as there are many others: Okamoto's, Chaum-Pederson, Guillou-Quisqater (RSA), and more.
+% $(\IDkeygen,\IDcom,\IDresp,\IDver)$ and a set $\IDchalset$ called the challenge space. 
+There is a similar structure between identification protocols and digital signature schemes. A Fiat-Shamir transform can take an identification protocol (sigma) and turn it into a digital signature scheme (signing a message and outputting a signature): The signature is the commitment and response. Challenge $c$ can be generated non-interactively with RO (hash of response plus the message). Works on other Sigma protocols as well. Class question:
+Is there a scheme from DL that is tight?
+Recently solved open question. \scribenote{Homework problem: build a different scheme that is tight.}
+
+Analysis game plan for Schnorr:
+Formalize ID protocols and their security under \emph{passive attacks}. Prove Schnorr ID protocol secure: this requires the so-called \emph{rewinding lemma} (\lemref{lem:rewind}): running an adversary twice on related randomness, we are likely to succeed twice. It also uses the fact that the Schnorr protocol is \emph{honest-verifier zero-knowledge}.
+Prove that Schnorr signature UF-CMA is implied by Schnorr ID passive attack security. Formalizing more carefully what passive attacks. Three abstract algorithms prover's commitment algorithm (\IDcom), challenge set \IDchalset, prover's response algorithm (\IDresp), verifier's verification algorithm (\IDver).
+
+
+Want to prove ID security under passive attacks for Schnorr. Here is a game to model this, which we refer to as IDPASS:
+
 \bnm
 \AdvIDPASS{\IDscheme,q_{id}}{\advA} = \Prob{\IDPASS_{\IDscheme,q_{id}}^\advA\Rightarrow\true}
 \enm
@@ -33,8 +80,22 @@ If $\queried = \true$ then Ret $\bot$\\
 $\queried \gets \true$\\
 $c^*\getsr \IDchalset$\\
 Ret $c^*$
-}
+}\\
 
+Generate a bunch of keys, then transcripts that the adversary gets access to. A transcript is ($R$ - commitment, $c$ - challenge, $z$ - response). Adversary gets a single attempt to impersonate the prover. Prover gets the public key and transcripts and $q_{id}$ honest executions. Adversary needs to return a $z*$ such that it verifies correctly. Assume we have an adversary $\advA$ against the passive attack setting of Schnorr. Can we recover $x$ from $X$? Build an Adversary $\advB$ that can use impersonator $\advA$ to recover $x$ via solving discrete log problem. We need to supply the $q_{id}$ transcripts. Need to simulate these transcripts and somehow need to run A twice intuitively to get two transcripts with different c* values. Can we simulate $R_i$, $c_i$, $z_i$ because Schnorr is zero-knowledge and by our ZK scheme we do not need to possess the secret key to simulate the tuple. Build discrete-log (DL) adversary that runs a twice to get two transcripts that allow extracting $sk = x$.
+How can we create believable transcripts without the secret key? 
+Recall that a real transcript requires:
+identically distributed triple without knowing $x$?
+$g^r$, $c$, $z = cx + r$.
+First idea: pick random $g^r$, $c$, $z$. But $z$ is independent of the other two. doesn't satisfy with probability 1 over the entire group. 
+The real tuples only have two random values and one determined by $x$. We won't pass public verifier since we don't know $x$.
+What else can we do to make a believable transcript? We do know $X$. Pick random $c$, random $z$, then calculate $g^r$ using those, as we have inverted the order that we select things.
+$R = g^z * X^{-c}$, so $R(x^c) = g^z$ and $g^z * $
+
+This is without loss given the same distribution and the equations check out, given that we had $X$. Anybody can generate a transcript without knowing $x$. This is an intentional part of the zero-knowledge aspect of this proof. But we can leverage this fact to make our believable transcripts. In actual deployment, however, you can't choose $R$ as a function of $c$. This ordering in deployment is critical for security. This is why it is called a commitment, to pick $R$ before seeing $c$. This will still suffice for the purposes of our reduction.
+Revisit our attack plan. We need to observe two forgeries -- rewind the adversary to the point after they query $R*$ and re-run from there with a different $c*$ value.
+
+We can make a reduction from IDPASS to Discrete Log (DL) with $\advB$ who knows $X$:
 
 \fpage{.43}{
 \underline{$\advB(X)$}\\[1pt]
@@ -55,13 +116,16 @@ If $\queried = \false$ then \\
 \myInd $\queried \gets \true$\\
 \myInd Ret $c^{*} \getsr \Z_q$\\
 Ret $c^{**} \getsr \Z_q$
-}
+}\\
+
+First generate our trick transcript without $x$ by picking $z$, $c$ first and computing $r$. Then run a once to get $z*$, then rewind to get a fresh $z**$ only difference is the different challenge value. Intuitively $c*=c**$ has very low probability. Runs were completely independent (IID), with success around epsilon squared, but not exactly because we aren't using identical coins. Same coins ($coins$) on both runs, made $\advA$ deterministic up until it queries $\VerOracle$. How do we lower bound the probability that $\advA$ succeeds twice? Key analysis captured by rewinding lemma (also known as the reset lemma):
 
 
 \begin{lemma*}
+\label{lem:rewind}
 Let $S$ and $T$ be finite, non-empty sets and let $f\Colon S\times T\rightarrow
 \bits$ be a function. Let $\calX,\calY,\calY'$ be independent random variables,
-with $\calX$ taking values in $T$ and $\calY,\calY'$ being uniformly chosen from
+with $\calX$ taking values in $S$ and $\calY,\calY'$ being uniformly chosen from
 $T$. Let $\Pr[f(\calX,\calY) = 1] = \epsilon$. Then 
 \bnm
   \Prob{f(\calX,\calY) = 1 \land f(\calX,\calY') = 1 \land \calY \ne \calY'} 
@@ -69,7 +133,11 @@ $T$. Let $\Pr[f(\calX,\calY) = 1] = \epsilon$. Then
 \enm
 \end{lemma*}
 
+$f$ is intuitively the success predicate over running the deterministic function $\CoinSpace_\advA$ over the set of coins/commitment value. \scribenote{Prove the lemma as a homework problem?} $\Pr[f(\calX,\calY) = 1] = \epsilon$ is the probability of our adversary succeeding in a single run over a random $\calX,\calY$ choice. 
+
+Here is a sketch of the reduction:
 \begin{proof}[Sketch]
+\label{prf:lem}
 Let $\epsilon(s) = \Pr[f(s,\calY) = 1]$. 
 Then $\Ex[\epsilon(\calX)] = \epsilon$. Let $N_s$ be the number of values
 $Y \in T$ such that $f(s,Y) = 1$. Let $\calU_s$ be the event that $f(s,\calY) =
@@ -120,6 +188,7 @@ $Y \in T$ such that $f(s,Y) = 1$. Let $\calU_s$ be the event that $f(s,\calY) =
 
 
 \begin{theorem*}
+\label{thm:idpass-dl-adv}
 Let $G$ be a cyclic group, $q_{id} \ge 0$, 
 and $\advA$ be an $\IDPASS_{\IDscheme,q_{id}}$-adversary for the Schnorr
 scheme~$\IDscheme$
@@ -131,8 +200,23 @@ Adversary~$\advB$ runs in time at most twice that of $\advA$ plus
 $\bigO(q_{id})$.
 \end{theorem*}
 
+We get to use the reset lemma to lower bound IDPASS by $\epsilon^2 - \frac{\epsilon}{|T|}$ (where $T=G$ built by the Schnorr scheme~$\IDscheme$). We've proven Schnorr ID protocols are secure under $\DL$ passive attack security. Now we want to show a reduction of $\UFCMA$ to the IDPASS of Schnorr's ID protocol. We want to prove the security of Fiat-Shamir's output which is the signature scheme under $\UFCMA$. Recall the game: we get the puiblic key, signing oracle, random oracle, query on random messages, and need to forge a valid signature on a new message.
+We want to show any adversary $\UFCMA$ against Schnorr we can convert the passive attack adversary against Schnorr protocols.
+Going to use the fact that it's RO to generate $c$ values for the adversary $\advA$. $\UFCMA$ to IDPASS reduction. The idea is:
+IDPASS adversary $\advB$ that runs $\advA$ agsinst the passive attack Schnorr security:
+\begin{enumerate}
+    \item Guess RO query i* corresponds to forgery, query ver to set H[Mi*] = c*. Can embed challenge point in RO output.
+    \item Uses $c_i$ values as response to other RO queries.
+    \item Uses ($R_i, c_i, z_i$) to simulate signing queries.
+\end{enumerate}
+
+Simulates $\advA$'s environment perfectly if i* guess correct and no commitments $R$ collide with previous H queries.
+We succeed if i* is correct.
+
+Then we can put this all together to form our reduction of UF-CMA to DL:
 
 \begin{theorem*}
+\label{thm:ufcma-dl-adv}
 Let $G$ be a cyclic group and $\DS$ be the Schnorr digital signature scheme
 using random oracle $\Horacle \Colon\msgspace\rightarrow\Z_{|G|}$.  
 Let $\advA$ be an $\UFCMA_{\DS}$-adversary making at most $q_h$ RO queries and
@@ -145,70 +229,4 @@ Adversary~$\advB$ runs in time at most twice that of the sum of the running time
 of~$\advA$ and $\bigO(q_h+q_s)$.
 \end{theorem*}
 
-\subsection{Sigma Protocol and Schnorr Signatures}
-
-(Variant of) Schnorr Signatures.
-We will be proving the security of Schnorr signatures. 
-
-We have a group of prime order $q$. Let $g$ be a generator $sk = x$ chosen randomly from $Z_q$. Fragility issue: re-using same randomness allows us to easily recover the secret key $x$ by solving two linear equations of $M\neq M'$.
-The core security analysis intuition is that the forger can be turned into DL solver by getting the forget to twice forge on the same R, different C. Re-run the adversary twice to cause a discrete log solution from any UF-CMA adversary (cf. 2:06PM).
-
-Closely related primitive in identification protocols. Schnorr sigma protocol. The idea is that you have a prover, a client that wants to convince a verifier that they have a secret key $x$. Ostensibly this is named as such because a capital sigma looks like a depiction of a three-round protocol. If the client doesn't know $x$, they shouldn't be able to answer the challenge correctly.
-
-Similar structure between the two. A Fiat-Shamir transform can take an identification protocol (sigma) and turn it into a digital signature scheme (signing a message and outputting a signature). Apply this transform to generate $c$ non-interactively. Class question:
-Is there a scheme from discrete-log that is tight?
-Recently solved open question (build a different scheme that is tight). \scribenote{homework problem?}
-
-Analysis game plan for Schnorr:
-Formalize ID protocols and their security under \emph{passive attacks}. Prove Schnorr ID protocol secure: this requires the so-called \emph{rewinding lemma} (run an adversary twice on related randomness, likely to succeed twice). It also uses the fact that the Schnorr protocol is \emph{honest-verifier zero-knowledge}.
-
-Prove that Schnorr signature UF-CMA implied by Schnorr ID passive attack security. Formalizing more carefully what passive attacks. Three abstract algorithms prover's commitment algorithm (P.com), challenge set C, prover's response algorithm (P.resp), verifier's verification algorithm (V.ver).
-
-Want to prove ID security under passive attacks (IDPASS) for Schnorr. Generate a bunch of transcripts that the adversary gets access to. A transcript is (R - commitment, c - challenge, z). Adversary gets a single attempt to impersonate the prover. 2:20pm. Prover gets the public key and transcripts and $q_{id}$ honest executions. Assume we have an adversary A . Can we recover $x$ from $X$? Adversary B that can use impersonator A to recover $x$ via solving discrete log problem. We need to supply the $q_{id}$ transcripts. Need to simulate these transcripts and somehow need to run A twice intuitively to get two transcripts with different c* values. Can we simulate Ri, ci, zi because Schnorr is zero-knowledge and by our ZK scheme we do not need to possess the secret key to simulate the tuple. Build discrete-log (DL) adversary that runs a twice to get two transcripts that allow extracting sk = x.
-How can we create believable transcripts without the secret key? 
-Recall that a real transcript requires:
-identically distributed triple without knowing $x$?
-$g^r$, $c$, $z = cx + r$.
-First idea: pick random $g^r$, $c$, $z$. But $z$ is independent of the other two. doesn't satisfy with probability 1 over the entire group. 
-The real tuples only have two random values and one determined by $x$. We won't pass public verifier since we don't know $x$.
-What else can we do to make a believable transcript? We do know $X$. Pick random $c$, random $z$, then calculate $g^r$ using those, as we have inverted the order that we select things.
-$R = g^z * X^{-c}$, so $R(x^c) = g^z$ and $g^z * $
-
-This is without loss given the same distribution and the equations check out, given that we had $X$. Anybody can generate a transcript without knowing $x$. This is an intentional part of the zero-knowledge aspect of this proof. But we can leverage this fact to make our believable transcripts. In actual deployment, however, you can't choose R is a function of c. This ordering in deployment is critical for security. This is why it is called a commitment, to pick R before seeing c. This will still suffice for the purposes of our reduction.
-
-Revisit our attack plan. We need to observe two forgeries -- rewind the adversary to the point after they query R* and re-run from there with a different c* value.
-Reduction from IDPASS to Discrete Log (DL).
-
-B(x):
-First generate our trick transcript without $x$ by picking $z$, $c$ first and computing $r$. Then run a once to get $z*$, then rewind to get a fresh $z**$ only difference is the different challenge value. Intuitively $c*=c**$ has very low probability. 
-
-How do we lower bound the probability that A succeeds twice? Key analysis captured by rewinding lemma (aka reset lemma):
-If the runs were completely independent (IID), epsilon squared, but they are not here (2:40pm, 2:44pm).
-Same coins (w) on both runs, made A deterministic up until it queries Ver.
-Lemma. Let S and T be finite, non-empty sets and let f: S x t -> {0, 1} be a function. Let X, Y, Y' be independent random variables, with X taking values in S and Y, Y' being uniformly chosen from T. Let Pr[f(X,Y) = 1] = epsilon.
-
-f is the success predicate over the set of coins/commitment value (2:45pm).
-Then Pr[f(X,Y) = 1 (this is c*) \^ f(X,Y') = 1 (c**) \^ Y neq Y'] ge epsilon sq - (epsilon over absolute val of T).
-\scribenote{Prove the lemma as a homework problem?}
-
-See IDPASS security of Schnorr from slides (2:50pm).
-Theorem. Let G by a cyclic group, $q_{id} \ge 0$, and A be an IDPASS - adversary for the Schnorr scheme ID built using G. Then we give an $DL_G$-adversary B such that
-...
-lower bounded by $\epsilon^2 - \frac{\epsilon}{|G|} \ge ()$.
-Exercise for the readers to do algebra. 
-We've proven Schnorr ID protocols are secure under DL passive attack security. Still need (2:55pm).
-Prove security of fiat-shamir's output which is this security ... under UF-CMA.
-We want to show any adversary UF-CMA against Schnorr we can convert the passive attack adversary against Schnorr protocols.
-Going to use the fact that it's RO to generate c values for the adversary A. UF-CMA to IDPASS reduction. The idea is:
-IDPASS adversary B that runs A:
-\begin{enumerate}
-    \item Guess RO query i* corresponds to forgery, query ver to set H[Mi*] = c*. Can embed challenge point in RO output.
-    \item use ci values as response to other RO queries.
-    \item Use (Ri, ci, zi) to simulate signing queries
-\end{enumerate}
-
-Simulates A's environment perfectly if i* guess correct and no commitments R collide with previous H queries.
-We succeed if i* is correct.
-Putting it all together: UF-CMA to DL.
-Theorem statement: let $G$ be a cyclic group and DS be the Schnorr digital signature scheme using random oracle... (3:02pm - ``subtle detail'' 3:03pm.)
-Group size should be roughly twice that of bits of security needed. 256 bit group for 128 bit security...
+\scribenote{Homework problem: How to choose the group size? Answer: Group size should be roughly twice that of bits of security needed.}
