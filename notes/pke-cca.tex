@@ -2,14 +2,263 @@
 \section{Public Key Encryption under Chosen-Ciphertext Attacks}
 \label{sec:pke}
 
-A PKE scheme $\AEnc = (\kg,\enc,\dec)$ is a triple of
-algorithms. Key generation is randomized and outputs a key pair $(\pk,\sk)$.
-Encryption
-takes as input a public key $\pk$ and message $M$ and outputs a ciphertext.
-Decryption takes as input a secret key $\sk$ and ciphertext $C$ and outputs a
-message or a distinguished error symbol $\bot$. 
+In Chapter 19, we've laid the foundations for public key cryptography. We've also talked about RSA, one of the most widely used public key encryption schemes and its IND-CPA security. In this chapter we will see that CPA security alone will fail to capture all possible adversaries in the case of asymmetric cryptographic schemes. In this chapter we will look at some attacks on RSA and introduce the notion of Chosen-Ciphertext (CCA) security for public key encryption schemes namely RSA and ElGamal.  
+We will end by introducing a more secure variant of RSA with padding namely OAEP (Optimal Asymmetric Encryption Padding). 
+
+\subsection{Chosen-Plaintext (CPA) security}
+In Chapter 10, we've looked at the notion of indistinguishability for plaintext security (IND-CPA).  
+Recall that under IND-CPA the attacker has the ability to sample 2 distinct plaintext messages to be encrypted and receives one of the back encrypted. If the attacker is able to guess with a high probability (significantly higher than \( \frac{1}{2} \)) which plaintext was encrypted, he wins the IND-CPA game. This works in the case of public key encryption by modeling a encryption oracle on the public key (\(pk\)) since its always public knowledge. 
+
+\indent The traditional goal of IND-CPA security is indistinguishability of the plaintext from its corresponding ciphertext. Thus it is sufficient to consider only adversaries that make queries to the encryption oracle. \newline
+ 
+% IND-CPA game
+\begin{center}
+\fpage{.25}{
+\underline{$\INDCPA^\advA_{\SE}$}\\[1pt]
+$K \getsr \kg$\\
+$b \getsr \bits$\\
+$b' \getsr \advA^{\EncOracle}$\\
+Ret $b = b'$\medskip
+
+\underline{$\EncOracle(M_0,M_1)$}\\
+If $|M_0| \ne |M_1|$ then\\
+\myInd Ret $\bot$\\
+$C \getsr \enc_K(M_b)$\\
+Ret $C$
+}
+\end{center}
+
+\indent The goal of IND-CPA security is to ensure that an attacker who sees the ciphertext gains little (to no) information when compared with an attacker who doesn't see the ciphertext. In other words, if a public key encryption scheme is IND-CPA secure then the scheme itself must be randomized. This makes sense intuitively as the scheme can trivially be broken under IND-CPA if a plaintext always deterministically encrypts to the same value under the same public key. In the last section we will look at ways to add padding to the RSA scheme to randomize the ciphertexts generated.
+
+\indent In the following sections we will look at some example attacks on TLS and the QQ-browser to see why the IND-CPA is insufficient for security in practice for public key encryption schemes.
+
+\subsection{TLS}
+TLS is a cryptographic protocol that aims to provide secure communication to applications communicating through an insecure network. By secure communication we mean encryption of the data  being sent, authentication of the sender and integrity (being able to detect messages that have been tampered with). \newline
+\indent A secure TLS connection is initially established using a set of messages exchanged between the two end points called a TLS handshake. \newline
+
+% Note to self change this diagram to show the TLS protocol on the slides. 
+% Define box and box title style
+\tikzstyle{mybox} = [draw=black, very thick, rectangle, inner sep=6pt, inner ysep=10pt]
+\tikzstyle{fancytitle} =[draw=black, fill=white, rectangle, very thick,  inner sep=2pt, inner ysep=5pt ]
+\tikzstyle{line} = [draw, -latex']
+% tha actual picture
+\begin{figure} [H]
+\centering
+\begin{tikzpicture}
+% the client box
+\node [mybox] (box1){%
+    %\begin{minipage}{0.30\textwidth}
+    	%\begin{align*}
+	\begin{tabular}{c}
+		$: cHello := \{cRandom \leftarrow_{R} \{0,1\}^\lambda\}$ \\
+		\\
+		\\
+		$: assert(verfiy(SSLCert));$ \\
+		$: pms \leftarrow_{R} \{0,1\}^\lambda\ $\\
+		$: msg :=  \{ E_{pk}(pms) \}$ \\
+		$: cfin := \{sessionKey(cRand, sRand, pms)\}$ \\
+		\\
+	\end{tabular}
+	%\end{align*}
+    %\end{minipage}
+};
+\node[fancytitle, right=10pt] at (box1.north west) {Client};
+
+\node [mybox, right=1.5cm of box1.east] (box2){%
+    %\begin{minipage}{0.30\textwidth}
+    	\begin{tabular}{c}
+		\\
+		$: sRand  \leftarrow_{R} \{0,1\}^\lambda$  \\
+		$: sHello := \{SSLCert, pk, sRandom\} $  \\
+		\\
+		\\
+		$: pms := D_{sk}(msg)$ \\
+		$: sfin := \{sessionKey(cRand, sRand, pms)\}$ \\
+		\\
+	\end{tabular}
+    %\end{minipage}
+};
+\node[fancytitle, right=10pt] at (box2.north west) {Server};
+
+\draw [->] ([yshift=1.45cm]box1.east) -- ([yshift=1.25cm]box2.west) [text width=1cm, above] node {cHello};
+
+\draw [->] ([yshift=0.5cm]box2.west) --  ([yshift=0.3cm]box1.east)  [text width=1cm, above] node {sHello};
+
+\draw [->] ([yshift=-1.25cm]box1.east) -- ([yshift=-1.50cm]box2.west) [text width=1cm, above] node {msg};
+
+\draw [->] ([yshift=-1.70cm]box1.east) -- ([yshift=-2.0cm]box2.west) [text width=1cm, above] node {cfin};
+
+\draw [->] ([yshift=-2.2cm]box2.west) --  ([yshift=-2.5cm]box1.east)  [text width=1cm, above] node {sfin};
+
+\end{tikzpicture}
+\caption{Generic TLS Handshake protocol} \label{fig:TLS}
+\end{figure}
+
+% cite the generic tls handshake protocol
+\indent In figure ~\ref{fig:TLS} we can see that the entire TLS handshake protocol hinges on both the client and server computing the same sessionKey. Since both the clientRandom and serverRandom are unencrypted, the only thing that keeps the session key secret is the premaster key sent from the client encrypted using the public key in step 3 (The 3rd in the round of messages sent by the client). And in the generic TLS RSA based protocol, the server behaves differently based on whether or not the encrypted premaster secret is valid or not. We will later see how an attacker can use this information to launch a man in the middle attack.
+
+\subsubsection{A simpler example using Tencent's QQ-Browser}
+
+%cite 
+\indent In 2018, \cite{QQAttack} evaluated the security of the popular QQ browser. They found that QQ's use of textbook RSA (a generic RSA implementation from a textbook without any padding) left it vulnerable to an attack that would allow for any session to be broken by sending at most 128 separate queries to the QQ servers.\newline
+
+\begin{figure} [H]
+\centering
+\begin{tikzpicture}
+
+\node [mybox] (box1){%
+	\begin{minipage}{0.40\textwidth}
+	\begin{itemize}
+		\item client generates a 128-bit\\ 
+		AES session key using a \\
+		pseudorandom generator\\
+		\item client encrypts AES key with\\ 
+		textbook RSA, and the WUP\\
+		request in ECB mode using \\
+		the session key\\
+	\end{itemize}
+	\end{minipage}
+};
+\node[fancytitle, right=10pt] at (box1.north west) {Client};
+
+\node [mybox, right=1cm of box1.east] (box2){%
+	\begin{minipage}{0.40\textwidth}
+	\begin{itemize}
+		 \item The server decrypts the RSA-encrypted AES key itreceived from the client using its private key, thenchooses the least significant 128 bits of the plaintextto be the AES session key.\\
+		 \item The server decrypts the WUP request using the AESsession key. If the WUP request was valid,  it sends a  response  using  the decrypted  AES Session key\\
+	\end{itemize}
+	\end{minipage}
+};
+\node[fancytitle, right=10pt] at (box2.north west) {Server};
+
+\draw [->] ([yshift=-1.50cm]box1.east) -- ([yshift=2.0cm]box2.west) [text width=1cm, above] node {"WUP"};
+
+\draw [->] ([yshift=-1.8cm]box2.west) --  ([yshift=-1.8cm]box1.east)  [text width=1cm, above] node {"Valid"};
+
+\end{tikzpicture}
+\caption{QQ Server's WUP Request protocol} \label{fig:QQWUPReq}
+\end{figure}
+
+\indent Given above is a brief overview of how RSA is used in the QQ-Browser as part of its "WUP" Requests. Note that they don't use any form of padding to their RSA requests, and only use the last 128 bits of the decryption to be the session key and ignore everything else. We will exploit these properties to see if we can force the server to reveal some information about the key. \newline
+
+\indent Let $ C \equiv k^e ( \bmod n )  $  be the be the RSA (with $pk = (n,e)$)  encrypted message being sent as part of the "WUP" Request for AES key $ k $. Now look at the following transformation. \newline
+Let $k_b = k2^b$ i.e simply k left shifted by b bits. (Assuming we only take the 128 least significant bits of $k_b$)
+\begin{align*}
+C(2^{be} \bmod n) \bmod n \equiv (k^e \bmod n) (2^{be} \bmod n) \bmod n \\
+					  \equiv (k^e2^{be}) \bmod n\\
+					  \equiv (k2^b)^e \bmod n\\
+					  \equiv C_b
+\end{align*}
+
+From the transformation above, we can see that any given ciphertext $C$ can be changed by appending $2^{be} mod n$ to it. By this, we can make it seem like $k_b$ was the key sent by the client.\newline
+\indent Using the transformation from above, let us assume that an attacker that sends $C_{127}$ the encryption of $k_{127}$ (all but the highest bit zeroed out) to the server. Here the highest bit of $k_{127}$ is the lowest bit of $k$. The attacker guesses the that bit to be 0 initially and sends a corresponding EBC WUP request  with the assumed key. If the server responds to it, then the guess was correct, otherwise the attacker knows that bit to be 1. \newline
+\indent Using the method above, the attacker can decrypt all bits of the key using at most 126 more queries.\newline  
+\indent The other vulnerabilities found by the \cite{QQAttack} paper include:
+\begin{itemize}
+	\item The ability to index all the users on the site by IMEI  (International Mobile Equipment Identifier) and decrypt private information sent by them to the servers. These set of attacks were enabled by the following properties of their encryption scheme:
+	\begin{itemize}
+		\item poor pseudorandom number generation. (They used System.currentTimeMillis() which returns the current time in milliseconds since the last Unix epoch)
+		\item Use of hard-coded symmetric keys
+		\item Earlier version of RSA which used a 128 bit modulus
+	\end{itemize}
+	\item A man in the middle attacker could in the worst cases take control of a user device while updating the QQ service. More information about the specific attacks of this category can be found in section 5 of \cite{QQAttack}. 
+\end{itemize}
+
+\subsection{Bleichenbacher Attack}
+The QQ browser attack was very simple because the form of RSA in that example had no padding associated with it. Let's look at a more generalized version of the attack on ciphertexts with the $PKCS \#1$ RSA scheme.
+\subsubsection*{PKCS $\#1$ RSA Encryption} 
+\begin{center}
+\hfpagess{.30}{.30}{
+\underline{$enc((N,e), M)$}\\[1pt]
+psize $ \leftarrow |N| - |M| - 3$ \\
+pad $ \leftarrow_R \{0,1\}^{psize}$ \\
+X $ \leftarrow$ 00 $\Vert$ 02 $\Vert$ pad $\Vert$ 00 $\Vert$ M \\
+Ret $X^e \bmod n$
+}{
+\underline{$dec((N,d), C)$}\\[1pt]
+X $\leftarrow C^d \bmod n$ \\
+aa $\Vert$ bb $\Vert$ w = X \\ 
+if aa $\neq$ 0 or bb $\neq$ 02 or w $\eq$ 0 then\\
+    \myInd Ret Err \\
+pad $\Vert$ 00 $\Vert$ M = w \\
+Ret M 
+} \newline
+\end{center}
+
+\indent Given above is the basic general PKCS $\#1$ RSA scheme. As seen, it is simply a padded form of RSA. Let's call the ciphertexts whose decryptions conform to this format as PKCS conforming messages. For reference, the format is represented below in \cite{fig:PKCS}.
+
+\begin{figure} [H]
+\centering
+\begin{tikzpicture}
+
+\node (rect1) [draw,thick,minimum width=1cm,minimum height=1cm] { $00$};
+
+\node (rect2) [draw,thick,minimum width=1cm,minimum height=1cm, right = 0cm of rect1] { $02$};
+
+\node (rect3) [draw,thick,minimum width=3cm,minimum height=1cm, right = 0cm of rect2] { $pad$};
+
+\node (rect4) [draw,thick,minimum width=1cm,minimum height=1cm, right = 0cm of rect3] { $00$};
+
+\node (rect5) [draw,thick,minimum width=3cm,minimum height=1cm, right = 0cm of rect4] { $M$};
+
+\end{tikzpicture}
+\caption{PCKS Conforming messages} \label{fig:PKCS}
+\end{figure}
+
+\subsection*{The Bleichenbacher Attack}
+\indent A generalized attack similar to the QQ-browser attack was suggested by Bleichenbacher in \cite{BleichRSA} for PCKS $\# 1$. In the QQ-browser attack it was very simple to transform the cipher texts since there was no padding. \newline
+
+Let's assume for a message $M$ and RSA scheme $(pk = (n,e), sk)$. For some $s$ we want the following property. 
+\begin{align*}
+ C \equiv M^e ( \bmod n ) \\
+ C' \equiv Cs^e \bmod n \equiv (Ms)^e \bmod n 
+\end{align*}
+
+\indent As before, for any ciphertext $C$ and $s$, the server would decrypt $Ms$ instead of $M$. But in the case of PKCS, we need to ensure that the value decrypted by the server $Ms$ is PKCS conforming. (Look at the decryption function above and note that the decrypted message is checked to see if its format is PCKS conforming) \newline
+
+\indent For guessing the right s for the result to be PKCS compliant, the attacker makes use of a padding oracle. Given a ciphertext c, the oracle returns whether or not it is PCKS compliant. Luckily, we can estimate some bounds on the s to avoid brute forcing through all the combinations. \newline
+
+Let n be k bytes. Note that the decryption function of RSA has a $\bmod n$ in the end. So the largest 
+value decrypted is the largest number of k bytes. 
+
+Let some $ B = 2^{8*(k-2)}$. Recall that the first two bytes of PCKS conforming messages are set, that leaves us the combinations starting from from 2B.
+
+\begin{figure} [H]
+\centering
+\begin{tikzpicture}
+
+\node (rect1) [draw,thick,minimum width=1cm,minimum height=1cm] { $00$};
+
+\node (rect2) [draw,thick,minimum width=1cm,minimum height=1cm, right = 0cm of rect1] { $01$};
+
+\node (rect3) [draw,thick,minimum width=7cm,minimum height=1cm, right = 0cm of rect2] { $..(k-2)$ bytes$...$};
+
+\node (rect4) [draw,thick,minimum width=1cm,minimum height=1cm, below= of rect1] { $00$};
+
+\node (rect5) [draw,thick,minimum width=1cm,minimum height=1cm, right = 0cm of rect4] { $11$};
+
+\node (rect6) [draw,thick,minimum width=7cm,minimum height=1cm, right = 0cm of rect5] { $..(k-2)$ bytes $...$};
 
 
+The concrete mathematical bounds for PKCS conforming cipher texts are given below in terms of the parameters of the rsa scheme $n$ and some random $s$ following the property from above. 
+\end{tikzpicture}
+\caption{Bounds on PCKS Conforming messages} \label{fig:PKCS1}
+\end{figure}
+
+\begin{align*}
+	2B \leq Ms \bmod n < 3B \\
+	\implies r \in \mathbb{Z}, (ms - r*n) \in [2B, 3B) \\
+	\implies \frac{2B+rn}{s} \leq m < \frac{3B+rn}{s}
+\end{align*}
+
+The attack is very similar to the QQ browser attack after identifying the PCKS conforming set of ciphertexts. For a detailed look at the specific attack see \cite{BleichRSA}.
+
+\subsection{Chosen-Ciphertext (CCA) security}
+\indent It is clear from the attacks discussed in the previous sections that IND-CPA security is insufficient to capture the security of public key encryption. Here, we introduce the notion of chosen ciphertext security for public key cryptography. \newline
+
+\indent Let us reconsider the notions of CCA security from symmetric cryptography. First of them is the notion of left-or-right indistinguishability. For $\LORCCA$ security (the games are given below for reference), recall that the challenge involves the adversary making queries of form $(M_0, M_1)$ (two equal length messages) to a left-or-right oracle. In the case of chiphertext attacks, the adversary is given access to the decryption oracle as well. But queries against it are not allowed (since the game can be won by default). Therefore, $\LORCCA$ is not a useful security notion for public key encryption since the adversary can never learn anything about the challenge from decryptions. \newline
+
+\begin{center}
 \hfpagess{.15}{.15}{
 \underline{$\LORCCA1^\advA_{\SE}$}\\[1pt]
 $(\pk,\sk) \getsr \kg$\\
@@ -39,10 +288,14 @@ Ret $C$\medskip
 \underline{$\DecOracle(C)$}\\
 Ret $\bot$
 }
+\end{center}
 
+\subsubsection*{$\INDCCA$ security}
+Now we look at the notion of $\INDCCA$ security for public key cryptography. In this game, the challenger generates a public key encryption scheme $(pk, sk)$ and publishes the public key $pk$ to the adversary. The adversary has the ability to encrypt anything any number of times (since he has the public key). and can make calls to the decryption oracle on arbitrary ciphertexts. The adversary finally submits two plain texts to the challenger and receives one of them back encrypted with the public key (this is the challenge ciphertext). Finally the adversary has to guess the plain text that was encrypted. \newline
+ 
+ \indent It is easy to see that the attacks described in the previous subsections are very similar to the game described here and they are both $\INDCCA2$ attacks. $\INDCCA1$ and $\INDCCA2$ differ in the sense that, the adversary can only query the decryption oracle once in $\INDCCA1$ and an arbitrary number of times in $\INDCCA2$ (except the challenge ciphertext in both cases).
 
-
-
+\begin{center}
 \fpage{.20}{
 		\underline{$\INDCCA_\AEnc^\advA$}\\
     $(\pk,\sk) \getsr \kg$\\
@@ -62,350 +315,88 @@ Ret $\bot$
     $M \getsr \dec(\sk,C)$\\
     Ret $M$
 	}
+\end{center}
 
 \begin{align*}
   \AdvINDCCA{\AEnc}{\advA} &= 2\cdotsm\Prob{\INDCCA_\AEnc^\advA\Rightarrow\true} - 1
 %        &= \left|\Prob{\INDCCA1_\AEnc^\advA\Rightarrow\true} - \Prob{\INDCCA0_\AEnc^\advA\Rightarrow\false}\right|
 \end{align*}
 
+\subsubsection*{ElGamal CCA security}
 
-\begin{theorem*}
-Let $\RSAk$ be the RSA-based scheme using
-security parameter $k$, hash function
-$\Horacle\Colon\msgspace\rightarrow\bits^n$ modeled as a random oracle, and
-symmetric encryption scheme $\SEscheme$. Let $\advA$ be
-an $\INDCCA_{\RSAk}$-adversary making at most $q_H$ queries to
-$\Horacle$ and $q_d$ queries to its decyrption oracle. Then we give an
-$\OWF_{\RSAk}$-adversary $\advB$ and $\RORCCA_\SEscheme$-adversary
-$\advC$ such that
-\bnm
-  \AdvINDCPA{\RSAk,\Horacle}{\advA} \le
-      2\cdotsm\AdvOWF{\RSAk}{\advB} +  
-        2\cdotsm\AdvRORCCA{\SEscheme}{\advC}  \;.
-\enm
-Adversaries $\advB,\advC$ run in time that of $\advA$ plus 
-the time to perform simulate $q_H$ exponentations. 
-Adversary $\advC$ makes a single encryption query.
-\end{theorem*}
+Let's recall the ElGamal encryption scheme from chapter 21. For reference, the encryption scheme is given below. 
 
+\begin{figure}[H]
+	\center
+	\hfpages{.2}{
+		\underline{$\enc(X,M)$:}\\
+		$y \getsr \Z_{|\group|}$ \\
+		$C_1 \gets g^y$\\
+		$K \gets H(g^y || X^y)$\\
+		$C_2 \gets encr_s(K, M)$\\
+		Return $(C_1,C_2)$
+	}{
+		\underline{$\dec(x,(C_1,C_2))$:}\\
+		$K \gets H(C_1 || C_{1}^{x})$\\
+		$M \gets dec_s(K,C_2)$\\
+		Return $M$
+	}
+	\caption{The ElGamal encryption scheme.}
+	\label{fig:elgamal}
+\end{figure}
 
+For a generic ElGamal scheme with public key $pk$, $(c_1,c_2)$ is the cipher text that is sent to the decryption scheme. For $x \in Z_{|G|}$ where $G$ is a cyclic group with generator g, $pk = X = g^x$ and $sk = x$. 
 
-\hfpages{.15}{
-\underline{$\enc(X,M)$}\\
-$r \getsr \Z_{|G|}$\\
-$C_0 \gets g^r$\\
-$C_1 \gets X^r \cdot M$\\
-Ret $(C_0,C_1)$
-}{
-\underline{$\dec(x,(C_1,C_2))$}\\
-$M \gets C_2 \cdotsm C_1^{-x}$\\
-Ret $M$
-}
+\begin{center}
+\begin{align*}
+	pk = (G, q, g, h) \\
+	y \leftarrow_{R} \{1, .., q-1\} \\
+	(c_1, c_2) = (g^{y}, mg^{xy}) \\
+	c_2.(c_{1}^{sk})^{-1} = m.g^{xy}.((g^{xy})^{-1}) = m \\
+	E_{\text{elgamal}}(t) = (g^{y}, t.g^{xy}) \\
+	E_{\text{elgamal}}(m).E_{\text{elgamal}}(m') = E_{\text{elgamal}}(mm')
+\end{align*} 
+\end{center}
+\indent It is easy to see that the secrecy of message in this case hinges on being able to keep the shared secret $g^{xy}$ confidential. For a more detailed look at elGamal look at Chapter 20 of the notes. \newline
 
-\hfpages{.15}{
-\underline{$\enc(X,M)$}\\
-$r \getsr \Z_{|G|}$\\
-$C_0 \gets g^r$\\
-$K \gets H(g^r \concat X^r)$\\
-$C_1 \gets \enc_s(K,M)$\\
-Ret $(C_0,C_1)$
-}{
-\underline{$\dec(x,(C_1,C_2))$}\\
-$K \gets H(C_1\concat C_1^x)$\\
-$M \gets \dec_S(K,C_2)$\\
-Ret $M$
-}
+\indent From the results above, we can also see that the elGamal encryption scheme is visibly homomorphic in nature (i.e padding the message result in the decryption of modified seemingly valid message at the server), that should theoretically make it vulnerable to $\INDCCA$ attacks. But here we will reply on computational hardness of the cyclic group, to provide security against ciphertext attacks.
 
-\fpage{.23}{
-\underline{$\ICDH_{G,g}^\advB$}\\
-$b \getsr \bits$\\
-$x,y,z \getsr \Z_{|G|}$\\
-$Z_0 \gets g^z$\\
-$Z_1 \gets g^{xy}$\\
-$b' \getsr \advB^{\DDHoracle}(g,g^x,g^y,Z_b)$\\
-Ret $(b' = b)$\medskip
+\begin{center}
+\fpage{.20}{
+\underline{$\ICDH_{G,h}^{\beta}$}\\
+$x,y \getsr \Z_{|\group|}$\\
+$Z' \getsr \beta^\DDHoracle(g,g^x,g^y)$\\
+Ret $(Z=g^{xy})$\medskip
 
 \underline{$\DDHoracle(\hat{Y},\hat{Z})$}\\
-If $\hat{Y}^x = \hat{Z}$ then\\
-\myInd Ret 1\\
-Ret 0
+If $\hat{Y} = \hat{Z}$ then\\
+\myInd Ret $1$\\
+Ret $0$
 }
+\end{center}
+
+We've previously seen the assumption of CDH (computational diffie-hellman) which makes it computationally intractable to compute the shared secret of the scheme. i.e $g^{ab}, a,b \in \{1, ..., q-1\}$. The CDH assumption is enough for IND-CPA security since, given a ciphertext $C_1,C_2$, the adversary cannot compute the shared secret to correctly guess the plaintext message from $C_2$ .\newline
+
+\indent But CDH is not enough for IND-CCA security. As seen in the previous CCA attacks, the attacker is now able to make queries to the decryption oracle and the homomorphic nature of the ciphertexts in ElGamal is also problematic (Since the adversary can modify a given ciphertext into another valid one without having to compute the shared secret). So we'll need to add another assumption to CDH to guarantee CCA security. The new scheme is given below. \newline
+
+\indent The Strong or interactive Computational Diffie-Hellman problem has two assumptions:
+\begin{itemize}
+\item CDH (Computational Diffie-Hellman) given access to a DDH oracle: This is the same CDH assumption from before.
+\item Interactive assumption (or pairings): More information about this can be found in \cite{icdh}
+\end{itemize}
+
+There have been no other known attacks on ElGamal other than solving for CDH. So ElGamal is $\INDCCA$ secure given that the ICDH assumption holds.
 
 
-\fpage{.20}{
-		\underline{$\G_{i^*}$}\\
-    $b \getsr \bits$\\
-    $(\pk,\sk) \getsr \kg$\\
-    $i \gets 1$\\
-    $b' \getsr \advA^\EncOracle(\pk)$\\
-		Ret $b'$\medskip
+\subsection{RSA-OAEP (Optimal Asymmetric Encryption Padding)}
+In the sections about Bleichenbacher's attack and the QQ Browser attack, we've seen that both padded PKCS $\# 1$ and unpadded RSA are IND-CCA insecure. RSA-OAEP is a padded RSA encryption scheme suggested by Bellare and Rogaway in \cite{oaep}. OAEP uses a Feistel network with radom oracles to create optimal padding before RSA encryption. 
 
-    \underline{$\EncSim(M_0,M_1)$}\\
-    If $|M_0| \ne |M_1|$ then\\
-    \myInd Ret $\bot$\\
-    If $i > i^*$ then\\ 
-    \myInd $C \getsr \enc(\pk,M_0)$\\
-    Else\\
-    \myInd $C \getsr \enc(\pk,M_1)$\\
-    $i \gets i + 1$\\
-    Ret $C$
-	}
+\subsection{Exercises}
+\begin{itemize}
+\item {Exercise 1} Give an example for a $pk,sk$ ElGamal scheme such that it is not CCA secure.
+\item {Exercise 2} Show that RSA without padding is not CCA secure.
+\item {Exercise 3} Differentiate between the padding in PKCS $\# 1$ and OAEP RSA Encryption shcemes. Also explain why OAEP is resistant to the Bleichenbacher's attack.
+\end{itemize}
 
 
-
-\fpage{.20}{
-		\underline{$\advB^\EncOracle(\pk)$}\\
-    $i \gets 1$\\
-    $b' \getsr \advA^\EncSim(\pk)$\\
-		Ret $b'$\medskip
-
-    \underline{$\EncSim(M_0,M_1)$}\\
-    If $|M_0| \ne |M_1|$ then\\
-    \myInd Ret $\bot$\\
-    If $i > i^*$ then\\ 
-    \myInd $C \getsr \enc(\pk,M_1)$\\
-    Else if $i = i^*$ then\\
-    \myInd $C \gets \EncOracle(M_0,M_1)$\\
-    Else\\
-    \myInd $C \getsr \enc(\pk,M_0)$\\
-    $i \gets i + 1$\\
-    Ret $C$
-	}
-
-
-\begin{align*}
-\AdvINDCPA{\AEnc}{\advA} 
-  &= \left|\Prob{\G_0\Rightarrow1} - \Prob{\G_1\Rightarrow1}\right|\\
-  &= \left|\sum_{i=1}^q \Prob{\G_{i-1}\Rightarrow1} - \Prob{\G_i\Rightarrow1}\right| \\
-  &= \left|\sum_{i=1}^q 
-      \Prob{\INDCPA1^{\advB_i}_\AEnc\Rightarrow 1}
-      - \Prob{\INDCPA0^{\advB_i}_\AEnc\Rightarrow 1}\right|
-\end{align*}
-
-\begin{align*}
-  \AdvINDCPA{\AEnc}{\advB}
-    &= \left| \Prob{\INDCPA1^\advB\Rightarrow1} - \Prob{\INDCPA0^\advB\Rightarrow1} \right|\\
-    &= \frac{1}{q} \left|
-    \sum_{i^*=1}^q\CondProb{\INDCPA1^\advB\Rightarrow1}{j= i^*} -
-    \CondProb{\INDCPA0^\advB\Rightarrow1}{j=i^*} \right|\\
-    &= \frac{1}{q} \left|
-    \sum_{i^*=1}^q\Prob{\INDCPA1^{\advB_{i^*}}\Rightarrow1} - \Prob{\INDCPA0^{\advB_{i^*}}\Rightarrow1} \right|
-\end{align*}
-  
-
-\begin{align*}
-\AdvINDCPA{\AEnc}{\advB} 
-  &= \left|\Prob{\INDCPA0_\AEnc^\advB\Rightarrow1} -
-                      \Prob{\INDCPA1_\AEnc^\advB\Rightarrow1}\right|\\
-  &= \frac{1}{q}\sum_{i=0}^{q-1} \left|\Prob{\G_i\Rightarrow1} - \Prob{\G_{i+1}\Rightarrow1}\right|\\
-  &= \frac{1}{q}\left|\Prob{\G_0\Rightarrow1} - \Prob{\G_q\Rightarrow1}\right|
-\end{align*}
-
-
-\fpage{.20}{
-		\underline{$\OWF_{\RSAk}$}\\
-    $((N,e),(N,d))\getsr \kg(k)$\\
-    $X \getsr \Z_N^*$\\
-    $Y \gets X^e \bmod N$\\
-    $X' \getsr \advA(Y)$\\
-		Ret $(X' = X)$
-	}
-
-\bnm
-  \AdvOWFRSA{\RSAk}{\advA} = \Prob{\OWF_{\RSAk}^\advA\Rightarrow\true}
-\enm
-
-
-\begin{theorem*}
-Let $\RSAk$ be the RSA-based scheme using
-security parameter $k$, hash function
-$\Horacle\Colon\msgspace\rightarrow\bits^n$ modeled as a random oracle, and
-symmetric encryption scheme $\SEscheme$. Let $\advA$ be
-an $\INDCPA_{\RSAk}$-adversary making at most $q$ queries to
-$\Horacle$. Then we give an
-$\OWF_{\RSAk}$-adversary $\advB$ and $\INDCPA_\SEscheme$-adversary
-$\advC$ such that
-\bnm
-  \AdvINDCPA{\RSAk,\Horacle}{\advA} \le
-      2\cdotsm\AdvOWF{\RSAk}{\advB} +  
-        2\cdotsm\AdvROR{\SEscheme}{\advC}  \;.
-\enm
-Adversaries $\advB,\advC$ run in time that of $\advA$ plus 
-the time to simulate $q$ RO queries. Adversary $\advC$ makes a single encryption query.
-\end{theorem*}
-
-
-\hfpagesss{.20}{.20}{.20}{
-\underline{$\G_0$}\\
-$b \getsr \bits$\\
-$((N,e),(N,d)) \getsr \kg(k)$\\
-$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
-Ret $b'$\medskip
-
-\underline{$\EncOracle(M_0,M_1)$}\\
-$R \getsr \Z^*_N$\\
-$C_1 \gets R^e \bmod N$\\
-$K \gets \Horacle(R)$\\
-$C_2 \getsr \encSym(K,M)$\\
-Ret $(C_1,C_2)$\medskip
-
-\underline{$\Horacle(X)$}\\
-If $\TabH[X] = \bot$  then\\
-\myInd $\TabH[X] \getsr \bits^n$\\
-Ret $\TabH[X]$
-}{
-\underline{\fbox{$\G_1$}\;\;\; $\G_2$}\\
-$((N,e),(N,d)) \getsr \kg(k)$\\
-$R \getsr \Z^*_N$\\
-$C_1 \gets R^e \bmod N$\\
-$K \getsr \bits^n$\\
-$b \getsr \bits$\\
-$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
-Ret $b'$\medskip
-
-\underline{$\EncOracle(M_0,M_1)$}\\
-$C_2 \getsr \encSym(K,M)$\\
-Ret $(C_1,C_2)$\medskip
-
-\underline{$\Horacle(X)$}\\
-If $X = R$ then\\
-\myInd $\badtrue$\\
-\myInd \fbox{$\TabH[X] \gets K$}\\
-If $\TabH[X] = \bot$  then\\
-\myInd $\TabH[X] \getsr \bits^n$\\
-Ret $\TabH[X]$
-}{
-\underline{$\G_3$}\\
-$((N,e),(N,d)) \getsr \kg(k)$\\
-$R \getsr \Z^*_N$\\
-$C_1 \gets R^e \bmod N$\\
-$K \getsr \bits^n$\\
-$b \getsr \bits$\\
-$b' \getsr \advA^{\EncOracle,\Horacle}(N,e)$\\
-Ret $b'$\medskip
-
-\underline{$\EncOracle(M_0,M_1)$}\\
-%$C_2 \getsr \encSym(K,M)$\\
-$C_2 \getsr \bits^{\ctxtlen(M_0)}$\\
-Ret $(C_1,C_2)$\medskip
-
-\underline{$\Horacle(X)$}\\
-If $\TabH[X] = \bot$  then\\
-\myInd $\TabH[X] \getsr \bits^n$\\
-Ret $\TabH[X]$
-}
-
-
-
-
-\hfpages{.2}{
-		\underline{$\enc((N,e),M)$:}\\
-    $R \getsr \Z^*_N$\\
-    $C_1 \gets R^e \bmod N$\\
-    $K \gets H(R)$\\
-    $C_2 \getsr \encSym(K,M)$\\
-		Ret $(C_1,C_2)$
-  }{
-	  \underline{$\dec((N,d),(C_1,C_2))$:}\\
-    $R \gets C_1^d \bmod N$\\
-    $K \gets H(R)$\\
-    $M \gets \decSym(K,C_2)$\\
-		Ret $M$
-	}
-
-$\SEscheme = (\kgSym,\encSym,\decSym)$
-
-
-\hfpages{.15}{
-\underline{$\enc(X,M)$}\\
-$r \getsr \Z_{|G|}$\\
-$C_0 \gets g^r$\\
-$C_1 \gets X^r \cdot M$\\
-Ret $(C_0,C_1)$
-}{
-\underline{$\dec(x,(C_1,C_2))$}\\
-$M \gets C_2 \cdotsm C_1^{-x}$\\
-Ret $M$
-}
-
-
-\fpage{.20}{
-\underline{$\DDH_{G,g}^\advB$}\\
-$b \getsr \bits$\\
-$x,y,z \getsr \Z_{|G|}$\\
-$Z_0 \gets g^z$\\
-$Z_1 \gets g^{xy}$\\
-$b' \getsr \advB(g,g^x,g^y,Z_b)$\\
-Ret $(b' = b)$
-}
-
-\begin{theorem}
-Let $\AEnc$ be the El Gamal scheme over group $G$ with generator $g$. 
-Let $\advA$ be an $\INDCPA_\AEnc$-adversary. Then we give a $\DDH_{G,g}$ 
-adversary $\advB$ such that 
-\bnm
-  \AdvINDCPA{\AEnc}{\advA} \le 2\cdotsm \AdvDDH{G,g}{\advB} \;.
-\enm
-Adversary $\advB$ runs in time that of $\advA$. 
-\end{theorem}
-
-
-\fpage{.20}{
-\underline{$G_0$ \;\;\; \fbox{$G_1$}}\\
-$b \getsr \bits$\\
-$x \getsr \Z_{|G|}$\\
-$X \gets g^x$\\
-$b' \getsr \advA^\EncOracle(g,X)$\\
-Ret $(b' = b)$\medskip
-
-\underline{$\EncOracle(M_0,M_1)$}\\
-$C_1 \gets g^y$\\
-$Z \gets g^{xy}$\\
-\fbox{$z \getsr \Z_{|G|}$ \;;\; $Z \gets g^z$}\\
-$C_2 \gets Z\cdot M_b$\\
-Ret $(C_1,C_2)$
-}
-
-\fpage{.20}{
-\underline{Adversary $\advB(X,Y,Z)$}\\
-$b \getsr \bits$\\
-$b' \getsr \advA^\EncSim(g,X)$\\
-Ret $(b' = b)$\medskip
-
-\underline{$\EncSim(M_0,M_1)$}\\
-$C_1 \gets Y$\\
-$C_2 \gets Z\cdot M_b$\\
-Ret $(C_1,C_2)$
-}
-
-
-\begin{align*}
-  \AdvINDCPA{\AEnc}{\advA} 
-    &= 2\cdotsm\Prob{\INDCPA_{\AEnc}^\advA\Rightarrow\true} - 1\\
-    &= 2\cdotsm\Prob{G_0\Rightarrow\true} - 1\\
-    &= 2\cdotsm\left(\Prob{G_1\Rightarrow\true} + \AdvDDH{G,g}{\advB})\right) - 1\\
-    &= 2\cdotsm\left(\frac{1}{2}+ \AdvDDH{G,g}{\advB})\right) - 1
-\end{align*}
-
-
-
-\bnm
-J_p(a) = \left\{ \begin{array}{rl} 
-            1 & \textnormal{if $a$ is square mod $p$}\\
-            0 & \textnormal{if $a \bmod p = 0$}\\
-            -1 & \textnormal{otherwise}
-      \end{array}\right.
-\enm
-
-
-\fpage{.20}{
-\underline{Adversary $\advB(X,Y,Z)$}\\
-If $J_p(X) = 1$ or $J_p(Y) = 1$ then\\
-\myInd $s \gets 1$\\
-Else \\
-\myInd $s \gets -1$\\
-If $J_p(Z) = s$ then\\
-\myInd Ret 1
-Ret 0
-}
 

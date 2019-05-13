@@ -2,17 +2,15 @@
 \section{Block Cipher Design and Cryptanalysis}
 \label{sec:cryptanalysis}
 
-So far we've seen some theoretical ways to construct block ciphers, namely Feistel networks using round functions that are as secure are PRFs. There are other ways to build block ciphers such as the Even-Mansour~\cite{EvenMansour} construction from a single known PRP. It is basically of the form: 
-\[ E_{<K_1, K_2>}(M) = F(M \xor K_1) \xor K_2 \] 
-Here, \( K_1, K_2 \) are the keys used for Message \(M\) and \(F\) is a PRP that is known (or can be easily obtained) for the Even-Mansour encryption scheme \(E\). 
+So far we've seen some theoretical ways to construct block ciphers, namely Feistel networks using round functions that are secure PRFs. There are other ways to build block ciphers such as the Even-Mansour~\cite{EvenMansour} construction from a single known random permutation. It is basically of the form: \newline
+\[ E_{K_1, K_2}(M) = F(M \xor K_1) \xor K_2 \] 
+Here, \( K_1, K_2 \) are the keys used for Message \(M\) and \(F\) is a random permutation that is known (or can be easily obtained) for the Even-Mansour encryption scheme \(E\). 
 \par But these kinds of designs can prove to be reductive since the mechanisms to build PRFs in practice is itself unclear. One could try to use actual random functions. But this is untractable for large block sizes,  the secret key, in this case, being a random table requiring $n2^n$ bits
 (For block sizes of n, the lookup table has to have at least $2^n$ possible n-bit string values to look indistinguishable from a random function for
 a particular key). \newline
-In practice block ciphers are built using a bag of specific design principles that have been developed over the past 60 or so years in response to new cryptoanalytic techniques. It is important to note that block ciphers by themselves are just tools. Like any other tool, they must be used correctly in order for them to satisfy certain security properties that end users might care about. \newline
-For example, the identity cipher satisfies all the mathematical properties of a block cipher. But it is of no real use since it doesn't hide
-the message (in other words, it doesn't provide message confidentiality). \newline
-Another example is the one-time pad which we have proved to be perfectly secure. But under closer examination, we see that the one-time pad can easily be broken if the key is reused more than once. (Basically, if one of the messages is known under a known plain text attack, the attacker can retrieve the key) \newline
-Here, we will study two kinds of common block cipher constructions DES (Data Encryption Standard) and AES (Advanced Encryption Standard) which are used in practice and use cryptanalysis to evaluate the effectiveness of these ciphers.\newline \newline
+\indent In practice block ciphers are built using a variety of design principles that have been developed over the past 60 or so years in response to new cryptoanalytic techniques.\newline 
+\indent One example is the one-time pad which we have proved to be perfectly secure. But under closer examination, we see that the one-time pad can easily be broken if the key is reused more than once. (Basically, if one of the messages is known under a known plain text attack, the attacker can retrieve the key) \newline
+\indent Here, we will study two block cipher constructions. They are DES (Data Encryption Standard) and AES (Advanced Encryption Standard) which are widely used in practice.\newline \newline
 
 \subsection{Design of block ciphers}
 
@@ -20,19 +18,16 @@ Before delving into DES and AES, let's look at some principles that both DES and
 
 \begin{itemize}
 \item \textbf{Confusion}: An operation where the relationship between key and ciphertext is obscured. Both DES and AES achieve this via substitution.
-
 \item \textbf{Diffusion}: An operation where the influence of one plaintext bit is spread over many ciphertext bits in hopes of hiding statistical properties of the plaintext.
 \end{itemize}
 
 \subsection{DES: Data Encryption Standard}
-\par DES was developed at IBM in the 1970s with the support of the NSA. It has been the single most widely used cipher and was responsible for jump-starting the field of cryptanalysis. The precursor to DES was IBM's block cipher called Lucifer. Certain variants of Lucifer
-operated on 128-bit blocks using 128-bit keys. The National Bureau of Standards, however, asked for a block cipher that used shorter blocks 
-(64 bits) and shorter keys (56 bits). In response, the IBM team designed a block cipher that met these requirements which eventually became 
-DES. \cite{BonehShoupBook}.
+\par DES was developed at IBM in the 1970s with the support of the NSA. It has been the single most widely used cipher and was responsible for jump-starting the field of cryptanalysis. The precursor to DES was IBM's block cipher called Lucifer. For more information on variants of Lucifer and their history look at 
+\cite{BonehShoupBook}. \newline
 
-\par We will see that reducing the block size creates problems and DES is now considered insecure and should not be used. We will discuss a more secure variant of DES called Triple-DES that has been approved by NIST through to 2030 and is currently in use\cite{BonehShoupBook}. 
+\indent We will see that reducing key creates problems and DES is now considered insecure and should not be used. We will discuss a more secure variant of DES called Triple-DES that has been approved by NIST through to 2030 and is currently in use \cite{BonehShoupBook}.  \newline
 
-\begin{figure}{r}%{2.5in}
+\begin{figure}{r}
 \center
 \begin{tikzpicture}
 \begin{tikzpicture}
@@ -86,16 +81,14 @@ DES. \cite{BonehShoupBook}.
 %\newpage
 
 \paragraph{Construction of DES}
-DES uses a Feistel network construction spanning 16 rounds and a different function at each round. DES at a high level takes an input of 64 bits and permutes it in an initial permutation (ip). Afterward, the 64 bits are split into 32-bit parts, \( L_0, R_0\) which are taken as inputs into the first round of the Feistel network. The input key is 56 bits and DES uses a key schedule that expands the 56-bit key into 16, 48-bit round keys which are used in each round of DES. After all the rounds of the Feistel network, DES runs one final permutation that is the inverse of the initial permutation $ip^{-1}$ before returning the output ciphertext.
-
-
-Let $ip$ be the permutation function and $F : \{0,1\}^{64} \to \{0,1\}^{64}$ the fiestel network function. Then for any message m where (\( |m| = 64 \) bits) and key k where (\( |k| = 56 \) bits), DES can be defined as follows:
+DES uses a Feistel network construction spanning 16 rounds and a different function at each round. DES at a high level takes an input of 64 bits and permutes it in an initial permutation (ip). Afterward, the 64 bits are split into 32-bit parts, \( L_0, R_0\) which are taken as inputs into the first round of the Feistel network. The input key is 56 bits and DES uses a key schedule that expands the 56-bit key into 16 round keys which are 48 bits each and used in each round of DES. After all the rounds of the Feistel network, DES runs one final permutation that is the inverse of the initial permutation $ip^{-1}$ before returning the output ciphertext.
+\indent Let $ip$ be the permutation function and $F : \{0,1\}^{64} \to \{0,1\}^{64}$ the fiestel network function. Then for any message m where (\( |m| = 64 \) bits) and key k where (\( |k| = 56 \) bits), DES can be defined as follows:
 	\[ {E}_{DES} (m,k) = {ip}^{-1}(F({ip}(m), k)) = \cipher \] 
 
 
- For the given fiestel network function $F$, Let $f_1, f_2, ... f_{16} : \{0,1\}^{32} \to \{0,1\}^{32}$ be the specific round functions of each round of the fiestel permutation and \(k_1, k_2, .... k_16 \) be the round keys used in each round. Then the round functions in DES can be represented as follows: \newline
-\( I = L_0 || R_0 \)  and \(|L_0| = |R_0|\), in other words $L_0$ is the first 32 bits of the initial input I and $R_0$ is the remaining 32 bits  \newline
-\[\forall^{16}_{i=1} i : L_i \leftarrow R_{i-1} \] \[ R_i \leftarrow L_{i-1} \xor {f_i}(R_{i-1}, k_i) \]
+\indent For the given fiestel network function $F$, Let $f_1, f_2, ... f_{16} : \{0,1\}^{32} \to \{0,1\}^{32}$ be the specific round functions of each round of the fiestel permutation and \(k_1, k_2, .... k_16 \) be the round keys used in each round. Then the round functions in DES can be represented as follows: \newline
+\( I = L_0 || R_0 \)  and \(|L_0| = |R_0|\), in other words $L_0$ is the first 32 bits of the initial input I and $R_0$ is the remaining 32 bits.  \newline
+\[\forall i : \{ 1, ..., 16 \} L_i \leftarrow R_{i-1} \] \[ R_i \leftarrow L_{i-1} \xor {f_i}(R_{i-1}, k_i) \]
 
 
 \begin{figure}%{r}{2in}
@@ -133,9 +126,9 @@ Let $ip$ be the permutation function and $F : \{0,1\}^{64} \to \{0,1\}^{64}$ the
 \label{fig:sbox}
 \end{figure}
 
-\subsubsection*{DES round functions} Although each round of the fiestel permutation in DES uses a different round function, they follow a similar structure in using the set of auxiliary functions given below: \newline
+\paragraph{DES round functions} Although each round of the fiestel permutation in DES uses a different round function, they follow a similar structure in using the set of auxiliary functions given below. \newline
 \begin{itemize}
-  \item \textbf{Expansion function}($E$): The expansion function mainly takes the initial 32-bit input and transforms it into 48 bits by a mixture of permutation and replication of various bits.
+  \item \textbf{Expansion function }($E$): The expansion function mainly takes the initial 32-bit input and transforms it into 48 bits by a mixture of permutation and replication of various bits.
   \item \textbf{Mixing Permutation} ($P$): The mixing permutation maps a 32-bit input to a 32-bit output by mainly rearranging the bits of the input
   \item \textbf{S boxes} ($S_1, S_2 ... S_8$): S boxes are the heart of the round functions and DES uses 8 of them in each round. They act as look up tables that map 6-bit inputs to 4-bit outputs. The DES standard lists these 8 lookup tables, where each table contains 64 entries.
 \end{itemize}
@@ -143,6 +136,7 @@ Let $ip$ be the permutation function and $F : \{0,1\}^{64} \to \{0,1\}^{64}$ the
 Given these functions, for the key $k$ and input $x$, the DES round function $f(k, x)$ works as follows: \newline
 
 \lstset{basicstyle=\footnotesize, columns=fullflexible}
+\begin{center}
 \begin{lstlisting}[mathescape]
 $f(k,x): \{0,1\}^{48} X \{0,1\}^{32} \to \{0,1\}^{32}$
 $f(k,x):$
@@ -152,11 +146,12 @@ $f(k,x):$
     $s \leftarrow s_1 || s_2 || ... || s_8$
     return P(s)
 \end{lstlisting}
+\end{center}
 
-\scribenote{HW Question idea: Give a candidate round function for Feistel that only uses linear transforms and have them give an adversary that breaks the cipher.}
-\scribenote{homework question on S boxes - How does the choice of S-boxes affect DES. What happens if S boxes are the same in every round? I guess all the round functions would end up becoming the same in the fiestel - not sure about this as expansion/permutation functions could change} \newline
-\scribenote{Another homework question - Why did they choose the S-box to transform 6 bits to 4 bits? the choice seems aribitrary here on the split}
-\subsubsection*{} It is important to note that the DES round cipher is made up entirely of XORs and bit permutations. The S-boxes are the only operations that introduce non-linearity into the design. All the other operations like the expansion function and mixing permutation aim to introduce diffusion into the output ciphertext. \newline
+%\scribenote{HW Question idea: Give a candidate round function for Feistel that only uses linear transforms and have them give an adversary that breaks the cipher.}
+%\scribenote{homework question on S boxes - How does the choice of S-boxes affect DES. What happens if S boxes are the same in every round? I guess all the round functions would end up becoming the same in the fiestel - not sure about this as expansion/permutation functions could change} \newline
+%\scribenote{Another homework question - Why did they choose the S-box to transform 6 bits to 4 bits? the choice seems aribitrary here on the split}
+\indent It is important to note that the DES round cipher is made up entirely of XORs and bit permutations. The S-boxes are the only operations that introduce non-linearity into the design. All the other operations like the expansion function and mixing permutation aim to introduce diffusion into the output ciphertext. \newline
 Though S-boxes are essentially lookup tables (substitution tables) from bits of input to output. They need to follow certain design criteria for des to be secure. Some of them as given by \cite{CopersmithDES} are listed below: 
 
 \begin{itemize}
@@ -169,15 +164,15 @@ Though S-boxes are essentially lookup tables (substitution tables) from bits of 
 \item A collision (zero output difference) at the 32-bit output of the eight S-boxes is only possible for three adjacent S-boxes.
 \end{itemize}
 
-\subsubsection*{Linear Cryptanalysis} The purpose of linear cryptanalysis is to be able to approximate a given (non-linear) block cipher using a linear expression. These linear estimates of an unknown cipher can be used to develop successful attacks against the original nonlinear-cipher. We will later look at ways to construct a linear approximation of des to launch a known plaintext attack to retrieve the key. \newline
-For a given plaintext P, ciphertext C and key K, a linear expression takes the form of: \newline
+\paragraph{Linear Cryptanalysis} The purpose of linear cryptanalysis is to be able to approximate a given (non-linear) block cipher using a linear expression. These linear estimates of an unknown cipher can be used to develop successful attacks against the original nonlinear-cipher. We will later look at ways to construct a linear approximation of DES to launch a known plaintext attack to retrieve the key. \
+For a given plaintext P, ciphertext C and key K, a linear expression takes the form given below.
 
 \begin{equation}
  P[p_1, p_2 ... p_a] \xor C[c_1, c_2, ... c_b] = K[k_1, k_2 .... k_c] \label{eq:linearapprox}
 \end{equation}
 Here $p_1, p_2 ... p_a$, $c_1, c_2, ... c_b$ and $k_1, k_2 .... k_c$ denote fixed bit positions (example $p_1$ denotes the 1st position of the plaintext). \newline
 
-The probability that the equation \eqref{eq:linearapprox} holds true for a randomly chosen plaintext and its corresponding ciphertext should deviate from $\frac{1}{2}$. So the effectiveness of the equation can be captured by \( |p - \frac{1}{2}|\) where \( p = \Prob{P[p_1, p_2 ... p_a] \xor C[c_1, c_2, ... c_b] = K[k_1, k_2 .... k_c]}\). \newline
+The probability that the equation \eqref{eq:linearapprox} holds true for a randomly chosen plaintext and its corresponding ciphertext should not deviate from $\frac{1}{2}$. So the effectiveness of the equation can be captured by \( |p - \frac{1}{2}|\) where \( p = \Prob{P[p_1, p_2 ... p_a] \xor C[c_1, c_2, ... c_b] = K[k_1, k_2 .... k_c]}\). \newline
 
 Given an effective linear approximation, it is possible to determine one bit of information about the key using the following algorithm.\newline
 
@@ -223,13 +218,13 @@ from $\bits^n$ and let $C_i = E_K(M_i)$ for $i \in \{1,\ldots,q\}$. Then
 \begin{proof}
 	Let's assume \(K[S_k] = 0\), this means for \(X = \left(\{M_i[S_m]\oplus C_i[S_c]\}_{i=1}^q\right)\), so a majority of sampled values resulted in a 0. \newline
 
-	\[ E[X] = q*(\frac{1}{2} + \epsilon) \]
-	\[ U = \Maj\left(\{M_i[S_m]\oplus C_i[S_c]\}_{i=1}^q\right) \]
+	 \[ E[X] = q\cdot(\frac{1}{2} + \epsilon) \]
+	\[ U = \Maj\left(\{M_i[S_m]\oplus C_i[S_c]\}_{i=1}^q\right) \] 
 
 
     $U$ can be expressed based on $X$, $U = 0$ if $ X \le \frac{q}{2}$. We can use Chenoff bounds to bound this sum of independent random variables.\newline
 	\begin{theorem}[Chernoff bounds]
-	Let $X = \sum_{i=1}^n X_i$, all $X_i$ independent and where $X_i = 1$ with probability $p_i$ and $X_i = 0$
+	Let $X = \sum_{i=1}^n X_i$, all $X_i$ independent random variables $X_i = 1$ with probability $p_i$ and $X_i = 0$
 	with probability $1-p_i$. Let $\mu = \Ex[X]$. Then  
 	\begin{align}
   	\Prob{X \ge (1 + \delta)\mu} &\le e^{-\frac{\delta^2}{2+\delta}\mu}\\
@@ -239,7 +234,7 @@ from $\bits^n$ and let $C_i = E_K(M_i)$ for $i \in \{1,\ldots,q\}$. Then
 
 	\[ p = \Prob{U = 0} = \Prob{\Maj\left(\{M_i[S_m]\oplus C_i[S_c]\}_{i=1}^q\right)} \]
 
-	The probability of a the sampled values being 1 instead of 0 is 1-p, from chernoff bounds for \( \epsilon \geq 0 \) we get
+	The probability of the sampled values being 1 instead of 0 is 1-p, from chernoff bounds for \( \epsilon \geq 0 \) we get
 	\[ 1 - p = \Prob{X \geq \frac{q}{2}} \leq \Prob{X \geq (1+ \epsilon)(\frac{1}{2} + \epsilon)q} \leq e^{\frac{-\epsilon^2}{(2 + \epsilon)}(\frac{1}{2} + \epsilon)q}\] 
 
 	By reducing this we can get
@@ -256,14 +251,14 @@ For a given S-box \( S_a (a = 1,2 ... 8) \),
 
 \[ \Prob{[X[S_x] \xor Sbox(X)[S_y] = 0]} = \frac{1}{2} + \epsilon \]
 Since there are \( 2^6 \) possible inputs and \( 2^4 \) possible outputs to the Sbox, we'll define 
-\[ NS_{a} (\alpha, \beta) = \# \{ x | 0 \leq x \le 64 , (\xor_{s=0}^{5} x[s] \land \alpha[s]) = (\xor_{t = 0}^{3} S_a[x][t] \land \beta[t]) \}\]
+\[ NS_{a} (\alpha, \beta) = \# \{ x | 0 \leq x \le 64 , (\bigoplus_{s=0}^{5} x[s] \land \alpha[s]) = (\xor_{t = 0}^{3} S_a[x][t] \land \beta[t]) \}\]
 
-$NS_{a} (\alpha, \beta)$ essentially tries to capture the correlation of the input bits and output bits in a linear form (in the form of xors) by exploiting the probability bias based on this linear approximation. This allows estimating bits from a round function. For example $NS_{5} (16, 15) = 12$ implies that the 4th bit of \(S_5\) coincides with an XORed value of all output bits with probability \( \frac{12}{64} \)
+$NS_{a} (\alpha, \beta)$ essentially tries to capture the correlation of the input bits and output bits in a linear form (in the form of xors) by exploiting the probability bias based on this linear approximation. This allows estimating bits from a round function. For example $NS_{5} (16, 15) = 12$ implies that the 4th bit of \(S_5\) coincides with an xored value of all output bits with probability \( \frac{12}{64} \)
 
 This linear approximation can be generalized to the entire round function by taking into account the expansion function and the permutation.
 One key bit can now be recovered using the algorithm described initially.
 
-\paragraph{generalizing linear approximation to all of des} 
+\paragraph{generalizing linear approximation to all of DES} 
 Individually assessing the input/output relationship between each of the s-boxes also lets us chain them to obtain the approximation
 for the entire Feistel network. And the bias on each round can be treated as independent variables. This lets us combine the biases 
 
@@ -287,10 +282,10 @@ $p_i$ of being one and $1-p_i$ of being zero. Then
 %\enm
 
 
-\paragraph{Recovering many bits of des} 
+\paragraph{Recovering many bits of DES} 
 The basic intuition is to realize that we can build partial linear approximations of only a subset
-of the rounds using the piling up lemma. A combination of these linear approximations should enable us to recover multiple bits of des
-and brute force the rest. 16 round des breaks with \(2^{43} \)  known plaintext/ciphertext pairs.
+of the rounds using the piling up lemma. A combination of these linear approximations should enable us to recover multiple bits of DES
+and brute force the rest. 16 round DES breaks with \(2^{43} \)  known plaintext/ciphertext pairs.
 \ )
 
 Linear cryptanalysis can mainly be used to reduce the search space of keys based on the recovered bits and launch a known plaintext attack.
@@ -304,7 +299,7 @@ The aim here is to find \( \delta_m \) such that \( \delta_c \) holds for the gi
 
 In DES, Multiple of these differentials for s-boxes can be chained together like in the linear case and this lead to recovering bits of the key.
 
-\scribenote{2DES Question idea: Given a brute force attack for DES, how to build the meet-in-the-middle attack for 2DES}
+%\scribenote{2DES Question idea: Given a brute force attack for DES, how to build the meet-in-the-middle attack for 2DES}
 
 \paragraph{AES: Advanced Encryption Standard}
 
@@ -344,8 +339,6 @@ In DES, Multiple of these differentials for s-boxes can be chained together like
 \label{fig:aesDesign}
 \end{wrapfigure}
 
-
-%\scribenote{TODO: Brief notes about aes cipher}
 AES is another very popular block cipher design. However unlike DES, AES doesn't use a fiestel network. AES has lesser rounds because it encrypts all  bits at every round. (DES's round functions only encrypt half of the bits in each round). 
 
 AES consists of so-called layers. Every layer manipulates all 128 bits. Each layer constitutes of 1 of the building blocks listed below: \newline
@@ -358,6 +351,12 @@ AES consists of so-called layers. Every layer manipulates all 128 bits. Each lay
 
 AES has a byte oriented structure whereas DES make heavy use of bit permutations. The S-boxes in AES also follow a more algebraic structure (Use a 2 step mathematical transformation: Galois field inversion $+$ affine mapping). In DES, the S-boxes are simple random substitution tables as discussed previously. \newline
 
-\scribenote{TODO: Mini section about ARX ciphers}
+\subsection{Exercises}
+\begin{itemize}
+\item {Exercise 1} Give a candidate round function for Feistel network that only uses linear transforms and have give an adversary that breaks that cipher.
+\item {Exercise 2} How does the choice of S-boxes affect DES. What happens if S boxes are the same in every round? Is there some reason they choose the S-box to transform 6 bits to 4 bits and not to some from other bits to bits?
+\item {Exercise 3} Give an example of a Man in the middle attack for 2DES. And also explain if Triple DES is vulnerable to the same attack. Explain why the attack is sufficient/insufficient in both cases.
+\end{itemize}
+
 
 
