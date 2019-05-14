@@ -56,10 +56,14 @@
 
 \newtheorem{cor}[thm]{Corollary}
 \newtheorem{propo}[thm]{Proposition}
+\newtheorem{problem}[thm]{Problem}
+
 \newtheorem{defn}[thm]{Definition}
 \newtheorem{assm}[thm]{Assumption}
 \newtheorem{clm}[thm]{Claim}
 \newtheorem{rem}[thm]{Remark}
+\newtheorem{construct}[thm]{Construction}
+
 \newtheorem{exa}{Example}
 \newtheorem{fact}{Fact}
 
@@ -84,6 +88,8 @@
     {\end{sl}\end{clm}}
 \newenvironment{remark}{\begin{rem}\begin{em}}%
     {\end{em}\end{rem}}
+\newenvironment{construction}{\begin{construct}\begin{em}}%
+    {\end{em}\end{construct}}
 \newenvironment{example}{\begin{exa}\begin{em}}%
     {\end{em}\end{exa}}
 
@@ -2281,6 +2287,14 @@
 \newcommand{\IBEenc}{\textsf{enc}}
 \newcommand{\IBEdec}{\textsf{dec}}
 \newcommand{\id}{id}
+
+\newcommand{\lattice}{\mathcal{L}}
+\newcommand{\varvect}[1]{\mathbf{#1}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\svpy}{\textbf{SVP}\textnormal{-}\gamma}
+\newcommand{\gapsvpy}{\textbf{GapSVP}\textnormal{-}\gamma}
+\newcommand{\searchlwe}{\textbf{Search-LWE}_{n,q,\chi,m}}
+\newcommand{\decisionlwe}{\textbf{Decision-LWE}_{n,q,\chi,m}}
 
 
 \newcommand{\IBE}{\textsf{IBE}}
