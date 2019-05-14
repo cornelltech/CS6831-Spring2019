@@ -2,16 +2,300 @@
 \section{Lattice-based Crypto and LWE}
 \label{sec:lattices}
 
+\paragraph{Motivation.}
+Existing asymmetric encryption algorithms rely heavily on the assumption that 
+certain problems, namely prime factorization and discrete logarithms, are 
+computationally intractable to solve for sufficiently large inputs. While no 
+polynomial-time algorithm (over the number of bits in the input) is known to 
+exist for either of these two problems on a classical computer, there do exist 
+polynomial-time algorithms for both of these problems on a quantum computer, the 
+most famous of such perhaps being Shor's algorithm.
 
-Given lattice basis $\textbf{B} = [\vecb_1,\ldots,\vecb_n] \in \mathbb{Z}^n$,
-and $r \in \mathbb{Q}$, determine whether $\lambda_1(\calL(\textbf{B})) \le r$
-or $\lambda_1(\calL(\textbf{B})) > \gamma \cdot r$.
+While no physical quantum computer known to exist today contains enough qubits 
+with enough stability to actually perform Shor's algorithm on real-world sized 
+inputs, the fact that the problem is a physical or technological one rather than 
+a mathematical one is sufficient cause for concern. This provides a motivation 
+for creating an asymmetric encryption algorithm that is resistant against the 
+capabilities of quantum computers. Such algorithms may colloquially be known as 
+post-quantum cryptography, or PQC. Lattice-based cryptography provides a basis 
+for one such algorithm.
 
+\paragraph{Definitions.}
+\begin{newitemize}
+	\item
+	Given a space $\mathbb{R}^n$ and a set of vectors $\textbf{B} = 
+	\{\vecb_1,\ldots,\vecb_n\} \subset \mathbb{R}^n$ known as a \textbf{basis}, 
+	a \textbf{lattice} $\calL$ on that basis is the set of points in 
+	$\mathbb{R}^n$ that can be made by summing together integer multiples of any 
+	of the basis vectors. More formally, $\calL(\textbf{B}) = \{\vecv = 
+	\sum_{i=1}^{n}x_i\vecb_i \Colon x_i,\ldots,x_m \in \mathbb{Z}\}$.
+	
+	\begin{newitemize}
+		\item
+		For example, $\calL((0,1),(1,0))$ and $\calL((1,1),(2,1))$ are both 
+		equal to $\mathbb{Z}^2$.
+		
+		\item
+		Pedantically, the number of vectors in the basis need not equal the 
+		length of each vector, but cryptographic applications always set the two 
+		equal to each other (also known as a \textbf{full rank lattice}).
+	\end{newitemize}
+
+	\item
+	The shortest vector length in a lattice, denoted $\lambda_1(\calL)$, is the 
+	length of the nonzero vector in the lattice with the smallest magnitude 
+	(more formally, $\min_{\vecv \in \calL \setminus \{0\}}{\norm{\vecv}}$). For 
+	example, $\lambda_1(\calL((1,1),(2,1))) = 1$ despite neither basis vector 
+	having length 1, as (among others) the point (0,1) can be made by summing 
+	integer multiples of the basis vectors, and thus (0,1) exists in the 
+	lattice. The \textbf{Shortest Vector Problem (SVP-$\gamma$)} given a basis 
+	$\textbf{B}$ is to find a vector $\vecv$ whose magnitude is no more than 
+	$\gamma$ times the shortest vector length in $\calL(\textbf{B})$ (more 
+	formally, $\vecv$ such that $\norm{\vecv} \le \gamma \cdot 
+	\lambda_1(\calL(\textbf{B}))$).
+	
+	\item
+	The \textbf{Gap Shortest Vector Problem (GapSVP-$\gamma$)} given a basis 
+	$\textbf{B}$ and some distance $r \in \mathbb{R}$ is to determine whether 
+	the shortest vector length in $\calL(\textbf{B})$ is less than or equal to 
+	$r$, or whether it is greater than $\gamma r$. (If 
+	$\lambda_1(\calL(\textbf{B}))$ is in fact between these two values, then any 
+	answer is considered correct, thus making the problem easier the larger 
+	$\gamma$ is.)
+\end{newitemize}
+
+\paragraph{Computational difficulty.}
+It is somewhat trivial to show that SVP-$\gamma$ is at least as difficult as 
+GapSVP-$\gamma$, since if an SVP-$\gamma$ solution is known for a given lattice, 
+it is easy to solve GapSVP-$\gamma$ for that lattice by just comparing $r$ 
+directly with the known lattice point that has magnitude $\gamma \cdot 
+\lambda_1(\calL(\textbf{B}))$ or less.
+
+As mentioned briefly in the previous section, the difficulty of solving 
+SVP-$\gamma$ increases as $\gamma$ decreases. If $\gamma$ is allowed to be 
+$2^{kn}$ for some constant $k$, then the best known algorithm can solve 
+SVP-$\gamma$ in $O(2^{1/k})$ or polynomial time [LLL '82, Schnorr '87]. 
+Meanwhile if $\gamma$ is restricted to $n$, then the best known algorithm can 
+only solve SVP-$\gamma$ in $O(2^n)$ or exponential time [Ajtai '96, ...]. But 
+critically, this statement holds true not only for classical computers but also 
+quantum computers. Thus if a cryptosystem is built from an assumption that can 
+be reduced to SVP-$\gamma$ for large $n$, then this proves that it is at least 
+as hard to solve as SVP-$\gamma$ and it can be said to be resistant against 
+quantum algorithms.
+
+For certain vague definitions of intuitiveness, one can attempt to grasp the 
+difficulty of (Gap)SVP-$\gamma$ by noting that randomly chosen high-dimensional 
+points tend to clump together at the same magnitude and/or distance, making 
+finding one with low magnitude difficult. Additionally, if the basis vectors 
+$\vecb_i$ are of large magnitude, there is no guarantee that the actual shortest 
+vector length is anywhere near the known basis vectors or their lengths.
+\scribenote{This is just my guess but it comes from the ML classes I've taken 
+and the ``curse of dimensionality'' problem there. Is it relevant?}
+
+\paragraph{Learning with errors (LWE).}
+Bridging the gap (pun totally intended) between SVP problems and a real 
+cryptosystem is the learning with errors problem or LWE. At a very high level, 
+it is possible to reduce LWE to SVP-$\gamma$ with $\gamma = n$, making LWE-based 
+cryptosystems a suitable candidate for post-quantum cryptography. Slightly more 
+detail on this is provided in a later section.
+
+\paragraph{Terminology.}
+\begin{newitemize}
+	\item
+	Let $\vecs$ be an $n$-dimensional vector such that all entries are integers 
+	modulo $q$ (more formally, $\vecs \in \mathbb{Z}^n_q$). Call this the 
+	\textbf{secret vector}.
+
+	\item
+	Let $\textbf{A}$ be a publicly known and reusable $m \times n$ matrix such
+	that all matrix entries are also integers modulo $q$ (formally, $\textbf{A}
+	\getsr \mathbb{Z}^{m \times n}_q$).
+
+	\item
+	Let $\vece$ be an $m$-dimensional vector of integers whose entries are drawn 
+	from a discrete Gaussian distribution (formally, $\vece \getsr \chi^m$).
+	Call this the error vector or noise vector.
+
+	\item 
+	Let $\vecy$ be the publicly transmitted $m$-dimensional vector equal to 
+	$\textbf{A}\vecs + \vece$.
+
+	\item
+	Let the \textbf{search problem} be the goal of reconstructing $\vecs$ given 
+	known $\textbf{A}$ and $\vecy$. Note that this is effectively a system of
+	$m$ linear equations in $m+n$ unknowns.
+
+	\item 
+	Let the \textbf{decision problem} be the goal of distinguishing between the 
+	``real'' and ``random'' worlds given $\textbf{A}$ and a matrix $\textbf{Z}$, 
+	where $\textbf{Z} = \vecy$ in the ``real'' world and $\textbf{Z}$ is just a 
+	random vector of $m$ integers mod $q$ in the ``random'' world ($\textbf{Z} 
+	\getsr \mathbb{Z}^m_q$).
+\end{newitemize}
+
+While reducing the search problem to the decision problem is trivial, it turns 
+out that it is possible to reduce the decision problem to the search problem as 
+well (with the same $m$, $n$, $q$, and $\chi$ parameters) [BKFL '94, Regev '05, 
+Peikert '09, ...]. A proof of this latter reduction is omitted here. 
+\scribenote{I'm guessing from the "surprising" descriptor on the slides that 
+such a proof is not going to be very easy to draw up from scratch for an 
+MEng student? :(}
+
+\paragraph{Intuitions.}
+If $\vece$ were to be drawn from uniformly random integers mod $q$ (instead of 
+being drawn from an uneven distribution), $\vecs$ would be completely impossible 
+to recover. The intuition here is similar to the reasoning why the one-time pad 
+is unbreakable.
+
+If $\vece = \textbf{0}$, then the problem degenerates into $\textbf{A}\vecs = 
+\vecy$. If $m \ge n$ also, then the single unique $\vecs$ can also be exactly 
+solved for easily via row reduction.
+
+If one attempts to use row reduction despite the presence of a nonzero $\vece$, 
+then it turns out that the linear combination operations repeatedly performed on 
+every row causes the errors or noise to accumulate. This makes finding a likely 
+$\vecs$ intractable.
+\scribenote{Is the proof for this very difficult?}
+
+(The difficulty of row reduction with errors present might be thought of as 
+somewhat related to the difficulty of row reduction on a physical computer when 
+lossy floating-point values are involved. As row reduction strongly relies on 
+driving various matrix elements to exactly 0, a matrix element that ends up very 
+close to 0 may appear as the denominator of a division operation, causing other 
+values in the matrix to end up extremely large, with equally large error bars 
+that end up spreading to other non-large matrix elements.)
+\scribenote{Is this relevant or just a barely-related trivium?}
+
+\paragraph{Relation to GapSVP.}
+As hinted at earlier, it turns out it is possible to reduce both the 
+decision-LWE and search-LWE problems to that of the GapSVP problem, either with 
+a quantum algorithm [Regev '05] or with a classical algorithm (the latter as 
+long as $q \ge 2^n$) [Peikert '09]. With GapSVP conjectured to be hard for even 
+a quantum computer to solve, this demonstrates that any cryptosystem relying on 
+the hardness of decision-LWE and/or search-LWE can also be said to be 
+quantum-resistant.
+
+\paragraph{Regev's encryption scheme.}
+This is one example of an asymmetric encryption scheme that uses the hardness of 
+decision-LWE. In a nutshell, $\vecs$ as defined above is used as the secret key 
+$\textnormal{sk}$, while $\vecy$ or $\textbf{A}\vecs + \vece$ is used as the 
+public key $\textnormal{pk}$. (Also as defined earlier, matrix $\textbf{A}$ is 
+completely public and may be reused across keys.)
+
+To encrypt a single-bit message $\overline{m}$, first generate a random $m$-bit 
+string $\vecu$, then calculate $c_1 = \vecu^T\textbf{A}$ and $c_2 = 
+\vecu^T\textnormal{pk}+\overline{m}\lceil q/2 \rceil$. (Note that $c_1$ is an 
+$n$-dimensional vector of integers mod $q$, while $c_2$ is a single integer mod 
+$q$.) Now $(c_1, c_2)$ is sent to the recipient. The recipient decrypts by 
+calculating $\overline{m'} = c_2 - c_1\textbf{s}$, then recovering $\overline{m} 
+= 1$ if $\overline{m'} > q/4$ or $\overline{m} = 0$ if $\overline{m'} < q/4$.
+
+To observe the effect of the random error $\vece$ on the decryption process, 
+substitute the appropriate derivations for $c_1$ and $c_2$:
 
 \begin{align*}
-  m' &= c_2 - c_1\vecs\\
-     &= \vecu^T\textnormal{pk} + m\lceil q/2\rceil -   \vecu^T\textbf{A}\vecs \\
-     &= \vecu^T\textbf{A}\vecs + \vecu^T\vece + m\lceil q/2\rceil -   \vecu^T\textbf{A}\vecs \\
-     &= \vecu^T\vece + m\lceil q/2\rceil
+  \overline{m'}
+    &= c_2 - c_1\vecs\\
+	&= \vecu^T\textnormal{pk} + \overline{m}\lceil q/2\rceil -   
+	\vecu^T\textbf{A}\vecs \\
+	&= \vecu^T\textbf{A}\vecs + \vecu^T\vece + \overline{m}\lceil q/2\rceil -   
+	\vecu^T\textbf{A}\vecs \\
+	&= \vecu^T\vece + \overline{m}\lceil q/2\rceil
 \end{align*}
 
+The latter addend $\overline{m}\lceil q/2 \rceil$ will be either $0$ or $\lceil 
+q/2 \rceil$, so it can be identified through noise as long as $\vecu^T\vece$ is 
+small enough as to not drag $\overline{m'}$ too close to the other value. This 
+will be okay as long as $\vecu^T\vece < q/4$, so the Gaussian distribution that 
+draws $\vece$ must have a variance low enough that $\vecu^T\vece \ge q/4$ is 
+extremely unlikely to occur. (If it did occur, corruption of this bit of the 
+message on the receiver's end would result.)
+
+\paragraph{Reduction.}
+We show that Regev's encryption scheme reduces to decision-LWE by playing the 
+role of an adversary that wants to break decision-LWE. We are given $\textbf{A}$ 
+and a $m \times n$ matrix $\textbf{Z}_b$, and our goal is to distinguish whether 
+this matrix is $\textbf{Z}_1$ (i.e. $\textbf{A}\vecs + \vece$), or 
+$\textbf{Z}_0$ (a random draw from $\mathbb{Z}_q^{m \times n}$). We have access 
+to an adversary able to break Regev's encryption scheme.
+
+Now we use the provided $\textbf{Z}_b$ as the public key to encrypt some 
+arbitrary message, and we pass the ciphertext, $\textbf{A}$, and $\textbf{Z}_b$ 
+to our Regev's encryption scheme breaker. If it successfully returns our 
+message, we return $\textbf{Z}_b = \textbf{Z}_1$. If it fails, we return 
+$\textbf{Z}_b = \textbf{Z}_0$.
+
+To complete this demonstration, we must show that no adversary able to break 
+Regev's encryption scheme could possibly have done so if given a random public 
+key and a ciphertext encrypted by this random public key. To do this, we use the 
+leftover hash lemma to show that the first addend of our $c_2$, namely 
+$\vecu^T\textbf{Z}_0$, is statistically indistinguishable from random draws over 
+its domain $\mathbb{Z}_q$. As it has no relationship to $\textbf{Z}$, 
+$\textbf{A}$, or anything else, it will perfectly hide (any constant multiple 
+of) the message $\overline{m}$ that is added to it, using the same intuition as 
+the ``one-time pad'' intuition discussed on the previous page.
+\scribenote{This paragraph is nearly copied word for word from the slides and
+the lecture; I don't think I understood it too well. Is it close?}
+
+\paragraph{Practicality.}
+As is, Regev's LWE encryption scheme has non-optimal space and time 
+requirements, with a public key of size $O(\lg(q)n^2)$, a ciphertext of size 
+$O(\lg(q)n)$ per message bit, and the fact that it can only encrypt one bit at a 
+time. (If one lets $q = 2^n$ [Peikert '09], then $\lg q = n$ and the above two 
+space requirements further balloon to $O(n^3)$ and $O(n^2)$/bit respectively.) 
+\scribenote{Is using $\lg$ as a shorthand specifically for $\log_2$ (because the 
+word log is being abbreviated to 2 letters) a stupid notation or a common 
+one? I recall some texts using it all the time and other texts seemingly 
+recoiling from it.}
+
+Recent developments in this space include Ring-LWE [Lyubashevsky, Peikert, Regev 
+2010], which uses a ring of polynomials over a finite field instead of just the 
+$\mathbb{Z}_q$ group, and allows $n$ message bits to be encrypted at a time 
+instead of just 1. This was made more concrete by a later system of the name 
+NewHope-KEM [Braithwaite, 2016], which uses key sizes of around 2-4 KBytes to 
+achieve 1024 bits of security. While this is a constant factor of around 30 
+times larger than optimal, it is at least much more practical than the 
+equivalent ~1 Gbit key size that the original encryption scheme would have 
+demanded. Criticisms of this approach include that it relies on a new assumption 
+that has a less clear reduction to GapSVP than LWE does.
+\scribenote{This paragraph is also nearly copied word for word from the slides 
+and lecture, and I didn't understand it too well.}
+
+\paragraph{Exercise 1.}
+To demonstrate that the shortest vector in a lattice may have a length 
+arbitrarily smaller than the lengths of the basis vectors, give a method to 
+construct a lattice $\calL(\vecb_1, \vecb_2) \subseteq \mathbb{Z}^2$ such that 
+$\lambda_1(\calL) < N\norm{\vecb_1} \wedge \lambda_1(\calL) < N\norm{\vecb_2}$ 
+for any arbitrary positive integer $N$.
+\scribenote{Let $b_1 = (N,N)$ and $b_2 = (N+1,N)$. Then $\lambda_1(\calL) = 1$ 
+(the (1,0) vector) while $\norm{b_1} > N$ and $\norm{b_2} > N$ regardless of 
+how big $N$ is.}
+
+\paragraph{Exercise 2.}
+You are attempting to send a message to someone using Regev's encryption scheme, 
+but when your recipient constructed their public key $\textbf{A}\vecs + \vece$, 
+they drew the elements of $\vece$ uniformly from $\mathbb{Z}_q$ instead of from 
+a Gaussian. This is because they wanted their $s$ to be absolutely unrecoverable 
+instead of just computationally intractably unrecoverable. When your ciphertext 
+arrives, what difficulty will the recipient encounter in trying to decrypt it? 
+Why?
+\scribenote{The last step of the decryption process involves the equation 
+$\overline{m'} = \vecu^T\vece + \overline{m}\lceil q/2 \rceil$; normally, 
+the second addend can be distinguished between $0$ and $\lceil q/2 \rceil$ 
+because the first addend $\vecu^T\vece$ involves a Gaussian and will almost 
+always be less than $q/4$. But now, it is effectively uniformly randomly 
+distributed across all of $q$. In effect, the whole message has become 
+corrupted into random bits and is unrecoverable.}
+
+\paragraph{Exercise 3.}
+A recipient is attempting to receive messages via Regev's encryption scheme, but 
+when they constructed $\vece$, instead of drawing $m$ independent values from a 
+Gaussian distribution they drew 1 value and reused it $m$ times. (I.e. instead 
+of $\vece \getsr \chi^m$, the recipient performed $\vece \getsr \chi 
+\textbf{1}^m$.) Furthermore, their $\textbf{A}$ has $m$ and $n$ set such that 
+$m=n+1$. Give an efficient attack to recover $\vecs$ given the recipient's 
+public key.
+\scribenote{Instead of $m$ linear equations in $m+n$ unknowns, the recipient has 
+effectively created $m$ linear equations in just $1+n$ unknowns, or $m$ 
+linear equations in $m$ unknowns. This is easy to solve for via direct row 
+reduction.}
