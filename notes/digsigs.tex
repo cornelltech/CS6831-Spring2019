@@ -241,13 +241,15 @@ Ret $X^d \bmod N$
 \fpage{.22}{
 \underline{$\G_0$ \;\;\; \fbox{$\G_1$}}\\
 $((N,e),(N,d)) \getsr \kg$\\
+$X \getsr \Z_N^*$\\
+$Y \gets X^e \bmod N$\\
 $i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
 \myInd $\badtrue$\\
 \myInd \fbox{Ret $\false$}\\
-Ret $\left(\TabH[M^*] = (\sigma^*)^e \bmod N\right)$\medskip
+Ret $\left(X = \sigma^* \right)$\medskip
 
 \underline{$\HashSim(M)$}\\
 $i \gets i+1$\\
@@ -260,13 +262,15 @@ Ret $\TabH[M_i]$
 \fpage{.22}{
 \underline{$\G_2$}\\
 $((N,e),(N,d)) \getsr \kg$\\
+$X \getsr \Z_N^*$\\
+$Y \gets X^e \bmod N$\\
 $i^* \getsr [1,q]$\\
 $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
 \myInd $\badtrue$\\
 \myInd Ret $\false$\\
-Ret $\left(\TabH[M^*] = (\sigma^*)^e \bmod N\right)$\medskip
+Ret $\left(X = \sigma^*\right)$\medskip
 
 \underline{$\HashSim(M)$}\\
 $i \gets i+1$\\
@@ -284,8 +288,8 @@ Ret $\sigma^*$\medskip
 \underline{$\HashSim(M)$}\\
 If $i = i^*$ then\\
 \myInd Ret $Y$\\
-$X \getsr \Z_N^*$\\
-Ret $X$
+$Y_i \getsr \Z_N^*$\\
+Ret $Y_i$
 }
   \caption{Toy example of full-domain RSA hash signing with no signing queries.}
 \label{fig:fulldomaintoy}
@@ -374,7 +378,7 @@ Ret $\sigma_i$
 }
 \fpage{.30}{
 \underline{$\G_0$}\\
-$((N,e),(N,d) \getsr \kg$\\
+$((N,e),(N,d)) \getsr \kg$\\
 $X \getsr \Z_N^*$\\
 $Y \gets X^e \bmod N$\\
 $i^* \getsr [1,q]$\\
@@ -404,7 +408,7 @@ Ret $\sigma_i$
 }
 \fpage{.30}{
 \underline{$\G_1$}\\
-$((N,e),(N,d) \getsr \kg$\\
+$((N,e),(N,d)) \getsr \kg$\\
 $X \getsr \Z_N^*$\\
 $Y \gets X^e \bmod N$\\
 $i^* \getsr [1,q]$\\
@@ -412,9 +416,8 @@ $i \gets 0$\\
 $(M^*,\sigma^*) \getsr \advA^{\HashSim,\SignSim}((N,e))$\\
 If $(M^* \ne M_{i^*})$ then \\
 \myInd $\badtrue$\\
-\myInd $X' \gets \sigma^*$\\
-Else $X' \gets \sigma^*$\\
-Ret $(X = X')$\medskip
+\myInd Return $\false$\\
+Ret $(X = \sigma^*)$\medskip
 
 \underline{$\HashSim(M)$}\\
 $i \gets i+1$\\
@@ -432,13 +435,6 @@ If $i = i^*$ then\\
 \myInd Ret $\sigma \gets X$\\
 Ret $\sigma_i$
 }
-
-
-\begin{align*}
-  \AdvUFCMA{\DS}{\advA} &= \Prob{\G_1\Rightarrow\true}\\
-      &\le \Prob{\G_0\Rightarrow\true} + \Prob{\bad_0}\\
-      &= \AdvOWF{\RSAk}{\advB} + \Prob{\bad_0}
-\end{align*}
 
   \caption{Extension of our toy example to a full proof, simulating signing oracle points.}
 \label{fig:fulldomainsignproof}
