@@ -5,7 +5,7 @@
 % ``rewinding'' lemma used in the unforgeability proof of Schnorr signatures.
 Above, we examined several ways to build and analyze digital signature schemes.
 In this section we will examine the ways in which signatures are used to
-ensure authenticity and integrity of data on the modern internet.
+ensure authenticity and integrity of data on the modern Internet.
 
 
 
@@ -16,13 +16,13 @@ ensure authenticity and integrity of data on the modern internet.
     Scheme & Problems? & Analyses & Uses\\
     \hline
     \hline
-    RSA PKCS \#1 v1.5 & ``Bleichenbacher'' attacks & non-standard~\cite{jager2018security} & TLS, PKI, XML\\
+    RSA PKC$S$ \#1 v1.5 & ``Bleichenbacher'' attacks & non-standard~\cite{jager2018security} & TLS, PKI, XML\\
     \hline
-    RSA PSS (PKCS \#1v2) & None shown & Reduction to RSA~\cite{bellare1998pss} & No known\\
+    RSA PS$S$ (PKC$S$ \#1v2) & None shown & Reduction to RSA~\cite{bellare1998pss} & No known\\
     \hline
-    Schnorr (ECC or $\Z_q$) & Randomness fragility &  Reduction to DL~\cite{schnorr1989efficient} & Blockchain (EdDSA)~\cite{eddsa}\\
+    Schnorr (EC$C$ or $\Z_q$) & Randomness fragility &  Reduction to DL~\cite{schnorr1989efficient} & Blockchain (EdDSA)~\cite{eddsa}\\
     \hline
-    DSA (ECC or $\Z_q$) & Randomness fragility~\cite{ecdsa_ps3} & No security proof & Bitcoin, TLS, SSH\\
+    DSA (EC$C$ or $\Z_q$) & Randomness fragility~\cite{ecdsa_ps3} & No security proof & Bitcoin, TLS, SSH\\
     \hline
     \end{tabular}
     \caption{A summary of practical aspects of various signature schemes.}
@@ -35,19 +35,17 @@ ensure authenticity and integrity of data on the modern internet.
 \subsection{Public-Key Infrastructure}
 \label{sec:idprots_contd:pki}
 
-The first and most basic task in deploying any public-key cryptography is ensuring
-that public keys are, in fact, public: namely, that any party can learn any other
-party's public key. For public signature keys, this is done in practice using a
+The first and most basic task in deploying any public-key cryptography is ensuring that public keys are, in fact, public: namely, that any party can learn any other party's public key. For public signature keys, this is done in practice using a
 \emph{public-key infrastructure} (PKI).
 
 \paragraph{Certificates.} In a PKI, public keys are not distributed by themselves.
 Instead they are encapsulated in \emph{certificates}: essentially a structured
-description of the key itself as well as metadata like its owner, restrictions
+description of the key itself as well as metadata such as its owner, restrictions
 on its use, and its expiration date. Certificates are themselves signed to protect
 against person-in-the-middle attacks or malicious tampering.
 
 Certificates are the method for securely distributing public keys in a PKI. However,
-there is a seeming circularity: to verify a certificate, another public key is needed,
+there is a seeming circularity to this method: to verify a certificate, another public key is needed,
 and presumably that public key comes in its own certificate, etc. This is handled
 by having computers store a few ``root'' public keys locally. The authenticity
 of the certificate can then be verified using these stored public keys
@@ -55,13 +53,13 @@ of the certificate can then be verified using these stored public keys
 signing keys for these root public keys are controlled by certificate
 authorities (CAs). CAs are the roots of trust in the PKI
 ecosystem. Any organization that wants to use a certificate must
-submit a certificate signing request to the CA.  The CA must verify
+submit a certificate signing request to the CA.  The CA must then verify
 this request. This verification has a few steps. First, the CA verifies
 the identity of the requesting party and that they represent the organization
-they say they do. Second, if the request is for a certificate for a domain
-name, the CA must verify the requesting party owns the domain. This can be
+that they say they do. Second, if the request is for a certificate for a domain
+name, then the CA must verify that the requesting party owns the domain. This can be
 done by contacting the domain registrar or ICANN, or by having the requesting
-party insert a random challenge into the domain's DNS record. Once the CA verifies
+party insert a random challenge into the domain's DN$S$ record or to upload a challenge to a specified URL on the domain. Once the CA verifies
 ownership of the domain, it optionally performs some extended validation checks.
 These checks can include verifying the legal status of the requesting party
 (e.g., verifying it is a registered business or nonprofit), or the physical
@@ -81,21 +79,21 @@ in the Transport Layer Security (TLS) protocol. Since TLS is very complex
 we will instead explain how a certificate can be used in a simplified Diffie-Hellman
 key exchange.
 
-Imagine a two-party setting with a client C and server S.
+Consider a two-party setting with a client $C$ and server $S$.
 We will describe the standard DH key exchange for a cyclic
-group generated by $g$ as (1) C sends $g^{\sk_c}$ to S,
-(2) S sends $g^{\sk_s}$ to C, (3) C and S both compute
+group generated by $g$ as (1) $C$ sends $g^{\sk_c}$ to $S$,
+(2) $S$ sends $g^{\sk_s}$ to $C$, (3) $C$ and $S$ both compute
 $g^{\sk_c \cdot \sk_s}$ to establish a shared secret.
 
-To add authentication to this protocol it suffices for C and S
+To add authentication to this protocol, it suffices for $C$ and $S$
 to sign their public shares sent in (1) and (2), respectively.
-Then if C and S know each others' public keys they can verify
+Then if $C$ and $S$ know each others' public keys, they can verify
 the signatures before continuing with the protocol.
 
-If C and S do not know each others' public keys, they protocol
-can still be used. In addition to signing their shares, C and S
+If $C$ and $S$ do not know each others' public keys, the protocol
+can still be used. In addition to signing their shares, $C$ and $S$
 send a signed certificate containing their public keys in steps
-(1) and (2). As long as C and S both know the public key of the party
+(1) and (2). As long as $C$ and $S$ both know the public key of the party
 that generated the certificate, they can verify that the public
 key the other party sent them is correct. 
 
@@ -107,7 +105,7 @@ the client's DH share need not be signed.
 \paragraph{Revocation.} Revocation refers to the act of publicly blacklisting/invalidating
 a public key associated to some identity. Revocation can be accompanied by re-issuance of
 a new key pair for that identity. Revocation is important for two main reasons. The first
-is that signing keys are often stolen or leaked publicly. If this happens the key pair
+is that signing keys are often stolen or leaked publicly. If this happens, the key pair
 should be revoked by its owner to prevent other parties from impersonating the owner.
 The second is that like all cryptographic primitives, the security of signature schemes
 degrades as more signatures are issued. This means that to ensure unforgeability, key pairs
@@ -121,7 +119,7 @@ In practice revocation is challenging because it requires clients either to main
 or to ask CAs for the status of a certificate. The Online Certificate Status Protocol (OCSP)
 is used to enable clients to securely contact CAs about revocations. This has privacy
 implications: OCSP requests reveal a client's browsing history to the CA. These privacy issues
-can be avoided in practice using OCSP ``stapling''~\cite{...}
+can be avoided in practice using OCSP ``stapling''~\cite{deacon2007lightweight}.
 
 \paragraph{Certificate transparency.} Malicious or compromised CAs can severely damage
 security by mis-issuing certificates. However, as described above the process by which CAs
@@ -129,8 +127,8 @@ sign certificates is very opaque: no external party knows which or how many cert
 a CA signs or whether they are performing identity checks.
 
 This lack of accountability has led to security issues in the past:
-for example, in 2012 a Turkish CA accidentally issued a wildcard
-certificate for ``*.google.com'', in theory allowing the owner of the
+for example, in 2012 a DigiNotar accidentally issued a wildcard
+certificate for ``*.google.com''~\cite{diginotar2011mitm}, in theory allowing the owner of the
 secret key to eavesdrop on any connection to any Google domain on the
 internet.  If this CA's decisions were public and accountable, this
 error would have been detected almost immediately.
@@ -138,7 +136,7 @@ error would have been detected almost immediately.
 This motivates the need for mechanisms that enforce accountability
 and transparency for CAs. One such mechanism is \emph{certificate transparency},
 an experimental IETF standard which forces CAs to log the certificates they
-sign in a publicly-auditable tamper-resistant register~\cite{...}. Thus, the CA's
+sign in a publicly-auditable tamper-resistant register~\cite{laurie2013certificate}. Thus, the CA's
 decisions can be scrutinized and checked for consistency. 
 
 
