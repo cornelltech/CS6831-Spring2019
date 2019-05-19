@@ -16,13 +16,13 @@ ensure authenticity and integrity of data on the modern Internet.
     Scheme & Problems? & Analyses & Uses\\
     \hline
     \hline
-    RSA PKC$S$ \#1 v1.5 & ``Bleichenbacher'' attacks & non-standard~\cite{jager2018security} & TLS, PKI, XML\\
+    RSA PKCS \#1 v1.5 & ``Bleichenbacher'' attacks & non-standard~\cite{jager2018security} & TLS, PKI, XML\\
     \hline
-    RSA PS$S$ (PKC$S$ \#1v2) & None shown & Reduction to RSA~\cite{bellare1998pss} & No known\\
+    RSA PSS (PKCS \#1v2) & None shown & Reduction to RSA~\cite{bellare1998pss} & No known\\
     \hline
-    Schnorr (EC$C$ or $\Z_q$) & Randomness fragility &  Reduction to DL~\cite{schnorr1989efficient} & Blockchain (EdDSA)~\cite{eddsa}\\
+    Schnorr (ECC or $\Z_q$) & Randomness fragility &  Reduction to DL~\cite{schnorr1989efficient} & Blockchain (EdDSA)~\cite{eddsa}\\
     \hline
-    DSA (EC$C$ or $\Z_q$) & Randomness fragility~\cite{ecdsa_ps3} & No security proof & Bitcoin, TLS, SSH\\
+    DSA (ECC or $\Z_q$) & Randomness fragility~\cite{ecdsa_ps3} & No security proof & Bitcoin, TLS, SSH\\
     \hline
     \end{tabular}
     \caption{A summary of practical aspects of various signature schemes.}
@@ -59,7 +59,7 @@ the identity of the requesting party and that they represent the organization
 that they say they do. Second, if the request is for a certificate for a domain
 name, then the CA must verify that the requesting party owns the domain. This can be
 done by contacting the domain registrar or ICANN, or by having the requesting
-party insert a random challenge into the domain's DN$S$ record or to upload a challenge to a specified URL on the domain. Once the CA verifies
+party insert a random challenge into the domain's DNS record or to upload a challenge to a specified URL on the domain. Once the CA verifies
 ownership of the domain, it optionally performs some extended validation checks.
 These checks can include verifying the legal status of the requesting party
 (e.g., verifying it is a registered business or nonprofit), or the physical
