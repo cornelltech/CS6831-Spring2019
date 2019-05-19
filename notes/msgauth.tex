@@ -61,7 +61,7 @@ We say that the advantage of the $\UFCMA_\MA$ adversary $\advA$ is
   \AdvUFCMA{\MA}{\advA} = \Prob{\UFCMA_\MA^\advA\Rightarrow 1}.
 \enm
 
-We can also ask for a stronger notion of unforgeability, where the adversary is able to make more than just one attempt at forging a tag. This is formalized in the $\SUFCMA_\MA$ game in Figure~\ref{fig:game-ufcma}. In this game, the adversary gets access to a $\VerOracle$ oracle as well as a $\TagOracle$ oracle, and it wins if it makes a query to $\VerOracle$ with a valid message and tag pair. Another difference with $\SUFCMA_\MA$ is that an adversary can win with a message that was queried to $\TagOracle$, as long as the tag it gives is different  We define the advantage of a $\SUFCMA_\MA$ adversary $\advA$ as 
+We can also ask for a stronger notion of unforgeability, where the adversary is able to make more than just one attempt at forging a tag. This is formalized in the $\SUFCMA_\MA$ game in Figure~\ref{fig:game-ufcma}. In this game, the adversary gets access to a $\VerOracle$ oracle as well as a $\TagOracle$ oracle, and it wins if it makes a query to $\VerOracle$ with a valid message and tag pair. Another difference with $\SUFCMA_\MA$ is that an adversary can win with a message that was queried to $\TagOracle$, as long as the tag it gives is different. We define the advantage of a $\SUFCMA_\MA$ adversary $\advA$ as 
 \bnm
   \AdvSUFCMA{\MA}{\advA} = \Prob{\SUFCMA_\MA^\advA\Rightarrow 1} 
 \enm
@@ -76,8 +76,7 @@ Let $\MA = (\kg,\mtag,\ver)$ be a message authentication scheme. Then for any $\
 \end{theorem}
 
 In general, it is not true that $\UFCMA_\MA$ security of a message authentication scheme $\MA$ implies $\SUFCMA_\MA$ security. However, if $\MA$ is a $\MAC$, then $\UFCMA_\MA$ security is equivalent to $\SUFCMA_\MA$. This proof is left to~\ref{exercise:mac-sufcma-ufcma}.
-
-We can construct a $\UFCMA_\MA$ secure MAC using a good PRF. The associated MAC for a PRF $F$ is
+We can construct a $\UFCMA_\MA$ secure MAC using a good PRF. The associated MAC for a PRF $F$ is:
 \bnm
 \mtag(K,M)=F(K,M)\myInd\myInd \ver(K,M,T)=(F(K,M)=T)
 \enm
@@ -144,12 +143,12 @@ Adversary $\advB$ runs in time that of $\advA$ and makes $q+1$ queries.
 	\bnm
 	\Prob{\G1}\leq \frac{1}{2^n}
 	\enm
-	Note that 
+	The advantage of $\UFCMA_F$-adversary $\advA$ is bounded as
 	\begin{align*}
 	\Prob{\G0}=(\Prob{\G0}-\Prob{\G1}) + \Prob{\G1}\\
 	\AdvUFCMA{F}{\advA}\leq (\Prob{\G0}-\Prob{\G1}) + \frac{1}{2^n}\;.
 	\end{align*}
-	Next, we claim that 
+	Next, we claim that the advantage of $\PRF_F$-adversary $\advB$ is
 	\bnm
 	\AdvPRF{F}{\advB} =\Prob{\PRF1_F^\advB\Rightarrow 1}-\Prob{\PRF0_F^\advB\Rightarrow 1} = \Prob{\G0}-\Prob{\G1}\;.
 	\enm
@@ -167,7 +166,16 @@ Adversary $\advB$ runs in time that of $\advA$ and makes $q+1$ queries.
 	\enm
 \end{proof}
 
-To actually build a variable input length PRF that can be used as a MAC, we can start with the CBC construction we have seen before. \scribenote{Add picture of CBC construction.} To modify the construction to be deterministic, we can set the IV to be $0^n$. The output will be the final block of the ciphertext. However, the CBC-MAC construction doesn't satisfy $\UFCMA$ security. The adversary below gets advantage 
+To actually build a variable input length PRF that can be used as a MAC, we can start with the CBC construction we have seen before (Fig~\ref{fig:cbc-mac}).
+
+\begin{figure}
+\centering
+        \includegraphics[width=0.5\textwidth]{notes/cbc-mac.png}
+    \caption{CBC-MAC construction.}
+    \label{fig:cbc-mac}
+\end{figure}
+
+To modify the construction to be deterministic, we can set the IV to be $0^n$. The output will be the final block of the ciphertext. However, the CBC-MAC construction doesn't satisfy $\UFCMA$ security. The adversary below gets advantage 
 \bnm
 \AdvUFCMA{\CBC\text{-}\MAC}{\advA}=1\;.
 \enm
